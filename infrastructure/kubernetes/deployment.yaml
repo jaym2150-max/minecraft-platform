@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minecraft-platform
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: minecraft-platform
+  template:
+    metadata:
+      labels:
+        app: minecraft-platform
+    spec:
+      containers:
+        - name: api
+          image: minecraft-platform/api:latest
+          ports:
+            - containerPort: 4000

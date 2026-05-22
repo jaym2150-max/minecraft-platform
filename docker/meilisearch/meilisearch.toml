@@ -1,0 +1,7 @@
+# Minecraft Platform — Meilisearch Configuration
+env = "development"
+master_key = "mcp_master_key"
+http_addr = "0.0.0.0:7700"
+db_path = "/meili_data"
+dump_dir = "/meili_data/dumps"
+snapshot_dir = "/meili_data/snapshots"

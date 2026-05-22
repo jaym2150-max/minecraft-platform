@@ -1,0 +1,17 @@
+{
+  "name": "@mcp/eslint-config",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./index.js",
+  "scripts": {
+    "lint": "echo 'lint ok'",
+    "clean": "echo 'clean ok'"
+  },
+  "dependencies": {
+    "eslint-config-next": "^15.1.0",
+    "eslint-config-prettier": "^9.1.0"
+  },
+  "peerDependencies": {
+    "eslint": "^8 || ^9"
+  }
+}

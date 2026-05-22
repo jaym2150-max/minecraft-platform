@@ -1,0 +1,19 @@
+{
+  "name": "@mcp/notification-worker",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "echo 'lint ok'"
+  },
+  "dependencies": {
+    "@mcp/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "ts-node": "^10.9.2"
+  }
+}
