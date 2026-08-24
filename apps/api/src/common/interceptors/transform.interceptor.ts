@@ -13,12 +13,20 @@ export interface ApiResponse<T> {
 export class TransformInterceptor<T> implements NestInterceptor<T, ApiResponse<T>> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<ApiResponse<T>> {
     return next.handle().pipe(
-      map((data) => ({
-        statusCode: context.switchToHttp().getResponse().statusCode,
-        message: 'Success',
-        data,
-        timestamp: new Date().toISOString(),
-      })),
+      map((data) => {
+        // Controllers that already return { statusCode, message, data, timestamp }
+        // should not be double-wrapped. Detect this by checking for the presence
+        // of a `statusCode` property on the returned object.
+        if (data && typeof data === 'object' && 'statusCode' in data && 'data' in data) {
+          return data;
+        }
+        return {
+          statusCode: context.switchToHttp().getResponse().statusCode,
+          message: 'Success',
+          data,
+          timestamp: new Date().toISOString(),
+        };
+      }),
     );
   }
 }

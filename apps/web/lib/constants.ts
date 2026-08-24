@@ -1,11 +1,9 @@
 export const APP_NAME = 'Minecraft Platform';
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-
 export const ROUTES = {
   HOME: '/',
   MODS: '/mods',
-  MOD_DETAIL: (slug: string) => `/mods/${slug}`,
+  MOD_DETAIL: (slug: string) => `/mod/${slug}`,
   USER: (username: string) => `/user/${username}`,
   DASHBOARD: '/dashboard',
   DASHBOARD_PROJECTS: '/dashboard/projects',

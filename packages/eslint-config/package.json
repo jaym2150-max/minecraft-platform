@@ -4,10 +4,11 @@
   "private": true,
   "main": "./index.js",
   "scripts": {
-    "lint": "echo 'lint ok'",
+    "lint": "eslint index.js",
     "clean": "echo 'clean ok'"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "eslint-config-next": "^15.1.0",
     "eslint-config-prettier": "^9.1.0"
   },

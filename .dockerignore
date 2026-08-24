@@ -1,0 +1,78 @@
+# Root .dockerignore for the monorepo build context used by all
+# `services/*` and `apps/api`/`apps/web` Dockerfiles that bake from `.`.
+#
+# C36 (AUDIT.md): the build context previously shipped `node_modules`,
+# `.git`, Dockerfiles themselves, *.md, tests, and editor cruft into every
+# image build. That made `docker compose build` slow, bloated the image
+# cache layers, and risked leaking the `*.md` design notes / `AUDIT.md` /
+# `prompt.md` into published images. Excluding them keeps the context lean
+# and the published image free of in-tree design notes.
+
+# Version control
+.git
+.gitignore
+
+# Dependency manifests that are re-installed inside the image
+node_modules
+**/node_modules
+
+# Build outputs & caches
+.next
+dist
+.turbo
+out
+build
+*.tsbuildinfo
+coverage
+.nyc_output
+
+# Editor / OS cruft
+.vscode
+.idea
+.cursor
+.DS_Store
+
+# Documentation & markdown (do NOT bake design notes / audit content
+# into published images — they describe the repo, not the runtime).
+docs
+docs-site/docs
+**/*.md
+LICENSE
+directorytree.md
+AUDIT.md
+prompt.md
+todo.md
+
+# Tests & test fixtures (the unit/integration suites are CI-only)
+**/__tests__
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/vitest.config.ts
+**/jest.config.js
+
+# Dockerfiles themselves and compose configs (the build context should not
+# recursively include every compose file / Dockerfile of every service).
+Dockerfile
+docker-compose*.yml
+services/**/Dockerfile
+
+# Local env files & secrets — never bake into the image
+.env
+.env.*
+**/.env
+**/.env.*
+*.backup
+*.bak
+
+# Logs & runtime artifacts
+*.log
+api.err
+api.log
+**/*.log
+
+# Misc APM / tooling artifacts not needed at runtime
+.husky
+.github
+.turbo

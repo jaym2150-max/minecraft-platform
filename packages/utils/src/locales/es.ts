@@ -1,0 +1,18 @@
+export default {
+  'home.hero.title1': 'ENCUENTRA TU',
+  'home.hero.title2': 'PRÓXIMO MOD',
+  'home.hero.subtitle': 'El hogar de los mods, modpacks y plugins de Minecraft. Una búsqueda, todos los loaders, todas las versiones.',
+  'home.search.placeholder': 'Buscar mods, modpacks, plugins...',
+  'home.search.cta': 'BUSCAR',
+  'home.ticker.label': 'EN VIVO',
+  'home.motw.badge': 'MOD DE LA SEMANA',
+  'home.versionfilter.title': '¿JUEGAS UNA VERSIÓN ESPECÍFICA?',
+  'home.categories.browseAll': 'VER TODO',
+  'home.trending.title': 'MODS EN TENDENCIA',
+  'home.trending.subtitle': 'Los más descargados de la semana — actualizado cada hora',
+  'home.collections.title': 'COLECCIONES DESTACADAS',
+  'home.authors.title': 'MEJORES AUTORES DE LA SEMANA',
+  'home.random.button': 'SORPRENDEME',
+  'home.newsletter.title': 'LOS MEJORES MODS. CADA VIERNES.',
+  'home.discord.join': 'UNIRSE AL SERVIDOR',
+} as Record<string, string>;

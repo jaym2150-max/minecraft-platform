@@ -59,11 +59,62 @@ export function truncate(text: string, maxLength: number): string {
   return text.slice(0, maxLength).trimEnd() + '...';
 }
 
+/**
+ * Cryptographically-secure random ID. Used for nonces, OAuth state, CSRF
+ * tokens, and any value that must not be predictable to an attacker.
+ *
+ * C43 (AUDIT.md): the previous implementation fell back to `Math.random()`
+ * when `crypto.getRandomValues` was unavailable, which would have silently
+ * shipped an insecure token (Math.random is a small-period PRNG; guessing
+ * the next token from a few observations is trivial). We now throw instead
+ * — Node 20 and modern browsers always provide `crypto.getRandomValues`,
+ * so reaching the throw means a misconfigured environment the caller needs
+ * to know about, NOT a value to round-trip to the network. Also removed
+ * the modulo bias: the previous `% chars.length` skewed the char
+ * distribution because 256 is not divisible by 36. We now resample any
+ * byte >= the nearest multiple of `chars.length` so every char is
+ * uniformly distributed.
+ */
 export function randomId(length = 16): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const charsLen = chars.length;
+  // `Crypto` is the type of `globalThis.crypto` / `crypto` in Node 19+.
+  type CryptoLike = { getRandomValues<T extends ArrayBufferView>(arr: T): T };
+  const w: typeof globalThis & { crypto?: CryptoLike } = globalThis;
+  const c: CryptoLike | null =
+    typeof w.crypto !== 'undefined' && typeof w.crypto.getRandomValues === 'function'
+      ? w.crypto
+      : null;
+  if (!c) {
+    throw new Error(
+      'randomId: crypto.getRandomValues is unavailable — refusing to generate an insecure ID. Ensure Node >= 19 or a secure-context browser.',
+    );
+  }
+  return randomIdWith(c, length, chars, charsLen);
+}
+
+function randomIdWith(
+  c: { getRandomValues<T extends ArrayBufferView>(arr: T): T },
+  length: number,
+  chars: string,
+  charsLen: number,
+): string {
+  // Uniform-sample: reject bytes >= 252 (the nearest multiple of charsLen
+  // below 256 for a 36-char alphabet). Cost is negligible; the resample
+  // distribution is uniform.
+  const maxByte = Math.floor(256 / charsLen) * charsLen;
   let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  let buf = new Uint8Array(length);
+  let pos = 0;
+  while (pos < length) {
+    c.getRandomValues(buf);
+    for (let i = 0; i < buf.length && pos < length; i++) {
+      const b = buf[i];
+      if (b < maxByte) {
+        result += chars.charAt(b % charsLen);
+        pos++;
+      }
+    }
   }
   return result;
 }

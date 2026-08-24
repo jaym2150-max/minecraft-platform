@@ -4,15 +4,31 @@
   "private": true,
   "main": "./index.ts",
   "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./components/*": "./components/*",
+    "./components/button": "./components/button.tsx",
+    "./components/input": "./components/input.tsx",
+    "./components/label": "./components/label.tsx",
+    "./components/card": "./components/card.tsx",
+    "./components/badge": "./components/badge.tsx",
+    "./components/avatar": "./components/avatar.tsx",
+    "./components/switch": "./components/switch.tsx",
+    "./components/dialog": "./components/dialog.tsx",
+    "./components/textarea": "./components/textarea.tsx",
+    "./package.json": "./package.json"
+  },
   "scripts": {
-    "lint": "echo 'lint ok'",
+    "lint": "tsc --noEmit",
     "clean": "echo 'clean ok'"
   },
   "dependencies": {
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.6.0",
+    "@radix-ui/react-slot": "^1.1.0",
     "class-variance-authority": "^0.7.1",
-    "lucide-react": "^0.460.0"
+    "clsx": "^2.1.1",
+    "dotenv": "^17.4.2",
+    "lucide-react": "^0.460.0",
+    "tailwind-merge": "^2.6.0"
   },
   "peerDependencies": {
     "react": "^19.0.0",

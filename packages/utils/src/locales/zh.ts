@@ -1,0 +1,18 @@
+export default {
+  'home.hero.title1': '找到你的',
+  'home.hero.title2': '下一个模组',
+  'home.hero.subtitle': 'Minecraft 模组、整合包和插件的家园。一次搜索，支持所有加载器和所有版本。',
+  'home.search.placeholder': '搜索模组、整合包、插件...',
+  'home.search.cta': '搜索',
+  'home.ticker.label': '实时',
+  'home.motw.badge': '本周模组',
+  'home.versionfilter.title': '在玩特定版本？',
+  'home.categories.browseAll': '浏览全部',
+  'home.trending.title': '热门模组',
+  'home.trending.subtitle': '每周下载最多 — 每小时更新',
+  'home.collections.title': '精选合集',
+  'home.authors.title': '本周最佳作者',
+  'home.random.button': '试试手气',
+  'home.newsletter.title': '最好的模组。每周五。',
+  'home.discord.join': '加入服务器',
+} as Record<string, string>;

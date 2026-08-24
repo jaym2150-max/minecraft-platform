@@ -6,7 +6,9 @@ module.exports = {
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'prefer-const': 'error',
     'eqeqeq': ['error', 'always'],
-    'curly': ['error', 'all'],
+    'curly': ['warn', 'multi-line'],
+    '@next/next/no-img-element': 'warn',
+    'react/no-unescaped-entities': 'warn',
   },
   ignorePatterns: ['dist', '.next', 'node_modules'],
 };

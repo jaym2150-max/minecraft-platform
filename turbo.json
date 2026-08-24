@@ -1,7 +1,8 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["**/.env.*local", ".env.example"],
-  "pipeline": {
+  "concurrency": "12",
+  "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "dist/**", "!.next/cache/**"]
@@ -10,6 +11,24 @@
       "cache": false,
       "persistent": true
     },
+    "@mcp/virus-scanner#dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "@mcp/virus-scanner#build": {
+      "dependsOn": ["^build"]
+    },
+    "@mcp/upload-worker#dev": { "cache": false, "persistent": true, "dependsOn": ["^build"] },
+    "@mcp/upload-worker#build": { "dependsOn": ["^build"] },
+    "@mcp/image-processor#dev": { "cache": false, "persistent": true, "dependsOn": ["^build"] },
+    "@mcp/image-processor#build": { "dependsOn": ["^build"] },
+    "@mcp/search-indexer#dev": { "cache": false, "persistent": true, "dependsOn": ["^build"] },
+    "@mcp/search-indexer#build": { "dependsOn": ["^build"] },
+    "@mcp/analytics-worker#dev": { "cache": false, "persistent": true, "dependsOn": ["^build"] },
+    "@mcp/analytics-worker#build": { "dependsOn": ["^build"] },
+    "@mcp/notification-worker#dev": { "cache": false, "persistent": true, "dependsOn": ["^build"] },
+    "@mcp/notification-worker#build": { "dependsOn": ["^build"] },
     "lint": {
       "dependsOn": ["^build"]
     },

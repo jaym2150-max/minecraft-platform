@@ -15,7 +15,7 @@
     "test": "turbo test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "clean": "turbo clean && rm -rf node_modules",
+    "clean": "turbo clean && node -e \"require('fs').rmSync('node_modules',{recursive:true,force:true})\"",
     "db:generate": "pnpm --filter @mcp/api db:generate",
     "db:push": "pnpm --filter @mcp/api db:push",
     "db:migrate": "pnpm --filter @mcp/api db:migrate",
@@ -23,14 +23,15 @@
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:build": "docker compose build",
+    "scan:dev": "pnpm --filter @mcp/virus-scanner dev",
     "prepare": "husky"
   },
   "devDependencies": {
-    "turbo": "^2.3.0",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
     "prettier": "^3.4.1",
     "prettier-plugin-tailwindcss": "^0.6.9",
+    "turbo": "^2.3.0",
     "typescript": "^5.6.3"
   },
   "lint-staged": {
@@ -41,5 +42,8 @@
     "*.{json,md,yaml,yml}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
   }
 }

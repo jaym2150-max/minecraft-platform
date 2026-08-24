@@ -1,0 +1,11 @@
+name = "minecraft-platform-api"
+main = "worker.ts"
+compatibility_date = "2024-12-01"
+
+[vars]
+API_ORIGIN = "https://api.minecraftplatform.com"
+RATE_LIMIT_PER_MIN = "100"
+ALLOWED_ORIGINS = "https://minecraftplatform.com,https://admin.minecraftplatform.com"
+
+[observability]
+enabled = true

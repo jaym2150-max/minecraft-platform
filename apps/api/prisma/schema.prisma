@@ -29,6 +29,13 @@ enum VersionStatus {
   REJECTED
 }
 
+enum ScanStatus {
+  PENDING
+  CLEAN
+  INFECTED
+  ERROR
+}
+
 enum LoaderType {
   FABRIC
   FORGE
@@ -46,6 +53,20 @@ enum ReportStatus {
   DISMISSED
 }
 
+enum ProjectType {
+  MOD
+  MODPACK
+  RESOURCE_PACK
+  SHADER
+  DATA_PACK
+  PLUGIN
+}
+
+enum GalleryItemType {
+  IMAGE
+  VIDEO
+}
+
 enum TeamRole {
   OWNER
   ADMIN
@@ -53,8 +74,72 @@ enum TeamRole {
   CONTRIBUTOR
 }
 
+enum NotificationType {
+  PROJECT_UPDATE
+  VERSION_RELEASE
+  REVIEW
+  COMMENT
+  FOLLOW
+  TEAM_INVITE
+  MODERATION
+  PAYOUT
+  SYSTEM
+}
+
+enum ThreadType {
+  PROJECT_REPORT
+  USER_REPORT
+  VERSION_REPORT
+  MODERATION
+  DMCA
+  APPEAL
+  DIRECT_MESSAGE
+  TEAM_INVITE
+}
+
+enum LicenseType {
+  PERMISSIVE
+  COPYLEFT
+  PROPRIETARY
+  PUBLIC_DOMAIN
+  UNKNOWN
+}
+
+enum ApiKeyScope {
+  READ
+  WRITE
+  DELETE
+  USER_READ
+  USER_WRITE
+  PROJECT_READ
+  PROJECT_WRITE
+  VERSION_READ
+  VERSION_WRITE
+  ANALYTICS_READ
+  ADMIN
+}
+
+enum CreatorTier {
+  FREE
+  CREATOR
+  PRO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum RateLimitTier {
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
 model User {
-  id             String    @id @default(uuid()) @db.Uuid
+  id             String    @id @default(uuid())
   username       String    @unique
   displayName    String?
   email          String    @unique
@@ -63,6 +148,10 @@ model User {
   avatarUrl      String?
   bio            String?
   role           UserRole  @default(USER)
+  creatorTier    CreatorTier @default(FREE)
+  banned         Boolean   @default(false)
+  bannedReason   String?
+  stripeCustomerId String?
   githubId       String?
   discordId      String?
   lastLoginAt    DateTime?
@@ -72,20 +161,41 @@ model User {
   // Relations
   projects       Project[]
   comments       Comment[]
+  reviews        Review[]
+  follows        Follow[]
   notifications  Notification[]
   teamMembers    TeamMember[]
-  reports        Report[]       @relation("ReportedUser")
-  reportsMade    Report[]       @relation("Reporter")
+  reports Report[] @relation("ReportedUser")
+  reportsMade Report[] @relation("Reporter")
+  sessions Session[]
+  oauthConsentCodes OAuthConsentCode[]
+  twoFactorSecret TwoFactorSecret?
+  passwordResetTokens PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  apiKeys ApiKey[]
+  collections Collection[]
+  threadMessages ThreadMessage[]
+  threadParticipants ThreadParticipant[]
+  reportedInThreads Thread[] @relation("ThreadSubject")
+  initiatedThreads Thread[] @relation("ThreadInitiator")
+  donationsMade    Donation[] @relation("DonatedBy")
+  donationsReceived Donation[] @relation("DonatedTo")
+  earningLedger    EarningLedger[]
+  payouts          Payout[]
+  payoutAccount    PayoutAccount?
+  subscription     Subscription?
+  followers        UserFollow[] @relation("Follower")
+  following        UserFollow[] @relation("Followed")
 
   @@map("users")
 }
 
 model Project {
-  id             String        @id @default(uuid()) @db.Uuid
+  id             String        @id @default(uuid())
   title          String
   slug           String        @unique
-  description    String        @db.Text
-  body           String?       @db.Text
+  description    String
+  body           String?
   iconUrl        String?
   coverUrl       String?
   sourceUrl      String?
@@ -93,42 +203,156 @@ model Project {
   wikiUrl        String?
   downloads      Int           @default(0)
   views          Int           @default(0)
+  promotedUntil  DateTime?
   status         ProjectStatus @default(DRAFT)
   featured       Boolean       @default(false)
   clientSide     Boolean       @default(true)
   serverSide     Boolean       @default(true)
-  authorId       String        @db.Uuid
-  categoryId     String?       @db.Uuid
+  projectType    ProjectType   @default(MOD)
+  authorId       String
+  categoryId     String?
+  licenseId      String?
+  ratingAverage  Float?        @default(0)
+  ratingCount    Int           @default(0)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
   // Relations
   author         User              @relation(fields: [authorId], references: [id])
   category       Category?         @relation(fields: [categoryId], references: [id])
+  license        License?          @relation(fields: [licenseId], references: [id])
   versions       ProjectVersion[]
   dependencies   Dependency[]     @relation("DependentProject")
   dependenciesBy Dependency[]     @relation("RequiredProject")
   comments       Comment[]
   teamMembers    TeamMember[]
   loaders        Loader[]
+  teams          Team[]       @relation("ProjectTeams")
+  reviews        Review[]
+  follows        Follow[]
+
+  notifications  Notification[]
+  collectionProjects CollectionProject[]
+  galleryImages GalleryImage[]
+  donations      Donation[]
+  promotion      PromotedProject?
 
   @@index([slug])
   @@index([status])
   @@index([authorId])
   @@index([categoryId])
+  @@index([projectType, status])
+  @@index([licenseId])
   @@map("projects")
 }
 
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  title     String?
+  body      String?
+  userId    String
+  projectId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@unique([userId, projectId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("reviews")
+}
+
+model ApiKey {
+  id        String    @id @default(uuid())
+  name      String
+  keyHash   String    @unique
+  lastChars String
+  userId    String
+  scopes    ApiKeyScope[] @default([READ])
+  ipAllowlist String[] @default([])
+  rateLimitTier RateLimitTier @default(BASIC)
+  lastUsedAt DateTime?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([keyHash])
+  @@map("api_keys")
+}
+
+model Collection {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  iconUrl     String?
+  isPublic    Boolean  @default(true)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projects CollectionProject[]
+
+  @@index([userId])
+  @@index([isPublic])
+  @@map("collections")
+}
+
+model CollectionProject {
+  id           String   @id @default(uuid())
+  collectionId String
+  projectId    String
+  notes        String?
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, projectId])
+  @@index([collectionId])
+  @@index([projectId])
+  @@map("collection_projects")
+}
+
+model GalleryImage {
+  id          String          @id @default(uuid())
+  type        GalleryItemType @default(IMAGE)
+  url         String
+  thumbnailUrl String?
+  alt         String?
+  width       Int?
+  height      Int?
+  order       Int             @default(0)
+  projectId   String
+  createdAt   DateTime        @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([projectId, order])
+  @@map("gallery_images")
+}
+
 model ProjectVersion {
-  id          String        @id @default(uuid()) @db.Uuid
+  id          String        @id @default(uuid())
   version     String
-  changelog   String?       @db.Text
+  changelog   String?
   fileUrl     String
   fileSize    Int
   hash        String
+  hashSha1    String?
+  hashSha512  String?
+  filename    String?
   downloads   Int           @default(0)
   status      VersionStatus @default(DRAFT)
-  projectId   String        @db.Uuid
+  scanStatus  ScanStatus?   @default(PENDING)
+  projectId   String
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -140,11 +364,14 @@ model ProjectVersion {
   @@unique([projectId, version])
   @@index([projectId])
   @@index([status])
+  @@index([hash])
+  @@index([hashSha1])
+  @@index([hashSha512])
   @@map("project_versions")
 }
 
 model Category {
-  id          String    @id @default(uuid()) @db.Uuid
+  id          String    @id @default(uuid())
   name        String    @unique
   slug        String    @unique
   description String?
@@ -159,11 +386,11 @@ model Category {
 }
 
 model Loader {
-  id        String   @id @default(uuid()) @db.Uuid
+  id        String   @id @default(uuid())
   type      LoaderType
-  version   String?
-  projectId String   @db.Uuid
-  versionId String   @db.Uuid
+  versionString   String?
+  projectId String
+  versionId String
   createdAt DateTime @default(now())
 
   project   Project         @relation(fields: [projectId], references: [id])
@@ -171,11 +398,14 @@ model Loader {
 
   @@index([projectId])
   @@index([versionId])
+  @@index([type])
+  @@index([versionString])
+  @@index([type, versionString])
   @@map("loaders")
 }
 
 model MinecraftVersion {
-  id      String @id @default(uuid()) @db.Uuid
+  id      String @id @default(uuid())
   version String @unique
   type    String @default("release")
   stable  Boolean @default(true)
@@ -184,12 +414,12 @@ model MinecraftVersion {
 }
 
 model Dependency {
-  id           String @id @default(uuid()) @db.Uuid
-  dependentId  String @db.Uuid
-  requiredId   String @db.Uuid
-  versionId    String @db.Uuid
-  required     Boolean @default(true)
-  optional     Boolean @default(false)
+  id           String @id @default(uuid())
+  dependentId  String
+  requiredId   String
+  versionId    String
+  isRequired     Boolean @default(true)
+  isOptional     Boolean @default(false)
   createdAt    DateTime @default(now())
 
   dependent    Project         @relation("DependentProject", fields: [dependentId], references: [id])
@@ -202,16 +432,16 @@ model Dependency {
 }
 
 model Comment {
-  id        String   @id @default(uuid()) @db.Uuid
-  content   String   @db.Text
-  authorId  String   @db.Uuid
-  projectId String   @db.Uuid
-  parentId  String?  @db.Uuid
+  id        String   @id @default(uuid())
+  content   String
+  authorId String
+  projectId String
+  parentId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  author     User      @relation(fields: [authorId], references: [id])
-  project    Project   @relation(fields: [projectId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
   parent     Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
   replies    Comment[] @relation("CommentReplies")
 
@@ -220,54 +450,90 @@ model Comment {
   @@map("comments")
 }
 
-model Notification {
-  id        String   @id @default(uuid()) @db.Uuid
-  type      String
-  title     String
-  body      String?  @db.Text
-  read      Boolean  @default(false)
-  userId    String   @db.Uuid
+model Follow {
+  id        String   @id @default(uuid())
+  userId    String
+  projectId String
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@unique([userId, projectId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("follows")
+}
+
+model UserFollow {
+  id        String   @id @default(uuid())
+  followerId String
+  followedId String
+  createdAt DateTime @default(now())
+
+  follower User @relation("Follower", fields: [followerId], references: [id])
+  followed User @relation("Followed", fields: [followedId], references: [id])
+
+  @@unique([followerId, followedId])
+  @@index([followerId])
+  @@index([followedId])
+  @@map("user_follows")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  type      NotificationType
+  title     String
+  body      String?
+  link      String?
+  read      Boolean  @default(false)
+  userId    String
+  projectId String?
+  createdAt DateTime @default(now())
+
+  user           User    @relation(fields: [userId], references: [id])
+  project        Project? @relation(fields: [projectId], references: [id])
 
   @@index([userId, read])
+  @@index([userId, createdAt])
   @@map("notifications")
 }
 
 model Team {
-  id          String   @id @default(uuid()) @db.Uuid
+  id          String   @id @default(uuid())
   name        String
   description String?
-  projectId   String   @unique @db.Uuid
+  projectId   String   @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  project     Project      @relation(fields: [projectId], references: [id])
+  project     Project      @relation("ProjectTeams", fields: [projectId], references: [id])
   members     TeamMember[]
 
   @@map("teams")
 }
 
 model TeamMember {
-  id        String   @id @default(uuid()) @db.Uuid
+  id        String   @id @default(uuid())
   role      TeamRole @default(CONTRIBUTOR)
-  userId    String   @db.Uuid
-  teamId    String   @db.Uuid
+  userId    String
+  teamId    String
+  projectId String
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
   team Team @relation(fields: [teamId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
 
   @@unique([userId, teamId])
   @@map("team_members")
 }
 
 model Download {
-  id        String   @id @default(uuid()) @db.Uuid
-  projectId String   @db.Uuid
-  versionId String   @db.Uuid
-  userId    String?  @db.Uuid
+  id        String   @id @default(uuid())
+  projectId String
+  versionId String
+  userId    String?
   ip        String?
   userAgent String?
   createdAt DateTime @default(now())
@@ -279,20 +545,324 @@ model Download {
 }
 
 model Report {
-  id          String       @id @default(uuid()) @db.Uuid
-  reason      String
-  description String?      @db.Text
-  status      ReportStatus @default(PENDING)
-  reporterId  String       @db.Uuid
-  reportedId  String       @db.Uuid
-  projectId   String?      @db.Uuid
-  createdAt   DateTime     @default(now())
-  resolvedAt  DateTime?
-  resolvedBy  String?      @db.Uuid
+  id String @id @default(uuid())
+  reason String
+  description String?
+  status ReportStatus @default(PENDING)
+  reporterId String
+  reportedId String
+  projectId String?
+  createdAt DateTime @default(now())
+  resolvedAt DateTime?
+  resolvedBy String?
 
-  reporter User  @relation("Reporter", fields: [reporterId], references: [id])
-  reported User  @relation("ReportedUser", fields: [reportedId], references: [id])
+  reporter User @relation("Reporter", fields: [reporterId], references: [id])
+  reported User @relation("ReportedUser", fields: [reportedId], references: [id])
 
   @@index([status])
   @@map("reports")
+}
+
+model Session {
+  id String @id @default(uuid())
+  userId String
+  // Hash of the access-token jti. Used by JwtStrategy to confirm the session
+  // backing an incoming JWT still exists (revocation + expiry enforcement).
+  tokenHash String @unique
+  // Hash of the refresh-token jti. A session owns exactly one refresh token at
+  // a time; rotation replaces this hash while keeping the same Session row so
+  // logout / revoke / ban can kill both tokens by deleting the row.
+  refreshTokenHash String?
+  // Hash of the PREVIOUS refresh-token jti, kept for exactly one rotation
+  // window so a replayed (stolen-then-rotated) refresh token is detectable:
+  // if a presented hash matches this, the legitimate user already rotated
+  // past it, so the presented token is a replay. We then revoke the entire
+  // session family (all of that user's sessions) — the standard refresh-
+  // token-theft recovery. Cleared at the same time as refreshTokenHash moves
+  // to its next value, so only one prior hash is retained per session.
+  previousRefreshTokenHash String?
+  device String?
+  browser String?
+  os String?
+  ip String?
+  lastActiveAt DateTime @default(now())
+  // Access-token session expiry — drives JwtStrategy's session check.
+  expiresAt DateTime
+  // Refresh-token lifetime. The session can mint a new access token only while
+  // this is still in the future; after it lapses the user must re-authenticate.
+  refreshExpiresAt DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([refreshTokenHash])
+  @@index([previousRefreshTokenHash])
+  @@map("sessions")
+}
+
+/// Short-lived, single-use authorization code issued by the OAuth callback
+/// and exchanged by the web app for a Set-Cookie + opaque user payload via
+/// POST /auth/oauth/exchange. The code-swap pattern keeps the JWT out of the
+/// URL/referrer/logs.
+model OAuthConsentCode {
+  id         String   @id @default(uuid())
+  codeHash   String   @unique
+  userId     String
+  callbackUrl String?
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@map("oauth_consent_codes")
+}
+
+model TwoFactorSecret {
+  id String @id @default(uuid())
+  userId String @unique
+  secret String
+  verified Boolean @default(false)
+  backupCodes String[]
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("two_factor_secrets")
+}
+
+model SubscriptionPlan {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  tier      CreatorTier
+  price     Int      // in cents
+  interval  String   @default("month") // month | year
+  description String?
+  features  String[] // JSON array of feature descriptions
+  popular   Boolean  @default(false)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id              String             @id @default(uuid())
+  userId          String             @unique
+  planId          String
+  stripeSubscriptionId String?       @unique
+  stripePriceId   String?
+  status          SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd   Boolean        @default(false)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  user User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model Donation {
+  id        String   @id @default(uuid())
+  amount    Int      // in cents
+  message   String?
+  anonymous Boolean  @default(false)
+  donorId   String
+  recipientId String
+  projectId String?
+  stripePaymentIntentId String? @unique
+  createdAt DateTime @default(now())
+
+  donor     User     @relation("DonatedBy", fields: [donorId], references: [id])
+  recipient User     @relation("DonatedTo", fields: [recipientId], references: [id])
+  project   Project? @relation(fields: [projectId], references: [id])
+
+  @@index([recipientId])
+  @@index([donorId])
+  @@index([createdAt])
+  @@map("donations")
+}
+
+model PromotedProject {
+  id        String   @id @default(uuid())
+  projectId String   @unique
+  startsAt  DateTime @default(now())
+  endsAt    DateTime
+  active    Boolean  @default(true)
+  stripePaymentIntentId String?
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([endsAt])
+  @@index([active, endsAt])
+  @@map("promoted_projects")
+}
+
+model PasswordResetToken {
+  id String @id @default(uuid())
+  userId String
+  tokenHash String @unique
+  tokenPrefixHash String @unique
+  expiresAt DateTime
+  used Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([used, expiresAt])
+  @@map("password_reset_tokens")
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  tokenPrefixHash String @unique
+  email     String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([used, expiresAt])
+  @@map("email_verification_tokens")
+}
+
+model License {
+  id          String      @id @default(uuid())
+  shortId     String      @unique
+  name        String
+  type        LicenseType @default(UNKNOWN)
+  url         String?
+  description String?
+  body        String?     @db.Text
+  featured    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  projects Project[]
+
+  @@index([type])
+  @@map("licenses")
+}
+
+model Thread {
+  id              String     @id @default(uuid())
+  type            ThreadType
+  subjectId       String?
+  subjectType     String?
+  initiatorId     String
+  title           String
+  status          String     @default("open")
+  lastMessageAt   DateTime   @default(now())
+  closedAt        DateTime?
+  closedById      String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  initiator  User              @relation("ThreadInitiator", fields: [initiatorId], references: [id])
+  subject    User?             @relation("ThreadSubject", fields: [subjectId], references: [id], map: "Thread_subjectId_fkey")
+  messages   ThreadMessage[]
+  participants ThreadParticipant[]
+
+  @@index([type, status])
+  @@index([subjectId, subjectType])
+  @@index([lastMessageAt])
+  @@map("threads")
+}
+
+model ThreadParticipant {
+  id           String   @id @default(uuid())
+  threadId     String
+  userId       String
+  joinedAt     DateTime @default(now())
+  lastReadAt   DateTime?
+  role         String   @default("participant")
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, userId])
+  @@index([userId])
+  @@map("thread_participants")
+}
+
+model ThreadMessage {
+  id        String   @id @default(uuid())
+  threadId  String
+  authorId  String
+  body      String   @db.Text
+  hidden    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id])
+
+  @@index([threadId, createdAt])
+  @@map("thread_messages")
+}
+// -------------------------------------------------------------
+// Creator earnings & payouts
+// -------------------------------------------------------------
+
+/// Per-download credit accrual. One row per credited download event
+/// (written by the analytics pipeline, idempotent on (userId, downloadId)).
+model EarningLedger {
+  id           String   @id @default(uuid())
+  userId       String
+  amountPoints Int
+  projectId    String?
+  downloadId   String?  @unique
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("earning_ledger")
+}
+
+/// A withdrawal request / transfer to the creator's Stripe account.
+model Payout {
+  id              String      @id @default(uuid())
+  userId          String
+  amountCents     Int
+  status          String      @default("PENDING") // PENDING | PROCESSING | COMPLETED | FAILED
+  stripeTransferId String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("payouts")
+}
+
+/// One Stripe Express account per user (created lazily on first payout setup).
+model PayoutAccount {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  stripeAccountId String
+  payoutsEnabled  Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payout_accounts")
 }

@@ -1,19 +1,341 @@
+# infrastructure/kubernetes/deployment.yaml
+#
+# Consolidated Kubernetes manifest restored for C14 (AUDIT.md).
+# Applies under namespace `minecraft-platform` (created by 00-namespace.yaml;
+# this file also declares it so it is self-contained when applied alone).
+#
+# Image tags: placeholders `mcp/api:latest` and `mcp/web:latest`. The deploy
+# workflow (.github/workflows/deploy.yml) substitutes the real tag at build
+# time before `kubectl apply`. Workers are intentionally NOT deployed here —
+# they ship as their own Services and are managed by the same CI when their
+# manifests are added; see AUDIT C13 for the worker Dockerfiles.
+#
+# Apply with:
+#   kubectl apply -f infrastructure/kubernetes/deployment.yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: minecraft-platform
+  labels:
+    name: minecraft-platform
+    env: production
+
+# ---------------------------------------------------------------------------
+# Secrets (Opaque). Real values are NOT committed and the Secret itself is
+# NOT created by this manifest — running `kubectl apply -f deployment.yaml`
+# would otherwise overwrite any real Secret created out-of-band via
+# ExternalSecrets / `kubectl create secret` / sealed-secrets with the
+# placeholder values below. Create the Secret separately (see
+# 01-secrets.yaml.template, rendered and populated by your secrets workflow)
+# before applying this Deployment manifest.
+# ---------------------------------------------------------------------------
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: minecraft-platform
+  name: api
+  namespace: minecraft-platform
+  labels:
+    app: api
+    app.kubernetes.io/name: api
+    app.kubernetes.io/part-of: minecraft-platform
 spec:
-  replicas: 3
+  replicas: 2
+  revisionHistoryLimit: 5
   selector:
     matchLabels:
-      app: minecraft-platform
+      app: api
   template:
     metadata:
       labels:
-        app: minecraft-platform
+        app: api
     spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1000
       containers:
         - name: api
-          image: minecraft-platform/api:latest
+          image: mcp/api:latest
+          imagePullPolicy: Always
           ports:
-            - containerPort: 4000
+            - name: http
+              containerPort: 4000
+          envFrom:
+            - secretRef:
+                name: mcp-secrets
+            - configMapRef:
+                name: api-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: minecraft-platform
+  labels:
+    app: api
+spec:
+  type: ClusterIP
+  selector:
+    app: api
+  ports:
+    - name: http
+      port: 4000
+      targetPort: http
+      protocol: TCP
+
+# ---------------------------------------------------------------------------
+# Web Deployment (@mcp/web)
+# ---------------------------------------------------------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: minecraft-platform
+  labels:
+    app: web
+    app.kubernetes.io/name: web
+    app.kubernetes.io/part-of: minecraft-platform
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1000
+      containers:
+        - name: web
+          image: mcp/web:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3003
+          envFrom:
+            - configMapRef:
+                name: web-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: next-cache
+              mountPath: /app/apps/web/.next/cache
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: next-cache
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: minecraft-platform
+  labels:
+    app: web
+spec:
+  type: ClusterIP
+  selector:
+    app: web
+  ports:
+    - name: http
+      port: 3003
+      targetPort: http
+      protocol: TCP
+
+# ---------------------------------------------------------------------------
+# Ingress — nginx class. API on /api/v1, web on /.
+# Hosts are placeholders; substitute real domains via Kustomize overlays or
+# templating in the deploy pipeline.
+# ---------------------------------------------------------------------------
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minecraft-platform
+  namespace: minecraft-platform
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.example.com
+      http:
+        paths:
+          - path: /api/v1
+            pathType: Prefix
+            backend:
+              service:
+                name: api
+                port:
+                  name: http
+    - host: app.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  name: http
+
+# ---------------------------------------------------------------------------
+# HorizontalPodAutoscalers — scale 2–10 on 70% CPU.
+# ---------------------------------------------------------------------------
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api
+  namespace: minecraft-platform
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web
+  namespace: minecraft-platform
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+# ---------------------------------------------------------------------------
+# PodDisruptionBudgets — keep at least one pod available during voluntary
+# disruptions (node drains, cluster autoscaler).
+# ---------------------------------------------------------------------------
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api
+  namespace: minecraft-platform
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: web
+  namespace: minecraft-platform
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: web
+
+# ---------------------------------------------------------------------------
+# NetworkPolicy — deny-all ingress namespace-wide (defense in depth).
+# A follow-up allow-web-to-api policy should be layered on top; this default
+# denies every pod in the namespace so only explicit allow-lists take effect.
+# ---------------------------------------------------------------------------
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: minecraft-platform
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress

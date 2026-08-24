@@ -29,6 +29,15 @@ export interface RegisterData {
 
 export interface AuthResponse {
   user: AuthUser;
-  token: string;
-  refreshToken: string;
+}
+
+/**
+ * Optional fields the auth provider surface may expose when authenticating
+ * via a transport that returns tokens in the body (eg. a test harness). The
+ * browser-based flow keeps both tokens in httpOnly cookies and never surfaces
+ * them to JS, so production callers MUST NOT rely on these being set.
+ */
+export interface AuthResponseWithTokens extends AuthResponse {
+  token?: string;
+  refreshToken?: string;
 }
