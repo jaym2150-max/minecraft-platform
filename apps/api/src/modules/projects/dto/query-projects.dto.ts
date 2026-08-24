@@ -6,15 +6,14 @@ import { ProjectStatus } from '@prisma/client';
 /**
  * Split a querystring value (CSV string or already-array) into a trimmed,
  * de-duplicated string[]. Powers the Modrinth-style multi-select facet sidebar.
+ *
+ * NOTE: class-transformer >= 0.3 passes a params OBJECT ({ value, key, obj })
+ * to @Transform callbacks, NOT the raw value — so destructure `value` here.
  */
-function toArray(value: unknown): string[] {
+function toArray({ value }: { value: unknown }): string[] {
   if (value === undefined || value === null || value === '') return [];
-  if (Array.isArray(value)) {
-    return Array.from(new Set(value.map((v) => String(v).trim()).filter(Boolean)));
-  }
-  return Array.from(
-    new Set(String(value).split(',').map((s) => s.trim()).filter(Boolean)),
-  );
+  const raw = Array.isArray(value) ? value : String(value).split(',');
+  return Array.from(new Set(raw.map((v) => String(v).trim()).filter(Boolean)));
 }
 
 /**
