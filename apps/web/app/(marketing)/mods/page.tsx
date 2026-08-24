@@ -454,8 +454,8 @@ export default function BrowsePage() {
   );
 }
 
-// Re-export for type-specific SEO landing pages (/modpacks, /shaders, /plugins)
-export { BrowsePageContent };
+// NOTE: Next.js page files may only export `default` + route config —
+// do NOT re-export internal components from this file.
 
 /**
  * Compare two Minecraft version strings semver-style ("1.20.1" > "1.20").
