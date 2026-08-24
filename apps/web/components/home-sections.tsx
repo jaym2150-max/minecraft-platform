@@ -157,17 +157,18 @@ export function RandomModButton() {
 /* ────────────────────────  AUTHOR SPOTLIGHTS  ──────────────────────── */
 
 export function AuthorSpotlights() {
-  const { data: authors = [] } = useQuery({
+  interface AuthorAgg { username: string; downloads: number; count: number; icon?: string; top?: string }
+  const { data: authors = [] } = useQuery<AuthorAgg[]>({
     queryKey: ['home', 'top-authors'],
-    queryFn: async () => {
+    queryFn: async (): Promise<AuthorAgg[]> => {
       const res: any = await sdk.listProjects({ sort: 'downloads', limit: 30 });
       const projects = Array.isArray(res?.data) ? res.data : [];
       // aggregate by author
-      const map = new Map<string, { username: string; downloads: number; count: number; icon?: string; top?: string }>();
+      const map = new Map<string, AuthorAgg>();
       for (const p of projects) {
         const name = p.author?.username;
         if (!name) continue;
-        const cur = map.get(name) ?? { username: name, downloads: 0, count: 0, top: p.slug };
+        const cur: AuthorAgg = map.get(name) ?? { username: name, downloads: 0, count: 0, top: p.slug };
         cur.downloads += p.downloads ?? 0;
         cur.count += 1;
         cur.icon = cur.icon ?? p.iconUrl;
@@ -223,7 +224,24 @@ export function AuthorSpotlights() {
 export function CommunityBand() {
   const [email, setEmail] = useState('');
   const [done, setDone] = useState(false);
+  const [error, setError] = useState(false);
   const discordUrl = process.env.NEXT_PUBLIC_DISCORD_URL ?? '#';
+
+  const subscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.includes('@')) return;
+    try {
+      const res = await fetch('/api/v1/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) setDone(true);
+      else setError(true);
+    } catch {
+      setError(true);
+    }
+  };
 
   return (
     <section className="relative overflow-hidden border-y border-zinc-800 bg-[#0e0e10] py-12">
@@ -247,16 +265,13 @@ export function CommunityBand() {
           ) : (
             <form
               className="mt-5 flex max-w-md gap-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (email.includes('@')) setDone(true);
-              }}
+              onSubmit={subscribe}
             >
               <input
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setError(false); }}
                 placeholder="you@example.com"
                 className="h-[46px] min-w-0 flex-1 rounded-[10px] border border-zinc-800 bg-zinc-900 px-4 text-sm text-white placeholder:text-zinc-600 focus:border-[#ff6a1a]/50 focus:outline-none focus:ring-4 focus:ring-[#ff6a1a]/10"
               />
@@ -264,6 +279,9 @@ export function CommunityBand() {
                 SUBSCRIBE
               </Button>
             </form>
+          )}
+          {error && !done && (
+            <p className="mt-2 text-xs text-red-400">Something went wrong — please try again.</p>
           )}
         </div>
 

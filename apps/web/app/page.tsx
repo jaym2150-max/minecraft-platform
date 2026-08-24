@@ -317,7 +317,7 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              {collections.map((c) => (
+              {collections.map((c: any) => (
                 <Link key={c.id} href={`/collections/${c.id}`} className="group overflow-hidden rounded-[14px] border border-border bg-card hover:border-border transition-colors">
                   {/* Cover image */}
                   <div className="relative h-36 w-full overflow-hidden bg-muted">

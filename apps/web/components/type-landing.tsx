@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ProjectType } from '@mcp/types';
 
-export function TypeLandingPage({ type }: { type: ProjectType }) {
+export function TypeLandingPage({ type }: { type: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 

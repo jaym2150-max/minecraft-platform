@@ -106,7 +106,7 @@ const SAMPLE_PROJECTS = [
     title: 'Just Enough Items (JEI)',
     slug: 'jei',
     description: 'View items and recipes in a clean, searchable interface.',
-    body: 'JEI is a物品和配方查看器 for Minecraft. It provides an easy way to view items, blocks, and recipes in-game.',
+    body: 'JEI is a recipe and item viewer for Minecraft. It provides an easy way to view items, blocks, and recipes in-game.',
     downloads: 15100000,
     views: 62000000,
     status: ProjectStatus.PUBLISHED,

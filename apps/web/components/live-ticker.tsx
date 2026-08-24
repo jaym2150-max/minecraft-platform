@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
-import { RefreshCw, Download, PackageUpdate, UserPlus, MessageSquare, Star } from 'lucide-react';
+import { RefreshCw, Download, PackagePlus, UserPlus, MessageSquare, Star } from 'lucide-react';
 import { sdk } from '@/services/api';
 
 interface ActivityEvent {
@@ -73,7 +73,7 @@ export function LiveTicker() {
   if (events.length === 0) return null;
 
   const KIND_META = {
-    update: { icon: PackageUpdate, color: 'text-emerald-400', label: 'UPDATE' },
+    update: { icon: PackagePlus, color: 'text-emerald-400', label: 'UPDATE' },
     new: { icon: Star, color: 'text-amber-400', label: 'NEW' },
     author: { icon: UserPlus, color: 'text-sky-400', label: 'AUTHOR' },
     comment: { icon: MessageSquare, color: 'text-zinc-400', label: 'COMMENT' },

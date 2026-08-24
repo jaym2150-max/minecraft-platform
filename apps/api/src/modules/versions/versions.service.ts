@@ -458,7 +458,18 @@ export class VersionsService {
 
     const hashedIp = ip ? crypto.createHash('sha256').update(ip).digest('hex') : null;
 
-    await this.prisma.$transaction([
+    // Resolve the project author for the creator-points accrual (outside the
+    // transaction: a missed credit must never block or fail a download).
+    const projectAuthor = await this.prisma.project.findUnique({
+      where: { id: version.projectId },
+      select: { authorId: true },
+    });
+
+    const ops: [
+      Prisma.PrismaPromise<{ downloads: number }>,
+      Prisma.PrismaPromise<{ downloads: number }>,
+      Prisma.PrismaPromise<{ id: string }>,
+    ] = [
       this.prisma.projectVersion.update({
         where: { id },
         data: { downloads: { increment: 1 } },
@@ -476,7 +487,25 @@ export class VersionsService {
           userId,
         },
       }),
-    ]);
+    ];
+
+    const [, , download] = await this.prisma.$transaction(ops);
+
+    // Creator points accrual — fire-and-forget so payout accounting can never
+    // degrade the download path. Idempotent via the unique downloadId.
+    if (projectAuthor?.authorId && download?.id) {
+      const REWARD_POINTS_PER_DOWNLOAD = 10;
+      this.prisma.earningLedger
+        .create({
+          data: {
+            userId: projectAuthor.authorId,
+            amountPoints: REWARD_POINTS_PER_DOWNLOAD,
+            projectId: version.projectId,
+            downloadId: download.id,
+          },
+        })
+        .catch((err) => this.logger.warn(`Earning accrual failed: ${err.message}`));
+    }
 
     this.analyticsQueue.add('download', { projectId: version.projectId, versionId: id, userId }).catch((err) =>
       this.logger.warn(`Failed to enqueue analytics: ${err.message}`),

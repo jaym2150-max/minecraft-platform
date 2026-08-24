@@ -39,13 +39,25 @@ export function SearchAutocomplete({ className = '', placeholder = 'Search mods,
     queryKey: ['search-suggest', debounced],
     queryFn: async () => {
       if (debounced.trim().length < 2) return [];
-      const res: any = await sdk.listProjects({ search: debounced.trim(), limit: 6 });
-      const data = Array.isArray(res?.data) ? res.data : [];
-      return data.map((p: any) => ({
-        id: p.id, slug: p.slug, title: p.title, description: p.description,
-        iconUrl: p.iconUrl, downloads: p.downloads ?? 0,
-        projectType: p.projectType, author: p.author,
-      }));
+      // Meilisearch-backed /search — typo-tolerant, ~5ms, ranked by relevance
+      try {
+        const res: any = await sdk.search(debounced.trim(), { limit: 6 });
+        const data = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        return data.slice(0, 6).map((p: any) => ({
+          id: p.id, slug: p.slug, title: p.title, description: p.description,
+          iconUrl: p.iconUrl, downloads: p.downloads ?? 0,
+          projectType: p.projectType, author: p.author,
+        }));
+      } catch {
+        // Fallback to the SQL-backed listing if Meilisearch is unavailable
+        const res: any = await sdk.listProjects({ search: debounced.trim(), limit: 6 });
+        const data = Array.isArray(res?.data) ? res.data : [];
+        return data.map((p: any) => ({
+          id: p.id, slug: p.slug, title: p.title, description: p.description,
+          iconUrl: p.iconUrl, downloads: p.downloads ?? 0,
+          projectType: p.projectType, author: p.author,
+        }));
+      }
     },
     enabled: debounced.trim().length >= 2,
     staleTime: 30_000,

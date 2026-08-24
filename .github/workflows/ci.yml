@@ -72,6 +72,9 @@ jobs:
       # App ESLint runs separately via `pnpm lint` below.
       - name: Typecheck packages & services
         run: pnpm --filter "./packages/*" --filter "./services/*" run lint
+      # Typecheck the web app (Next.js) — catches TS errors ESLint misses.
+      - name: Typecheck web app
+        run: pnpm --filter @mcp/web exec tsc --noEmit
       - run: pnpm lint
       - run: pnpm --filter @mcp/web test
       - run: pnpm --filter @mcp/api db:generate

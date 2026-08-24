@@ -28,9 +28,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     }));
-    const userRoutes: MetadataRoute.Sitemap = Array.from(
-      new Set(projects.map((p: any) => p.author?.username).filter(Boolean)),
-    ).map((username: string) => ({
+    const usernames = Array.from(
+      new Set(projects.map((p: any) => p.author?.username).filter((u: unknown): u is string => typeof u === 'string')),
+    );
+    const userRoutes: MetadataRoute.Sitemap = usernames.map((username) => ({
       url: `${siteUrl}/user/${username}`,
       changeFrequency: 'daily' as const,
       priority: 0.4,

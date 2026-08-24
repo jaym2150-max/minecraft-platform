@@ -866,3 +866,13 @@ model PayoutAccount {
 
   @@map("payout_accounts")
 }
+
+/// Newsletter subscriber (weekly digest opt-in).
+model NewsletterSubscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  source    String   @default("homepage")
+  createdAt DateTime @default(now())
+
+  @@map("newsletter_subscribers")
+}
