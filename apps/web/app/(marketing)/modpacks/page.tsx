@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { TypeLandingPage } from '@/components/type-landing';
-import { BrowsePageContent } from '../mods/browse-content';
+import { BrowsePageContent } from '../mods/page';
 
 export const metadata: Metadata = {
   title: 'Minecraft Modpacks — Curated Mod Collections for Every Playstyle',

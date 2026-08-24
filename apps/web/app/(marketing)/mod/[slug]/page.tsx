@@ -822,7 +822,7 @@ export default function ModDetailPage() {
                   {dependencies.length > 0 ? (
                     <ul className="space-y-2">
                       {dependencies.map((dep) => (
-                        <li key={dep.id ?? dep.slug}>
+                        <li key={`${dep.slug}-${dep.required}`}>
                           <Link
                             href={`/mod/${dep.slug}`}
                             className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group border bg-card"
@@ -966,7 +966,7 @@ export default function ModDetailPage() {
                 <div className="space-y-2">
                   {dependencies.slice(0, 5).map((dep) => (
                     <Link
-                      key={dep.id ?? dep.slug}
+                      key={`${dep.slug}-${dep.required}`}
                       href={`/mod/${dep.slug}`}
                       className="flex items-center justify-between p-2.5 rounded-lg hover:bg-muted/50 transition-colors group"
                     >

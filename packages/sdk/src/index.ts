@@ -54,7 +54,9 @@ function buildProjectQuery(
 }
 
 export class McpSDK {
-  private client: ApiClient;
+  /** Exposed read-only for advanced consumers (dashboard panels) that need
+   * raw request access beyond the typed helpers. */
+  readonly client: ApiClient;
 
   constructor(baseUrl?: string) {
     this.client = new ApiClient(baseUrl);
