@@ -120,6 +120,8 @@ function imageSrcHosts() {
   // Seed placeholder CDNs — must be in img-src for seeded iconUrls
   hosts.add('https://cdn.example.com');
   hosts.add('https://placehold.co');
+  hosts.add('https://cdn.modrinth.com');
+  hosts.add('https://i.modrinth.com');
   const list = [...hosts];
   return list.length ? ' ' + list.join(' ') : '';
 }
@@ -142,6 +144,8 @@ function buildRemotePatterns() {
   }
   // Seed data uses https://cdn.example.com / https://placehold.co — allow in dev
   patterns.push({ protocol: 'https', hostname: 'cdn.example.com', port: '' });
+  patterns.push({ protocol: 'https', hostname: 'cdn.modrinth.com', port: '' });
+  patterns.push({ protocol: 'https', hostname: 'i.modrinth.com', port: '' });
   patterns.push({ protocol: 'https', hostname: 'placehold.co', port: '' });
 
   const cdn = parseEndpoint(
