@@ -9,6 +9,7 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:16-alpine
@@ -24,6 +25,40 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://mcp:mcp@localhost:5432/minecraft_platform_test
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-jwt-secret-must-be-at-least-32-characters-long
+      CSRF_SECRET: ci-csrf-secret-must-be-at-least-32-characters-long
+      TFA_ENC_KEY: ci-tfa-encryption-key-16-chars
+      MEILISEARCH_URL: http://localhost:7700
+      MEILISEARCH_API_KEY: ci-meili-key
+      S3_ENDPOINT: http://localhost:9000
+      S3_ACCESS_KEY: ci-access-key
+      S3_SECRET_KEY: ci-secret-key
+      S3_BUCKET: uploads
+      S3_PUBLIC_BUCKET: public
+      S3_REGION: us-east-1
+      API_URL: http://localhost:4000
+      WEB_URL: http://localhost:3003
+      ADMIN_URL: http://localhost:3001
+      LOG_LEVEL: error
+      RATE_LIMIT_MAX: 1000
+      RATE_LIMIT_TTL: 60
+
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -33,5 +68,31 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install
       - run: pnpm build
+      # Typecheck shared packages + workers (their `lint` script is `tsc --noEmit`).
+      # App ESLint runs separately via `pnpm lint` below.
+      - name: Typecheck packages & services
+        run: pnpm --filter "./packages/*" --filter "./services/*" run lint
       - run: pnpm lint
-      - run: pnpm test
+      - run: pnpm --filter @mcp/web test
+      - run: pnpm --filter @mcp/api db:generate
+      # Apply committed migrations to the throwaway test DB (NOT
+      # `db:push --accept-data-loss`, which can silently drop columns when
+      # the schema drifts from a migration baseline). `migrate deploy` is the
+      # safe non-destructive path and matches `deploy.yml`'s prod step.
+      - run: pnpm --filter @mcp/api db:migrate:prod
+      - run: pnpm --filter @mcp/api test
+      - run: pnpm --filter @mcp/api test:e2e
+
+  # Fast vitest-only job for the web app — no Postgres needed
+  test-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - run: pnpm install
+      - name: Run vitest tests (Web app)
+        run: pnpm --filter @mcp/web test

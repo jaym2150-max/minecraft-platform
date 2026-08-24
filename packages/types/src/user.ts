@@ -5,6 +5,12 @@ export enum UserRole {
   OWNER = 'OWNER',
 }
 
+export enum CreatorTier {
+  FREE = 'FREE',
+  CREATOR = 'CREATOR',
+  PRO = 'PRO',
+}
+
 export interface User {
   id: string;
   username: string;
@@ -14,6 +20,7 @@ export interface User {
   avatarUrl?: string;
   bio?: string;
   role: UserRole;
+  creatorTier?: CreatorTier;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,4 +28,7 @@ export interface User {
 export interface UserProfile extends Omit<User, 'email' | 'emailVerified'> {
   projectCount: number;
   totalDownloads: number;
+}
+
+export interface AuthUser extends Pick<User, 'id' | 'username' | 'email' | 'role'> {
 }

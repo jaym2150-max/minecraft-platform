@@ -9,20 +9,22 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@mcp/types": "workspace:*",
+    "@mcp/ui": "workspace:*",
+    "dotenv": "^17.4.2",
+    "lucide-react": "^0.460.0",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "@mcp/ui": "workspace:*",
-    "@mcp/types": "workspace:*",
-    "lucide-react": "^0.460.0",
     "recharts": "^2.13.3"
   },
   "devDependencies": {
+    "@mcp/eslint-config": "workspace:*",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
-    "typescript": "^5.6.3",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
     "tailwindcss": "^3.4.15",
-    "@mcp/config": "workspace:*",
-    "@mcp/eslint-config": "workspace:*"
+    "typescript": "^5.6.3"
   }
 }

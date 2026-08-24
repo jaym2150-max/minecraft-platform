@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+build/
+.turbo/
+coverage/
+*.tsbuildinfo
+*.log
+.env
+.env.*
+!.env.example
+apps/api/uploads/
+apps/api/prisma/*.db
+apps/api/prisma/*.db-journal

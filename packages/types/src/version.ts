@@ -16,6 +16,13 @@ export enum LoaderType {
   PURPUR = 'PURPUR',
 }
 
+export interface MinecraftVersion {
+  id: string;
+  version: string;
+  type: string;
+  stable: boolean;
+}
+
 export interface ProjectVersion {
   id: string;
   version: string;
@@ -23,6 +30,9 @@ export interface ProjectVersion {
   fileUrl: string;
   fileSize: number;
   hash: string;
+  hashSha1?: string;
+  hashSha256?: string;
+  hashSha512?: string;
   downloads: number;
   status: VersionStatus;
   projectId: string;

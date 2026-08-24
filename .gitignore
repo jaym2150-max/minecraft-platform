@@ -9,9 +9,19 @@ build/
 .out/
 
 # Environment
+# Catch any .env-like file anywhere in the tree, regardless of where it lives
+# or what its name is (`.env`, `.env.backup`, the malformed
+# `CUsersSEDesktopminecraftsite.env`, etc.). Verbatim `.env` rules miss most
+# variants, so we wildcard broadly and re-allow the template.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+*/.env
+*/.env.*
+*.env
+!/.env.example
+docker/minio/minio.env
+docker/meilisearch/meilisearch.toml
 
 # IDE
 .vscode/
@@ -27,6 +37,11 @@ Thumbs.db
 *.log
 logs/
 npm-debug.log*
+api.log
+dev.log
+api.err
+apps/api/api.err
+apps/api/api.log
 
 # Testing
 coverage/
@@ -35,8 +50,16 @@ coverage/
 # Turborepo
 .turbo/
 
+# TypeScript build info
+*.tsbuildinfo
+
+# Claude Code agent worktrees (full repo duplicates)
+.claude/worktrees/
+
 # Prisma
-apps/api/prisma/migrations/
+# NOTE: migrations are intentionally NOT ignored. They must be committed so
+# every environment applies the same schema history. Only the generated client
+# and local SQLite scratch DBs are ignored below.
 
 # Uploads
 apps/api/uploads/
@@ -47,3 +70,38 @@ docker/data/
 # Temp
 tmp/
 temp/
+
+# Backup files
+*_backup.*
+*_backup_*
+*_checked.*
+*_original.*
+package_backup.json
+package_checked.json
+package_original.json
+# Catch the more common `<file>.backup`, `<file>.backup2`, `<file>.bak`
+# extension conventions used by editor scratch / pre-edit snapshots.
+*.backup
+*.backup.*
+*.bak
+*.bak.*
+
+# Dev artifacts
+apps/api/test*.txt
+apps/api/test*.json
+apps/api/prisma/*.db
+apps/api/prisma/*.db-journal
+
+# Local override / scratch files
+.env.override
+.env.bak
+.env.local.bak
+
+# Infrastructure (rendered from templates)
+infrastructure/kubernetes/01-secrets.yaml
+infrastructure/cloudflare/.dev.vars
+
+# Temp/scratchnotes
+todo.md
+prompt.md
+directorytree.md

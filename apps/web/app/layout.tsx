@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
-import { ThemeProvider } from 'next-themes';
-import { Toaster } from 'sonner';
+import { Providers } from './providers';
 import './globals.css';
 
 const inter = Inter({
@@ -14,13 +13,42 @@ const jetbrainsMono = JetBrains_Mono({
   variable: '--font-mono',
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3003';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
-    default: 'Minecraft Platform',
+    default: 'Minecraft Platform — Discover, Download & Share Minecraft Mods',
     template: '%s | Minecraft Platform',
   },
-  description: 'Discover, download, and share Minecraft mods, modpacks, and plugins.',
-  keywords: ['minecraft', 'mods', 'modpack', 'plugins', 'gaming'],
+  description:
+    'The home for Minecraft mods, modpacks and plugins. One search, every loader (Fabric, Forge, NeoForge, Quilt), every version. Malware-scanned downloads, creator payouts, and a community of thousands.',
+  keywords: [
+    'minecraft mods', 'modpacks', 'minecraft plugins', 'fabric mods', 'forge mods',
+    'neoforge', 'quilt', 'minecraft 1.21 mods', 'mod downloader', 'sodium', 'create mod', 'jei',
+  ],
+  authors: [{ name: 'Minecraft Platform' }],
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: siteUrl,
+    siteName: 'Minecraft Platform',
+    title: 'Minecraft Platform — Find Your Next Mod',
+    description:
+      'Thousands of malware-scanned Minecraft mods, modpacks and plugins. Every loader, every version, one search.',
+    images: [{ url: '/og', width: 1200, height: 630, alt: 'Minecraft Platform' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Minecraft Platform — Find Your Next Mod',
+    description: 'Thousands of malware-scanned Minecraft mods. Every loader, every version, one search.',
+    images: ['/og'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
+  },
 };
 
 export default function RootLayout({
@@ -28,18 +56,27 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // JSON-LD structured data — SoftwareApplication/WebSite for rich Google results
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Minecraft Platform',
+    url: siteUrl,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${siteUrl}/mods?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster position="bottom-right" richColors />
-        </ThemeProvider>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

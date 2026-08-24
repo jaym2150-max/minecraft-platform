@@ -1,0 +1,3 @@
+{
+  "extends": "@mcp/eslint-config"
+}

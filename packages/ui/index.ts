@@ -5,3 +5,5 @@ export * from './components/card';
 export * from './components/badge';
 export * from './components/avatar';
 export * from './components/switch';
+export * from './components/dialog';
+export * from './components/textarea';

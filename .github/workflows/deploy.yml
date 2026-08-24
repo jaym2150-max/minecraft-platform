@@ -1,13 +1,74 @@
 name: Deploy
 
+# Deploy only runs after the CI workflow completes successfully on `main`.
+# `workflow_run` is the recommended cross-workflow gate (a `needs:` reference
+# only works within the same workflow file). The downstream `if` re-checks the
+# branch and the conclusion in case the upstream workflow is re-run.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     steps:
+      # `workflow_run` runs on the default branch, so we check out the head SHA
+      # of the CI run we're gating on, not the workflow's own ref.
       - uses: actions/checkout@v4
-      - run: echo 'Add deployment logic here'
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build --filter='./packages/*'
+
+      - name: Build applications
+        run: pnpm build
+
+      - name: Run database migrations
+        run: pnpm --filter api db:migrate:prod
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Build & push Docker images
+        run: |
+          docker compose build
+          docker compose push
+        env:
+          DOCKER_REGISTRY: ${{ vars.DOCKER_REGISTRY }}
+
+      - name: Scan images for vulnerabilities (trivy, fail on HIGH/CRITICAL)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ vars.DOCKER_REGISTRY || 'mcp' }}/api:latest
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: Deploy to Kubernetes
+        uses: steebchen/kubectl@v2.1.1
+        with:
+          config: ${{ secrets.KUBE_CONFIG }}
+          command: apply -f infrastructure/kubernetes/
+
+      - name: Verify deployment
+        uses: steebchen/kubectl@v2.1.1
+        with:
+          config: ${{ secrets.KUBE_CONFIG }}
+          command: rollout status deployment/api -n minecraft-platform

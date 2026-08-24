@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# M-I: pre-push gate — run fast checks before pushing. Fail closed so a broken
+# lint/typecheck/test never reaches CI. Uses turbo lint (typecheck+eslint+next lint)
+# and web vitest (186 tests). API e2e requires live Postgres/Redis so skipped here.
+echo "Running pre-push checks..."
+
+pnpm exec turbo run lint --continue || {
+  echo "pre-push: lint failed"
+  exit 1
+}
+
+pnpm --filter @mcp/web test || {
+  echo "pre-push: web tests failed"
+  exit 1
+}
+
+echo "pre-push checks passed"
