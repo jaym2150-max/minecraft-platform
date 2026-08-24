@@ -3,7 +3,7 @@
 # Triggers: docker-compose.yml + README "docker compose up --build" for "API + 6 workers".
 
 # ---- Stage 1: deps ----
-FROM node:20-alpine AS deps
+FROM node:26-alpine AS deps
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 RUN corepack enable
@@ -43,7 +43,7 @@ RUN pnpm --filter @mcp/api run build
 RUN pnpm --filter @mcp/api prune --prod
 
 # ---- Stage 3: runner ----
-FROM node:20-alpine AS runner
+FROM node:26-alpine AS runner
 ENV NODE_ENV=production
 RUN apk add --no-cache tini
 WORKDIR /app
