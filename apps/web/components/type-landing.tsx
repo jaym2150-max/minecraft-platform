@@ -1,17 +1,15 @@
 'use client';
 
-/**
- * Type-specific browse page — a thin SEO-friendly wrapper around the main
- * /mods browse experience pre-filtered to one project type. Each route
- * (/modpacks, /shaders, /plugins) is its own indexable landing page,
- * mirroring CurseForge's per-category ranking pages.
- */
-
-import { useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ProjectType } from '@mcp/types';
+import { useEffect } from 'react';
 
-export function TypeLandingPage({ type }: { type: string }) {
+/**
+ * Type-specific SEO landing page (/modpacks, /shaders, /plugins).
+ * Redirects to the unified /mods browser pre-filtered to one project type.
+ * Renders a lightweight skeleton while the router swaps over.
+ */
+export function TypeLandingRedirect({ type }: { type: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -22,5 +20,12 @@ export function TypeLandingPage({ type }: { type: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type]);
 
-  return null;
+  return (
+    <main className="flex-1 flex items-center justify-center py-24">
+      <div className="flex items-center gap-3 text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin" />
+        <span>Loading {type.toLowerCase()}s…</span>
+      </div>
+    </main>
+  );
 }
