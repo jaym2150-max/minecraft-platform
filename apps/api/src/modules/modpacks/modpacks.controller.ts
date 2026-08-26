@@ -1,6 +1,17 @@
-import { Controller, Get, Param, HttpCode, HttpStatus, Res, Header } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  HttpCode,
+  HttpStatus,
+  Res,
+  Header,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { ModpacksService } from './modpacks.service';
+import { ResolverService } from './resolver.service';
 import { Public } from '../../common/decorators/public.decorator';
 
 /**
@@ -20,7 +31,47 @@ import { Public } from '../../common/decorators/public.decorator';
 @Public()
 @Controller('projects')
 export class ModpacksController {
-  constructor(private readonly modpacksService: ModpacksService) {}
+  constructor(
+    private readonly modpacksService: ModpacksService,
+    private readonly resolver: ResolverService,
+  ) {}
+
+  @Public()
+  @Post(':slug/modpack/resolve')
+  @HttpCode(HttpStatus.OK)
+  async resolveModpack(
+    @Param('slug') slug: string,
+    @Body() body: { gameVersion?: string; loaderType?: string },
+  ) {
+    const data = await this.resolver.resolve([slug], {
+      gameVersion: body?.gameVersion,
+      loaderType: body?.loaderType,
+    });
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Modpack resolved',
+      data,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Public()
+  @Post('modpacks/preview')
+  @HttpCode(HttpStatus.OK)
+  async previewModpack(
+    @Body() body: { seeds: string[]; gameVersion?: string; loaderType?: string },
+  ) {
+    const data = await this.resolver.resolve(body?.seeds ?? [], {
+      gameVersion: body?.gameVersion,
+      loaderType: body?.loaderType,
+    });
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Preview resolved',
+      data,
+      timestamp: new Date().toISOString(),
+    };
+  }
 
   @Get(':slug/modpack/manifest')
   @HttpCode(HttpStatus.OK)

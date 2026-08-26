@@ -75,3 +75,35 @@ export interface ProjectCompatibility {
   /** Union of all game versions the project supports across any loader. */
   gameVersions: string[];
 }
+
+export type ResolutionConflictKind =
+  'MISSING' | 'INCOMPATIBLE' | 'CYCLE' | 'LOADER_MISMATCH' | 'VERSION_MISMATCH';
+
+export interface ResolutionConflict {
+  kind: ResolutionConflictKind;
+  message: string;
+  dependentId: string;
+  requiredId?: string;
+  dependencyId?: string;
+}
+
+export interface ResolutionNode {
+  projectId: string;
+  slug: string;
+  title: string;
+  version: string | null;
+  versionId: string | null;
+  loaderType: string | null;
+  gameVersion: string | null;
+  score: number;
+  children: string[];
+  depth: number;
+}
+
+export interface ResolvedModpack {
+  nodes: Record<string, ResolutionNode>;
+  roots: string[];
+  conflicts: ResolutionConflict[];
+  score: number;
+  resolvedCount: number;
+}

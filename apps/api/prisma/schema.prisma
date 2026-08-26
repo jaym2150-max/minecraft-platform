@@ -204,6 +204,9 @@ model Project {
   downloads      Int           @default(0)
   views          Int           @default(0)
   promotedUntil  DateTime?
+  /** Cached 0-100 compatibility score (loader/version match + deps resolved).
+   *  Null = not yet computed. Updated by the modpack resolver. */
+  compatibilityScore  Float?
   status         ProjectStatus @default(DRAFT)
   featured       Boolean       @default(false)
   clientSide     Boolean       @default(true)
@@ -423,6 +426,14 @@ model Dependency {
   versionId    String
   isRequired     Boolean @default(true)
   isOptional     Boolean @default(false)
+  /** Constraint kind: REQUIRED | OPTIONAL | INCOMPATIBLE. Preferred over the
+   *  legacy isRequired/isOptional booleans for resolver semantics. */
+  kind         String         @default("REQUIRED")
+  /** Semver range the resolved version string must satisfy, e.g.
+   *  ">=1.2.0 <2.0.0". Null = any version. */
+  versionRange String?
+  /** Loader the dependency requires; null = any loader. */
+  loaderType   LoaderType?
   createdAt    DateTime @default(now())
 
   dependent    Project         @relation("DependentProject", fields: [dependentId], references: [id])

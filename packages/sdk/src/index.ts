@@ -525,6 +525,14 @@ export class McpSDK {
     return this.client.get<ApiResponse<ProjectCompatibility>>(`/projects/${slug}/compatibility`);
   }
 
+  async resolveModpack(slug: string, opts?: { gameVersion?: string; loaderType?: string }) {
+    return this.client.post<ApiResponse<any>>(`/projects/${slug}/modpack/resolve`, opts ?? {});
+  }
+
+  async previewModpack(data: { seeds: string[]; gameVersion?: string; loaderType?: string }) {
+    return this.client.post<ApiResponse<any>>('/projects/modpacks/preview', data);
+  }
+
   async getProjects(ids: string[]) {
     return this.client.get<ApiResponse<Project[]>>(`/projects?ids=${ids.join(',')}`);
   }
