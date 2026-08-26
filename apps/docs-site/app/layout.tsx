@@ -52,30 +52,32 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${inter.variable} ${jetbrains.variable} font-sans antialiased`}>
-        <div className="min-h-screen flex flex-col">
-          <header className="border-b sticky top-0 bg-white/95 backdrop-blur z-10">
-            <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-              <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+        <div className="flex min-h-screen flex-col">
+          <header className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur">
+            <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+              <Link href="/" className="flex items-center gap-2 text-lg font-bold">
+                <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
                   <Book className="h-4 w-4 text-white" />
                 </div>
                 <span>MCP Docs</span>
               </Link>
               <nav className="flex items-center gap-6 text-sm">
-                <Link href="/" className="hover:text-primary">Docs</Link>
-                <a href="https://github.com" className="flex items-center gap-1 hover:text-primary">
+                <Link href="/" className="hover:text-primary">
+                  Docs
+                </Link>
+                <a href="https://github.com" className="hover:text-primary flex items-center gap-1">
                   <Github className="h-4 w-4" /> GitHub
                 </a>
               </nav>
             </div>
           </header>
 
-          <div className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-8">
+          <div className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 gap-8 px-6 py-8 lg:grid-cols-[240px_1fr]">
             <aside className="hidden lg:block">
-              <nav className="space-y-6 sticky top-24">
+              <nav className="sticky top-24 space-y-6">
                 {NAV.map((section) => (
                   <div key={section.title}>
-                    <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                    <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
                       {section.title}
                     </h2>
                     <ul className="space-y-1">
@@ -83,7 +85,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                         <li key={item.href}>
                           <Link
                             href={item.href}
-                            className="block text-sm text-slate-700 hover:text-primary px-2 py-1 rounded"
+                            className="hover:text-primary block rounded px-2 py-1 text-sm text-slate-700"
                           >
                             {item.label}
                           </Link>
@@ -98,12 +100,16 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
             <main className="prose max-w-none">{children}</main>
           </div>
 
-          <footer className="border-t py-8 mt-12">
-            <div className="max-w-7xl mx-auto px-6 text-sm text-slate-600 flex items-center justify-between">
+          <footer className="mt-12 border-t py-8">
+            <div className="mx-auto flex max-w-7xl items-center justify-between px-6 text-sm text-slate-600">
               <p>&copy; {new Date().getFullYear()} Minecraft Platform. All rights reserved.</p>
               <div className="flex items-center gap-4">
-                <Link href="/" className="hover:text-primary">Docs</Link>
-                <a href="https://github.com" className="hover:text-primary">GitHub</a>
+                <Link href="/" className="hover:text-primary">
+                  Docs
+                </Link>
+                <a href="https://github.com" className="hover:text-primary">
+                  GitHub
+                </a>
               </div>
             </div>
           </footer>

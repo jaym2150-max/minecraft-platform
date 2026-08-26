@@ -1,4 +1,13 @@
-import { IsString, IsOptional, IsBoolean, IsNumber, IsArray, IsEnum, IsUUID, MinLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsNumber,
+  IsArray,
+  IsEnum,
+  IsUUID,
+  MinLength,
+} from 'class-validator';
 import { LoaderType, VersionStatus } from '@prisma/client';
 
 export class CreateVersionDto {

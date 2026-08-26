@@ -31,11 +31,7 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     this.configured = hasConfig;
   }
 
-  async validate(
-    accessToken: string,
-    refreshToken: string,
-    profile: any,
-  ): Promise<any> {
+  async validate(accessToken: string, refreshToken: string, profile: any): Promise<any> {
     if (!this.configured) {
       throw new UnauthorizedException('GitHub OAuth is not configured');
     }
@@ -46,11 +42,12 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     // GitHub-verified email — an unverified GitHub email must never be
     // used to link to an existing local account (account-takeover vector)
     // and must never auto-set emailVerified on the local row.
-    const primaryEmail = profile.emails?.find((e: any) => e?.primary)?.value
-      ?? profile.emails?.[0]?.value;
-    const primaryEmailVerifiedAtProvider = profile.emails?.find((e: any) => e?.primary)?.verified
-      ?? profile.emails?.[0]?.verified
-      ?? false;
+    const primaryEmail =
+      profile.emails?.find((e: any) => e?.primary)?.value ?? profile.emails?.[0]?.value;
+    const primaryEmailVerifiedAtProvider =
+      profile.emails?.find((e: any) => e?.primary)?.verified ??
+      profile.emails?.[0]?.verified ??
+      false;
     const email = primaryEmail;
     const avatarUrl = profile.photos?.[0]?.value;
     const displayName = profile.displayName || profile.username;

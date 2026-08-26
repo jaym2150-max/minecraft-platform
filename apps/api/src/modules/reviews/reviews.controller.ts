@@ -60,10 +60,7 @@ export class ReviewsController {
   @Public()
   @Get('project/:projectId/user')
   @HttpCode(HttpStatus.OK)
-  async findUserReview(
-    @Param('projectId') projectId: string,
-    @CurrentUser('id') userId?: string,
-  ) {
+  async findUserReview(@Param('projectId') projectId: string, @CurrentUser('id') userId?: string) {
     if (!userId) {
       return {
         statusCode: HttpStatus.OK,
@@ -109,11 +106,7 @@ export class ReviewsController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateReviewDto,
-    @CurrentUser() user: any,
-  ) {
+  async update(@Param('id') id: string, @Body() dto: UpdateReviewDto, @CurrentUser() user: any) {
     const data = await this.reviewsService.update(id, dto, user.id, user.role);
     return {
       statusCode: HttpStatus.OK,

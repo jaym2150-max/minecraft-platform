@@ -8,7 +8,11 @@ import { persistDisplayOnly } from './persisted-user';
 
 export interface AuthSdk {
   login(email: string, password: string): Promise<{ data: { user: AuthUser } }>;
-  register(data: { username: string; email: string; password: string }): Promise<{ data: { user: AuthUser } }>;
+  register(data: {
+    username: string;
+    email: string;
+    password: string;
+  }): Promise<{ data: { user: AuthUser } }>;
   setAuthToken(token: string): void;
   clearAuthToken(): void;
 }
@@ -36,13 +40,7 @@ const FALLBACK_API = new ApiClient();
 // invariant regardless of future callers.
 FALLBACK_API.clearAuthToken();
 
-export function AuthProvider({
-  children,
-  sdk,
-}: {
-  children: React.ReactNode;
-  sdk?: AuthSdk;
-}) {
+export function AuthProvider({ children, sdk }: { children: React.ReactNode; sdk?: AuthSdk }) {
   const sdkRef = useRef(sdk);
   sdkRef.current = sdk;
 
@@ -56,10 +54,8 @@ export function AuthProvider({
   useEffect(() => {
     // D5 (AUDIT.md): deps intentionally empty — FALLBACK_API / USER_KEY /
     // seedCsrfToken are all module-scoped or imported singletons, so the
-    // effect runs exactly once per mount. Add an explicit eslint-disable
-    // to silence react-hooks/exhaustive-deps (which would otherwise suggest
-    // these as deps and trigger a re-verify on every render).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // effect runs exactly once per mount (adding them as deps would trigger
+    // a re-verify on every render).
     if (typeof window === 'undefined') return;
     const verify = async () => {
       // Pre-seed the CSRF cookie+token in production before any mutation can
@@ -136,7 +132,7 @@ export function AuthProvider({
     // not blocked by the network round trip, but failures are logged
     // rather than swallowed.
     FALLBACK_API.post<{ data: null }>('/auth/logout', {}).catch((err) => {
-      // eslint-disable-next-line no-console
+       
       console.warn('[auth] server logout call failed (local state cleared):', err?.message ?? err);
     });
     setState({ user: null, token: null, isAuthenticated: false, isLoading: false });

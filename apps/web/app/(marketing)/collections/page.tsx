@@ -38,20 +38,20 @@ import { toast } from 'sonner';
 function LoadingSkeleton() {
   return (
     <main className="flex-1">
-      <section className="border-b bg-gradient-to-b from-primary/5 to-background">
-        <div className="container py-12 space-y-4">
-          <div className="h-8 w-48 bg-muted animate-pulse rounded-lg" />
-          <div className="h-4 w-96 bg-muted animate-pulse rounded" />
+      <section className="from-primary/5 to-background border-b bg-gradient-to-b">
+        <div className="container space-y-4 py-12">
+          <div className="bg-muted h-8 w-48 animate-pulse rounded-lg" />
+          <div className="bg-muted h-4 w-96 animate-pulse rounded" />
         </div>
       </section>
       <div className="container py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="rounded-xl border bg-card p-5 space-y-3">
-              <div className="h-5 w-32 bg-muted animate-pulse rounded" />
-              <div className="h-4 w-full bg-muted animate-pulse rounded" />
+            <div key={i} className="bg-card space-y-3 rounded-xl border p-5">
+              <div className="bg-muted h-5 w-32 animate-pulse rounded" />
+              <div className="bg-muted h-4 w-full animate-pulse rounded" />
               <div className="flex gap-2">
-                <div className="h-4 w-16 bg-muted animate-pulse rounded" />
+                <div className="bg-muted h-4 w-16 animate-pulse rounded" />
               </div>
             </div>
           ))}
@@ -63,13 +63,13 @@ function LoadingSkeleton() {
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <main className="flex-1 flex items-center justify-center">
-      <div className="text-center max-w-md mx-auto px-4">
-        <div className="h-20 w-20 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-6">
-          <AlertCircle className="h-10 w-10 text-destructive" />
+    <main className="flex flex-1 items-center justify-center">
+      <div className="mx-auto max-w-md px-4 text-center">
+        <div className="bg-destructive/10 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl">
+          <AlertCircle className="text-destructive h-10 w-10" />
         </div>
-        <h1 className="text-3xl font-bold mb-2">Something Went Wrong</h1>
-        <p className="text-sm text-muted-foreground/70 mb-6 bg-muted rounded-lg p-3">{message}</p>
+        <h1 className="mb-2 text-3xl font-bold">Something Went Wrong</h1>
+        <p className="text-muted-foreground/70 bg-muted mb-6 rounded-lg p-3 text-sm">{message}</p>
         <Button onClick={onRetry} className="gap-2">
           <RefreshCw className="h-4 w-4" />
           Try Again
@@ -98,7 +98,11 @@ function CreateCollectionDialog({
     if (!name.trim()) return;
     setSubmitting(true);
     try {
-      await sdk.createCollection({ name: name.trim(), description: description.trim() || undefined, isPublic });
+      await sdk.createCollection({
+        name: name.trim(),
+        description: description.trim() || undefined,
+        isPublic,
+      });
       toast.success('Collection created');
       onOpenChange(false);
       setName('');
@@ -120,25 +124,38 @@ function CreateCollectionDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm font-medium mb-1 block">Name</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="My Collection" required maxLength={100} />
+            <label className="mb-1 block text-sm font-medium">Name</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="My Collection"
+              required
+              maxLength={100}
+            />
           </div>
           <div>
-            <label className="text-sm font-medium mb-1 block">Description (optional)</label>
-            <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="A short description" maxLength={500} />
+            <label className="mb-1 block text-sm font-medium">Description (optional)</label>
+            <Input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="A short description"
+              maxLength={500}
+            />
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setIsPublic(!isPublic)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${isPublic ? 'bg-primary/10 border-primary text-primary' : 'bg-card text-muted-foreground'}`}
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${isPublic ? 'bg-primary/10 border-primary text-primary' : 'bg-card text-muted-foreground'}`}
             >
               {isPublic ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
               {isPublic ? 'Public' : 'Private'}
             </button>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
             <Button type="submit" disabled={!name.trim() || submitting} className="gap-2">
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
               Create
@@ -170,12 +187,12 @@ export default function CollectionsPage() {
 
   return (
     <main className="flex-1">
-      <section className="border-b bg-gradient-to-b from-primary/5 to-background">
+      <section className="from-primary/5 to-background border-b bg-gradient-to-b">
         <div className="container py-12">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div className="space-y-2">
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight flex items-center gap-3">
-                <BookOpen className="h-8 w-8 text-primary" />
+              <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight sm:text-4xl">
+                <BookOpen className="text-primary h-8 w-8" />
                 Collections
               </h1>
               <p className="text-muted-foreground text-sm">
@@ -183,14 +200,14 @@ export default function CollectionsPage() {
               </p>
             </div>
             {isAuthenticated && (
-              <Button onClick={() => setCreateOpen(true)} className="gap-2 shrink-0">
+              <Button onClick={() => setCreateOpen(true)} className="shrink-0 gap-2">
                 <Plus className="h-4 w-4" />
                 New Collection
               </Button>
             )}
           </div>
           <div className="relative mt-6 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
             <Input
               placeholder="Search collections..."
               value={searchQuery}
@@ -204,47 +221,50 @@ export default function CollectionsPage() {
       <div className="container py-8">
         {filtered.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filtered.map((collection) => (
                 <Link
                   key={collection.id}
                   href={`/collections/${collection.id}`}
-                  className="group rounded-xl border bg-card p-5 hover:shadow-lg transition-all hover:-translate-y-0.5 hover:border-primary/20"
+                  className="bg-card hover:border-primary/20 group rounded-xl border p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shrink-0">
-                      <BookOpen className="h-6 w-6 text-primary" />
+                    <div className="from-primary/20 to-primary/5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br">
+                      <BookOpen className="text-primary h-6 w-6" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex items-center gap-2">
+                        <h3 className="group-hover:text-primary truncate font-semibold transition-colors">
                           {collection.name}
                         </h3>
                         {!collection.isPublic && (
-                          <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <Lock className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
                         )}
                       </div>
                       {collection.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                        <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
                           {collection.description}
                         </p>
                       )}
                     </div>
                   </div>
-                  <div className="mt-4 pt-3 border-t flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="text-muted-foreground mt-4 flex items-center justify-between border-t pt-3 text-xs">
                     <span className="flex items-center gap-1">
                       <Grid3X3 className="h-3.5 w-3.5" />
                       {collection.projectCount ?? 0} projects
                     </span>
                     <span>
-                      by <strong className="text-foreground">{collection.user?.username ?? 'unknown'}</strong>
+                      by{' '}
+                      <strong className="text-foreground">
+                        {collection.user?.username ?? 'unknown'}
+                      </strong>
                     </span>
                   </div>
                 </Link>
               ))}
             </div>
             {meta.totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-8">
+              <div className="mt-8 flex items-center justify-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -254,7 +274,7 @@ export default function CollectionsPage() {
                 >
                   <ChevronLeft className="h-4 w-4" /> Previous
                 </Button>
-                <span className="text-sm text-muted-foreground px-4">
+                <span className="text-muted-foreground px-4 text-sm">
                   Page {meta.page} of {meta.totalPages}
                 </span>
                 <Button
@@ -270,12 +290,12 @@ export default function CollectionsPage() {
             )}
           </>
         ) : (
-          <div className="text-center py-16">
-            <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="h-8 w-8 text-muted-foreground/60" />
+          <div className="py-16 text-center">
+            <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+              <BookOpen className="text-muted-foreground/60 h-8 w-8" />
             </div>
-            <h3 className="text-lg font-semibold mb-1">No collections found</h3>
-            <p className="text-sm text-muted-foreground mb-4">Be the first to create one!</p>
+            <h3 className="mb-1 text-lg font-semibold">No collections found</h3>
+            <p className="text-muted-foreground mb-4 text-sm">Be the first to create one!</p>
             {isAuthenticated && (
               <Button onClick={() => setCreateOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />

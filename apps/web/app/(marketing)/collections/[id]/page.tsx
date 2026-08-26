@@ -42,15 +42,15 @@ import { toast } from 'sonner';
 function LoadingSkeleton() {
   return (
     <main className="flex-1">
-      <div className="container py-12 space-y-6 animate-pulse">
-        <div className="h-6 w-32 bg-muted rounded-lg" />
-        <div className="h-10 w-64 bg-muted rounded-lg" />
-        <div className="h-4 w-96 bg-muted rounded" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+      <div className="container animate-pulse space-y-6 py-12">
+        <div className="bg-muted h-6 w-32 rounded-lg" />
+        <div className="bg-muted h-10 w-64 rounded-lg" />
+        <div className="bg-muted h-4 w-96 rounded" />
+        <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="rounded-xl border bg-card p-5 space-y-3">
-              <div className="h-5 w-32 bg-muted rounded" />
-              <div className="h-4 w-full bg-muted rounded" />
+            <div key={i} className="bg-card space-y-3 rounded-xl border p-5">
+              <div className="bg-muted h-5 w-32 rounded" />
+              <div className="bg-muted h-4 w-full rounded" />
             </div>
           ))}
         </div>
@@ -61,16 +61,22 @@ function LoadingSkeleton() {
 
 function NotFoundState() {
   return (
-    <main className="flex-1 flex items-center justify-center">
-      <div className="text-center max-w-md mx-auto px-4">
-        <div className="h-20 w-20 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-6">
-          <BookOpen className="h-10 w-10 text-muted-foreground" />
+    <main className="flex flex-1 items-center justify-center">
+      <div className="mx-auto max-w-md px-4 text-center">
+        <div className="bg-muted mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl">
+          <BookOpen className="text-muted-foreground h-10 w-10" />
         </div>
-        <h1 className="text-3xl font-bold mb-2">Collection Not Found</h1>
-        <p className="text-muted-foreground mb-6">This collection does not exist or has been made private.</p>
-        <div className="flex gap-3 justify-center">
-          <Button asChild><Link href="/collections">Browse Collections</Link></Button>
-          <Button variant="outline" asChild><Link href="/">Go Home</Link></Button>
+        <h1 className="mb-2 text-3xl font-bold">Collection Not Found</h1>
+        <p className="text-muted-foreground mb-6">
+          This collection does not exist or has been made private.
+        </p>
+        <div className="flex justify-center gap-3">
+          <Button asChild>
+            <Link href="/collections">Browse Collections</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/">Go Home</Link>
+          </Button>
         </div>
       </div>
     </main>
@@ -79,13 +85,13 @@ function NotFoundState() {
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <main className="flex-1 flex items-center justify-center">
-      <div className="text-center max-w-md mx-auto px-4">
-        <div className="h-20 w-20 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-6">
-          <AlertCircle className="h-10 w-10 text-destructive" />
+    <main className="flex flex-1 items-center justify-center">
+      <div className="mx-auto max-w-md px-4 text-center">
+        <div className="bg-destructive/10 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl">
+          <AlertCircle className="text-destructive h-10 w-10" />
         </div>
-        <h1 className="text-3xl font-bold mb-2">Something Went Wrong</h1>
-        <p className="text-sm text-muted-foreground/70 mb-6 bg-muted rounded-lg p-3">{message}</p>
+        <h1 className="mb-2 text-3xl font-bold">Something Went Wrong</h1>
+        <p className="text-muted-foreground/70 bg-muted mb-6 rounded-lg p-3 text-sm">{message}</p>
         <Button onClick={onRetry} className="gap-2">
           <RefreshCw className="h-4 w-4" /> Try Again
         </Button>
@@ -148,34 +154,42 @@ export default function CollectionDetailPage() {
 
   if (loading) return <LoadingSkeleton />;
   if (notFound) return <NotFoundState />;
-  if (error || !collection) return <ErrorState message={error || 'Unknown error'} onRetry={refetch} />;
+  if (error || !collection)
+    return <ErrorState message={error || 'Unknown error'} onRetry={refetch} />;
 
   return (
     <main className="flex-1">
-      <div className="border-b bg-gradient-to-b from-primary/5 to-background">
+      <div className="from-primary/5 to-background border-b bg-gradient-to-b">
         <div className="container py-8">
           <Button variant="ghost" size="sm" asChild className="mb-4 gap-1">
             <Link href="/collections">
               <ChevronLeft className="h-4 w-4" /> Back to Collections
             </Link>
           </Button>
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{collection.name}</h1>
+                <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{collection.name}</h1>
                 <Badge variant="secondary" className="gap-1">
-                  {collection.isPublic ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                  {collection.isPublic ? (
+                    <Globe className="h-3 w-3" />
+                  ) : (
+                    <Lock className="h-3 w-3" />
+                  )}
                   {collection.isPublic ? 'Public' : 'Private'}
                 </Badge>
               </div>
               {collection.description && (
                 <p className="text-muted-foreground max-w-xl">{collection.description}</p>
               )}
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <div className="text-muted-foreground flex flex-wrap items-center gap-4 text-sm">
                 <span className="flex items-center gap-1.5">
                   <User className="h-3.5 w-3.5" />
                   by{' '}
-                  <Link href={`/user/${collection.user?.username}`} className="hover:text-primary font-medium">
+                  <Link
+                    href={`/user/${collection.user?.username}`}
+                    className="hover:text-primary font-medium"
+                  >
                     {collection.user?.username ?? 'unknown'}
                   </Link>
                 </span>
@@ -190,12 +204,16 @@ export default function CollectionDetailPage() {
               </div>
             </div>
             {isOwner && (
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex shrink-0 items-center gap-2">
                 <Button variant="outline" className="gap-2" onClick={() => setEditOpen(true)}>
                   <Edit3 className="h-4 w-4" />
                   Edit
                 </Button>
-                <Button variant="outline" className="gap-2 text-destructive" onClick={() => setDeleteOpen(true)}>
+                <Button
+                  variant="outline"
+                  className="text-destructive gap-2"
+                  onClick={() => setDeleteOpen(true)}
+                >
                   <Trash2 className="h-4 w-4" />
                   Delete
                 </Button>
@@ -207,34 +225,45 @@ export default function CollectionDetailPage() {
 
       <div className="container py-8">
         {collection.projects && collection.projects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {collection.projects.map((entry: any) => (
-              <div key={entry.id} className="group rounded-xl border bg-card p-5 hover:shadow-lg transition-all hover:-translate-y-0.5 hover:border-primary/20">
+              <div
+                key={entry.id}
+                className="bg-card hover:border-primary/20 group rounded-xl border p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+              >
                 <Link href={`/mod/${entry.project.slug}`} className="block">
                   <div className="flex items-start gap-4">
-                    <div className="relative h-14 w-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shrink-0 shadow-sm ring-1 ring-border overflow-hidden">
+                    <div className="from-primary/20 to-primary/5 ring-border relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br shadow-sm ring-1">
                       {entry.project.iconUrl ? (
-                        <Image src={entry.project.iconUrl} alt={entry.project.title} fill sizes="56px" className="h-full w-full object-cover" />
+                        <Image
+                          src={entry.project.iconUrl}
+                          alt={entry.project.title}
+                          fill
+                          sizes="56px"
+                          className="h-full w-full object-cover"
+                        />
                       ) : (
-                        <span className="text-xl font-bold text-primary">{entry.project.title[0]}</span>
+                        <span className="text-primary text-xl font-bold">
+                          {entry.project.title[0]}
+                        </span>
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="group-hover:text-primary truncate font-semibold transition-colors">
                         {entry.project.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-1">
+                      <p className="text-muted-foreground line-clamp-1 text-sm">
                         by {entry.project.author.username}
                       </p>
                       {entry.notes && (
-                        <p className="text-xs text-muted-foreground/70 mt-1 italic line-clamp-1">
+                        <p className="text-muted-foreground/70 mt-1 line-clamp-1 text-xs italic">
                           {entry.notes}
                         </p>
                       )}
                     </div>
                   </div>
                 </Link>
-                <div className="mt-4 pt-3 border-t flex items-center justify-between text-xs text-muted-foreground">
+                <div className="text-muted-foreground mt-4 flex items-center justify-between border-t pt-3 text-xs">
                   <span className="flex items-center gap-1">
                     <Download className="h-3.5 w-3.5" />
                     {formatNumber(entry.project.downloads)}
@@ -264,12 +293,12 @@ export default function CollectionDetailPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="h-8 w-8 text-muted-foreground/60" />
+          <div className="py-16 text-center">
+            <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+              <BookOpen className="text-muted-foreground/60 h-8 w-8" />
             </div>
-            <h3 className="text-lg font-semibold mb-1">No projects yet</h3>
-            <p className="text-sm text-muted-foreground mb-4">This collection is empty.</p>
+            <h3 className="mb-1 text-lg font-semibold">No projects yet</h3>
+            <p className="text-muted-foreground mb-4 text-sm">This collection is empty.</p>
             <Button asChild>
               <Link href="/mods">Browse Mods</Link>
             </Button>
@@ -277,47 +306,74 @@ export default function CollectionDetailPage() {
         )}
       </div>
 
-      <Dialog open={editOpen} onOpenChange={(v) => { setEditOpen(v); if (!v) { setEditName(''); setEditDescription(''); } }}>
+      <Dialog
+        open={editOpen}
+        onOpenChange={(v) => {
+          setEditOpen(v);
+          if (!v) {
+            setEditName('');
+            setEditDescription('');
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Collection</DialogTitle>
             <DialogDescription>Update the name and description.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={async (e) => {
-            e.preventDefault();
-            if (!editName.trim()) return;
-            setEditSubmitting(true);
-            try {
-              await sdk.updateCollection(id, { name: editName.trim(), description: editDescription.trim() || undefined, isPublic: editIsPublic });
-              toast.success('Collection updated');
-              setEditOpen(false);
-              refetch();
-            } catch (err: any) {
-              toast.error(err?.message || 'Failed to update collection');
-            } finally {
-              setEditSubmitting(false);
-            }
-          }} className="space-y-4">
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!editName.trim()) return;
+              setEditSubmitting(true);
+              try {
+                await sdk.updateCollection(id, {
+                  name: editName.trim(),
+                  description: editDescription.trim() || undefined,
+                  isPublic: editIsPublic,
+                });
+                toast.success('Collection updated');
+                setEditOpen(false);
+                refetch();
+              } catch (err: any) {
+                toast.error(err?.message || 'Failed to update collection');
+              } finally {
+                setEditSubmitting(false);
+              }
+            }}
+            className="space-y-4"
+          >
             <div>
-              <label className="text-sm font-medium mb-1 block">Name</label>
-              <Input value={editName} onChange={(e) => setEditName(e.target.value)} required maxLength={100} />
+              <label className="mb-1 block text-sm font-medium">Name</label>
+              <Input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                required
+                maxLength={100}
+              />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1 block">Description</label>
-              <Input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} maxLength={500} />
+              <label className="mb-1 block text-sm font-medium">Description</label>
+              <Input
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                maxLength={500}
+              />
             </div>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setEditIsPublic(!editIsPublic)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${editIsPublic ? 'bg-primary/10 border-primary text-primary' : 'bg-card text-muted-foreground'}`}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${editIsPublic ? 'bg-primary/10 border-primary text-primary' : 'bg-card text-muted-foreground'}`}
               >
                 {editIsPublic ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                 {editIsPublic ? 'Public' : 'Private'}
               </button>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
+                Cancel
+              </Button>
               <Button type="submit" disabled={!editName.trim() || editSubmitting} className="gap-2">
                 {editSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 Save
@@ -332,12 +388,20 @@ export default function CollectionDetailPage() {
           <DialogHeader>
             <DialogTitle>Delete Collection</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete &quot;{collection.name}&quot;? This action cannot be undone.
+              Are you sure you want to delete &quot;{collection.name}&quot;? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="gap-2">
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+              className="gap-2"
+            >
               {deleting && <Loader2 className="h-4 w-4 animate-spin" />}
               Delete
             </Button>

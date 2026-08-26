@@ -136,7 +136,7 @@ export function useBrowse({ filters }: UseBrowseParams) {
     hasMore,
     loading: query.isLoading,
     loadingMore: query.isFetchingNextPage,
-    error: query.error ? (query.error as Error).message ?? 'Failed to load projects' : null,
+    error: query.error ? ((query.error as Error).message ?? 'Failed to load projects') : null,
     fetchNextPage: query.fetchNextPage,
     refetch: query.refetch,
   };

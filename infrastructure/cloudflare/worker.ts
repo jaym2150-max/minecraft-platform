@@ -78,10 +78,7 @@ function resolveAllowedOrigins(env: Env): string[] {
  * the count AFTER incrementing. The bucket key rotates every minute so the
  * counter resets automatically without needing a TTL sweep.
  */
-async function incrementRequestCounter(
-  ip: string,
-  windowKey: string,
-): Promise<number> {
+async function incrementRequestCounter(ip: string, windowKey: string): Promise<number> {
   const cache = caches.default;
   const counterKey = new Request(
     `https://internal-ratelimit.invalid/${windowKey}/${encodeURIComponent(ip)}`,
@@ -119,10 +116,7 @@ function applySecurityHeaders(headers: Headers): void {
   headers.set('X-Frame-Options', 'DENY');
   headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  headers.set(
-    'Strict-Transport-Security',
-    'max-age=31536000; includeSubDomains; preload',
-  );
+  headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
 }
 
 /**
@@ -133,31 +127,24 @@ function applySecurityHeaders(headers: Headers): void {
  * credentialed cross-origin calls using the requesting user's credentials
  * (CORS mis-issuance).
  */
-function applyCorsHeaders(
-  headers: Headers,
-  requestOrigin: string,
-  allowedOrigins: string[],
-): void {
+function applyCorsHeaders(headers: Headers, requestOrigin: string, allowedOrigins: string[]): void {
   if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
     headers.set('Access-Control-Allow-Origin', requestOrigin);
     headers.set('Vary', 'Origin');
     headers.set('Access-Control-Allow-Credentials', 'true');
   }
   headers.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-  headers.set(
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization',
-  );
+  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   headers.set('Access-Control-Max-Age', '86400');
 }
 
 function notFoundResponse(): Response {
   const headers = new Headers({ 'content-type': 'application/json' });
   applySecurityHeaders(headers);
-  return new Response(
-    JSON.stringify({ statusCode: 404, message: 'Not Found' }),
-    { status: 404, headers },
-  );
+  return new Response(JSON.stringify({ statusCode: 404, message: 'Not Found' }), {
+    status: 404,
+    headers,
+  });
 }
 
 function tooManyRequestsResponse(retryAfter: number): Response {
@@ -166,37 +153,26 @@ function tooManyRequestsResponse(retryAfter: number): Response {
     'retry-after': String(retryAfter),
   });
   applySecurityHeaders(headers);
-  return new Response(
-    JSON.stringify({ statusCode: 429, message: 'Too Many Requests' }),
-    { status: 429, headers },
-  );
+  return new Response(JSON.stringify({ statusCode: 429, message: 'Too Many Requests' }), {
+    status: 429,
+    headers,
+  });
 }
 
 export default {
-  async fetch(
-    request: Request,
-    env: Env,
-    ctx: ExecutionContext,
-  ): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
-    const clientIP =
-      request.headers.get('cf-connecting-ip') || 'unknown';
+    const clientIP = request.headers.get('cf-connecting-ip') || 'unknown';
     const allowedOrigins = resolveAllowedOrigins(env);
     const rateLimit = resolveRateLimit(env);
 
     // OPTIONS preflight — path still must be in the public allowlist so CORS
     // preflighting of internal routes doesn't leak their existence.
     if (request.method === 'OPTIONS') {
-      const isPublic = PUBLIC_PATH_PREFIXES.some((p) =>
-        url.pathname.startsWith(p),
-      );
+      const isPublic = PUBLIC_PATH_PREFIXES.some((p) => url.pathname.startsWith(p));
       if (!isPublic) return notFoundResponse();
       const headers = new Headers();
-      applyCorsHeaders(
-        headers,
-        request.headers.get('Origin') || '',
-        allowedOrigins,
-      );
+      applyCorsHeaders(headers, request.headers.get('Origin') || '', allowedOrigins);
       applySecurityHeaders(headers);
       return new Response(null, { status: 204, headers });
     }
@@ -205,9 +181,7 @@ export default {
     // the edge. This is the SSRF guard — without it, the Worker pass-
     // through branch would `fetch(${API_ORIGIN}${url.pathname}`) any path
     // the attacker constructs and forward `Authorization` to it.
-    const isPublic = PUBLIC_PATH_PREFIXES.some((p) =>
-      url.pathname.startsWith(p),
-    );
+    const isPublic = PUBLIC_PATH_PREFIXES.some((p) => url.pathname.startsWith(p));
     if (!isPublic) return notFoundResponse();
 
     // The Worker is read-only by design — only allow stateless methods.
@@ -216,11 +190,7 @@ export default {
     if (!['GET', 'HEAD'].includes(request.method)) {
       const headers = new Headers({ 'content-type': 'application/json' });
       applySecurityHeaders(headers);
-      applyCorsHeaders(
-        headers,
-        request.headers.get('Origin') || '',
-        allowedOrigins,
-      );
+      applyCorsHeaders(headers, request.headers.get('Origin') || '', allowedOrigins);
       headers.set('Allow', 'GET, HEAD, OPTIONS');
       return new Response(
         JSON.stringify({
@@ -234,18 +204,14 @@ export default {
     // RATE LIMIT: per IP per minute, enforced via the cache-backed counter.
     // Applied AFTER the path allowlist so legitimate callers never hit the
     // counter for paths the Worker doesn't proxy anyway.
-    const windowKey = new Date()
-      .toISOString()
-      .slice(0, 16); // YYYY-MM-DDTHH:mm — minute bucket
+    const windowKey = new Date().toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm — minute bucket
     const count = await incrementRequestCounter(clientIP, windowKey);
     if (count > rateLimit) {
       return tooManyRequestsResponse(60);
     }
 
     // CACHE: only listing/detail GETs on the cacheable prefixes are cached.
-    const isCacheable = CACHEABLE_PATH_PREFIXES.some((p) =>
-      url.pathname.startsWith(p),
-    );
+    const isCacheable = CACHEABLE_PATH_PREFIXES.some((p) => url.pathname.startsWith(p));
     if (isCacheable) {
       const cache = caches.default;
       const cacheKey = new Request(url.toString(), {
@@ -258,11 +224,7 @@ export default {
         response.headers.set('X-Cache-Status', 'HIT');
         response.headers.set('CF-Cache-Status', 'HIT');
         applySecurityHeaders(response.headers);
-        applyCorsHeaders(
-          response.headers,
-          request.headers.get('Origin') || '',
-          allowedOrigins,
-        );
+        applyCorsHeaders(response.headers, request.headers.get('Origin') || '', allowedOrigins);
         return response;
       }
     }
@@ -277,31 +239,19 @@ export default {
     outboundHeaders.set('host', new URL(env.API_ORIGIN).host);
     // Strip the inbound Origin/host so the upstream never trusts them via
     // x-forwarded-host poisoning (eg. OAuth callback link generation).
-    outboundHeaders.set(
-      'x-forwarded-proto',
-      new URL(env.API_ORIGIN).protocol.replace(':', ''),
-    );
+    outboundHeaders.set('x-forwarded-proto', new URL(env.API_ORIGIN).protocol.replace(':', ''));
     outboundHeaders.set('x-forwarded-host', new URL(env.API_ORIGIN).host);
     outboundHeaders.set('via', 'cloudflare-worker');
 
-    const originResponse = await fetch(
-      `${env.API_ORIGIN}${url.pathname}${url.search}`,
-      {
-        method: request.method,
-        headers: outboundHeaders,
-        // No body for GET/HEAD.
-      },
-    );
+    const originResponse = await fetch(`${env.API_ORIGIN}${url.pathname}${url.search}`, {
+      method: request.method,
+      headers: outboundHeaders,
+      // No body for GET/HEAD.
+    });
 
     if (isCacheable && originResponse.ok) {
-      const cacheableResponse = new Response(
-        originResponse.body,
-        originResponse,
-      );
-      cacheableResponse.headers.set(
-        'Cache-Control',
-        `public, max-age=${CACHE_TTL}`,
-      );
+      const cacheableResponse = new Response(originResponse.body, originResponse);
+      cacheableResponse.headers.set('Cache-Control', `public, max-age=${CACHE_TTL}`);
       cacheableResponse.headers.set('X-Cache-Status', 'MISS');
       applySecurityHeaders(cacheableResponse.headers);
       applyCorsHeaders(
@@ -324,11 +274,7 @@ export default {
       headers: originResponse.headers,
     });
     applySecurityHeaders(response.headers);
-    applyCorsHeaders(
-      response.headers,
-      request.headers.get('Origin') || '',
-      allowedOrigins,
-    );
+    applyCorsHeaders(response.headers, request.headers.get('Origin') || '', allowedOrigins);
     return response;
   },
 };

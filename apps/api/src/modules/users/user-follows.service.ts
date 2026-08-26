@@ -129,7 +129,10 @@ export class UserFollowsService {
 
   private async createFollowNotification(followerId: string, followedId: string): Promise<void> {
     const [follower, followed] = await Promise.all([
-      this.prisma.user.findUnique({ where: { id: followerId }, select: { username: true, displayName: true } }),
+      this.prisma.user.findUnique({
+        where: { id: followerId },
+        select: { username: true, displayName: true },
+      }),
       this.prisma.user.findUnique({ where: { id: followedId }, select: { id: true } }),
     ]);
 

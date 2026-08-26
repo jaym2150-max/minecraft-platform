@@ -44,16 +44,16 @@ pnpm dev
 
 ### Development URLs
 
-| Service      | URL                      |
-|-------------|--------------------------|
-| Web App     | http://localhost:3003     |
-| API         | http://localhost:4000     |
-| Admin Panel | http://localhost:3001     |
-| Docs Site   | http://localhost:3002     |
-| MinIO       | http://localhost:9000     |
-| Meilisearch | http://localhost:7700     |
-| PostgreSQL  | localhost:5432            |
-| Redis       | localhost:6379            |
+| Service     | URL                   |
+| ----------- | --------------------- |
+| Web App     | http://localhost:3003 |
+| API         | http://localhost:4000 |
+| Admin Panel | http://localhost:3001 |
+| Docs Site   | http://localhost:3002 |
+| MinIO       | http://localhost:9000 |
+| Meilisearch | http://localhost:7700 |
+| PostgreSQL  | localhost:5432        |
+| Redis       | localhost:6379        |
 
 ## Project Structure
 

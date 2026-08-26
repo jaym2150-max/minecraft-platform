@@ -104,9 +104,7 @@ describe('Versions E2E', () => {
     });
 
     it('should return 404 for non-existent version', async () => {
-      await request(app.getHttpServer())
-        .get('/api/v1/versions/non-existent-id')
-        .expect(404);
+      await request(app.getHttpServer()).get('/api/v1/versions/non-existent-id').expect(404);
     });
   });
 

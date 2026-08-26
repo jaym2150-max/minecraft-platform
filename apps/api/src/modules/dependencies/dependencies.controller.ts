@@ -78,7 +78,11 @@ export class DependenciesController {
   @Delete('dependencies/:id')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async remove(@Param('id') id: string, @CurrentUser('id') userId: string, @CurrentUser('role') userRole: string) {
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: string,
+  ) {
     await this.verifyDependencyOwnership(id, { id: userId, role: userRole });
     await this.dependenciesService.remove(id);
     return {
@@ -102,7 +106,10 @@ export class DependenciesController {
     }
   }
 
-  private async verifyDependencyOwnership(dependencyId: string, user: { id: string; role: string }) {
+  private async verifyDependencyOwnership(
+    dependencyId: string,
+    user: { id: string; role: string },
+  ) {
     const dep = await this.prisma.dependency.findUnique({
       where: { id: dependencyId },
       select: { dependentId: true },

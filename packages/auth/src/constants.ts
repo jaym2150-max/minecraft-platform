@@ -14,8 +14,7 @@
  * still arrives on localhost. Mirrors `apps/api/src/common/auth-cookie.ts`
  * exactly — keep these two in sync.
  */
-export const AUTH_COOKIE_NAME =
-  process.env.NODE_ENV === 'production' ? '__Host-mcp-auth' : 'token';
+export const AUTH_COOKIE_NAME = process.env.NODE_ENV === 'production' ? '__Host-mcp-auth' : 'token';
 
 /**
  * Storage key the AuthContext uses to mirror the user object in localStorage.

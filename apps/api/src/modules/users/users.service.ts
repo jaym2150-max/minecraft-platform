@@ -65,7 +65,9 @@ export class UsersService {
     return this.formatUser(user);
   }
 
-  async findOneByUsername(username: string): Promise<User & { followerCount: number; followingCount: number } | null> {
+  async findOneByUsername(
+    username: string,
+  ): Promise<(User & { followerCount: number; followingCount: number }) | null> {
     const user = await this.prisma.user.findUnique({
       where: { username },
       select: {
@@ -82,12 +84,12 @@ export class UsersService {
         _count: {
           select: {
             followers: true,
-            following: true
-          }
-        }
-      }
+            following: true,
+          },
+        },
+      },
     });
-    
+
     if (!user) return null;
 
     const result: any = {
@@ -153,13 +155,16 @@ export class UsersService {
     return user?.passwordHash ?? null;
   }
 
-  async update(id: string, data: Partial<{
-    username: string;
-    email: string;
-    displayName?: string | null;
-    bio?: string | null;
-    avatarUrl?: string | null;
-  }>): Promise<User> {
+  async update(
+    id: string,
+    data: Partial<{
+      username: string;
+      email: string;
+      displayName?: string | null;
+      bio?: string | null;
+      avatarUrl?: string | null;
+    }>,
+  ): Promise<User> {
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data,
@@ -179,10 +184,7 @@ export class UsersService {
     return bcrypt.hash(password, salt);
   }
 
-  async comparePassword(
-    password: string,
-    passwordHash: string,
-  ): Promise<boolean> {
+  async comparePassword(password: string, passwordHash: string): Promise<boolean> {
     return bcrypt.compare(password, passwordHash);
   }
 }

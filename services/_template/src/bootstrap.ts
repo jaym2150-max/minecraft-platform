@@ -61,7 +61,9 @@ export function createWorker<T>(opts: CreateWorkerOptions<T>): WorkerHandle {
       await connection.ping();
       console.log(`[${opts.name}] Connected to Redis at ${REDIS_HOST}:${REDIS_PORT}`);
     } catch (err) {
-      console.error(`[${opts.name}] Failed to connect to Redis at ${REDIS_HOST}:${REDIS_PORT}: ${(err as Error).message}`);
+      console.error(
+        `[${opts.name}] Failed to connect to Redis at ${REDIS_HOST}:${REDIS_PORT}: ${(err as Error).message}`,
+      );
       console.error(`[${opts.name}] Ensure Redis is running. Exiting.`);
       process.exit(1);
     }

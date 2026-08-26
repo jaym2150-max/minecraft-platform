@@ -16,13 +16,23 @@ export class AnalyticsService {
   private getStartDate(period: Period): Date | null {
     if (period === 'all') return null;
     const now = new Date();
-    const periodDays: Record<Exclude<Period, 'all'>, number> = { '7d': 7, '30d': 30, '90d': 90, '1y': 365 };
+    const periodDays: Record<Exclude<Period, 'all'>, number> = {
+      '7d': 7,
+      '30d': 30,
+      '90d': 90,
+      '1y': 365,
+    };
     const days = periodDays[period];
     return new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
   }
 
   private getPeriodDays(period: Period): number {
-    const periodDays: Record<Exclude<Period, 'all'>, number> = { '7d': 7, '30d': 30, '90d': 90, '1y': 365 };
+    const periodDays: Record<Exclude<Period, 'all'>, number> = {
+      '7d': 7,
+      '30d': 30,
+      '90d': 90,
+      '1y': 365,
+    };
     return period === 'all' ? 365 : periodDays[period];
   }
 
@@ -59,21 +69,28 @@ export class AnalyticsService {
 
     const startDate = this.getStartDate(period);
 
-    const [totalDownloads, totalViews, downloadsByDay, viewsByDay, downloadsByVersion, downloadsByLoader, uniqueVisitors] =
-      await Promise.all([
-        this.prisma.download.count({
-          where: {
-            projectId,
-            ...(startDate ? { createdAt: { gte: startDate } } : {}),
-          },
-        }),
-        project.views,
-        this.getDownloadsByDay(projectId, startDate, period),
-        this.getViewsByDay(projectId, startDate, period),
-        this.getDownloadsByVersion(projectId, startDate),
-        this.getDownloadsByLoader(projectId, startDate),
-        this.getUniqueVisitors(projectId, startDate),
-      ]);
+    const [
+      totalDownloads,
+      totalViews,
+      downloadsByDay,
+      viewsByDay,
+      downloadsByVersion,
+      downloadsByLoader,
+      uniqueVisitors,
+    ] = await Promise.all([
+      this.prisma.download.count({
+        where: {
+          projectId,
+          ...(startDate ? { createdAt: { gte: startDate } } : {}),
+        },
+      }),
+      project.views,
+      this.getDownloadsByDay(projectId, startDate, period),
+      this.getViewsByDay(projectId, startDate, period),
+      this.getDownloadsByVersion(projectId, startDate),
+      this.getDownloadsByLoader(projectId, startDate),
+      this.getUniqueVisitors(projectId, startDate),
+    ]);
 
     return {
       projectId,
@@ -201,7 +218,11 @@ export class AnalyticsService {
     };
   }
 
-  private async getDownloadsByDay(projectId: string, startDate: Date | null, period: Period): Promise<any[]> {
+  private async getDownloadsByDay(
+    projectId: string,
+    startDate: Date | null,
+    period: Period,
+  ): Promise<any[]> {
     const days = this.getPeriodDays(period);
     const result = await this.prisma.$queryRaw<Array<{ date: Date; count: bigint }>>`
       SELECT DATE("createdAt") AS date, COUNT(*) AS count
@@ -215,7 +236,11 @@ export class AnalyticsService {
     return this.fillDayGaps(result, days);
   }
 
-  private async getViewsByDay(projectId: string, startDate: Date | null, period: Period): Promise<any[]> {
+  private async getViewsByDay(
+    projectId: string,
+    startDate: Date | null,
+    period: Period,
+  ): Promise<any[]> {
     const days = this.getPeriodDays(period);
     const downloadsAsProxy = await this.prisma.$queryRaw<Array<{ date: Date; count: bigint }>>`
       SELECT DATE("createdAt") AS date, COUNT(*) AS count
@@ -293,7 +318,8 @@ export class AnalyticsService {
   private fillDayGaps(data: Array<{ date: Date; count: bigint }>, days: number): any[] {
     const dataMap = new Map<string, number>();
     for (const row of data) {
-      const dateStr = row.date instanceof Date ? row.date.toISOString().split('T')[0] : String(row.date);
+      const dateStr =
+        row.date instanceof Date ? row.date.toISOString().split('T')[0] : String(row.date);
       dataMap.set(dateStr, Number(row.count));
     }
 

@@ -9,13 +9,7 @@ import { CommentsModule } from '../comments/comments.module';
 import { VersionsModule } from '../versions/versions.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    ProjectsModule,
-    ReviewsModule,
-    CommentsModule,
-    VersionsModule,
-  ],
+  imports: [PrismaModule, ProjectsModule, ReviewsModule, CommentsModule, VersionsModule],
   controllers: [UsersController],
   providers: [UsersService, UserFollowsService],
   exports: [UsersService, UserFollowsService],

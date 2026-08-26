@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../../common/prisma/prisma.service';
@@ -86,31 +81,29 @@ export class ProjectsService {
 
     const isOwner = !!viewer && project.authorId === viewer.id;
     const isStaff =
-      !!viewer &&
-      ['MODERATOR', 'ADMIN', 'OWNER'].includes((viewer.role ?? '').toUpperCase());
+      !!viewer && ['MODERATOR', 'ADMIN', 'OWNER'].includes((viewer.role ?? '').toUpperCase());
     if (project.status !== ProjectStatus.PUBLISHED && !isOwner && !isStaff) {
       throw new NotFoundException(`Project "${idOrSlug}" not found`);
     }
 
     if (trackView) {
-      this.prisma.project.update({
-        where: { id: project.id },
-        data: { views: { increment: 1 } },
-      }).catch((err) => this.logger.warn(`Failed to increment view count: ${err.message}`));
+      this.prisma.project
+        .update({
+          where: { id: project.id },
+          data: { views: { increment: 1 } },
+        })
+        .catch((err) => this.logger.warn(`Failed to increment view count: ${err.message}`));
 
-      this.analyticsQueue.add('pageview', { projectId: project.id }).catch((err) =>
-        this.logger.warn(`Failed to enqueue analytics: ${err.message}`),
-      );
+      this.analyticsQueue
+        .add('pageview', { projectId: project.id })
+        .catch((err) => this.logger.warn(`Failed to enqueue analytics: ${err.message}`));
     }
 
     return this.formatProject(project);
   }
 
   /** Strict 404 helper — useful for routes that accept id or slug. */
-  async findProjectOr404(
-    idOrSlug: string,
-    viewer?: { id: string; role: string },
-  ): Promise<any> {
+  async findProjectOr404(idOrSlug: string, viewer?: { id: string; role: string }): Promise<any> {
     return this.findByIdOrSlug(idOrSlug, { trackView: false, viewer });
   }
 
@@ -161,13 +154,13 @@ export class ProjectsService {
    * Appends a short random suffix if a collision is detected.
    */
   private async generateUniqueSlug(title: string, existingId?: string): Promise<string> {
-    const baseSlug = title
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, '')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '')
-      || 'project';
+    const baseSlug =
+      title
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '') || 'project';
 
     let slug = baseSlug;
     let attempts = 0;
@@ -220,9 +213,9 @@ export class ProjectsService {
       },
     });
 
-    this.searchIndexQueue.add('upsert', { projectId: project.id }).catch((err) =>
-      this.logger.warn(`Failed to enqueue search-index: ${err.message}`),
-    );
+    this.searchIndexQueue
+      .add('upsert', { projectId: project.id })
+      .catch((err) => this.logger.warn(`Failed to enqueue search-index: ${err.message}`));
 
     return this.formatProject(project);
   }
@@ -243,9 +236,7 @@ export class ProjectsService {
     // infinite-scroll clients. use-browse passes the previous page's
     // `nextCursor` straight back in here.
     const q = query as QueryProjectsDto;
-    const page = q.cursor
-      ? Math.max(1, parseInt(q.cursor, 10) || 1)
-      : q.page ?? 1;
+    const page = q.cursor ? Math.max(1, parseInt(q.cursor, 10) || 1) : (q.page ?? 1);
     const limit = q.limit ?? 20;
     const skip = (page - 1) * limit;
     const order = q.order ?? 'desc';
@@ -288,7 +279,14 @@ export class ProjectsService {
     const hasMore = page < totalPages;
     return {
       data: projects.map((p) => this.formatProject(p)),
-      meta: { page, limit, total, totalPages, nextCursor: hasMore ? String(page + 1) : null, hasMore },
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages,
+        nextCursor: hasMore ? String(page + 1) : null,
+        hasMore,
+      },
     };
   }
 
@@ -315,21 +313,22 @@ export class ProjectsService {
       where,
       orderBy: { [sortField]: order },
       prismaDelegate: {
-        findMany: (args) => this.prisma.project.findMany({
-          ...(args as any),
-          include: {
-            author: { select: { id: true, username: true, avatarUrl: true } },
-            category: { select: { id: true, name: true, slug: true } },
-            loaders: { select: { type: true } },
-            versions: {
-              where: { status: 'APPROVED' as any },
-              orderBy: { createdAt: 'desc' },
-              take: 1,
-              select: { version: true },
+        findMany: (args) =>
+          this.prisma.project.findMany({
+            ...(args as any),
+            include: {
+              author: { select: { id: true, username: true, avatarUrl: true } },
+              category: { select: { id: true, name: true, slug: true } },
+              loaders: { select: { type: true } },
+              versions: {
+                where: { status: 'APPROVED' as any },
+                orderBy: { createdAt: 'desc' },
+                take: 1,
+                select: { version: true },
+              },
+              license: { select: { id: true, shortId: true, name: true, type: true, url: true } },
             },
-            license: { select: { id: true, shortId: true, name: true, type: true, url: true } },
-          },
-        }),
+          }),
       },
     }).then((page) => ({
       ...page,
@@ -377,14 +376,16 @@ export class ProjectsService {
       throw new NotFoundException(`Project not found`);
     }
 
-    this.prisma.project.update({
-      where: { id: project.id },
-      data: { views: { increment: 1 } },
-    }).catch((err) => this.logger.warn(`Failed to increment view count: ${err.message}`));
+    this.prisma.project
+      .update({
+        where: { id: project.id },
+        data: { views: { increment: 1 } },
+      })
+      .catch((err) => this.logger.warn(`Failed to increment view count: ${err.message}`));
 
-    this.analyticsQueue.add('pageview', { projectId: project.id }).catch((err) =>
-      this.logger.warn(`Failed to enqueue analytics: ${err.message}`),
-    );
+    this.analyticsQueue
+      .add('pageview', { projectId: project.id })
+      .catch((err) => this.logger.warn(`Failed to enqueue analytics: ${err.message}`));
 
     return this.formatProject(project);
   }
@@ -466,9 +467,9 @@ export class ProjectsService {
       },
     });
 
-    this.searchIndexQueue.add('upsert', { projectId: id }).catch((err) =>
-      this.logger.warn(`Failed to enqueue search-index: ${err.message}`),
-    );
+    this.searchIndexQueue
+      .add('upsert', { projectId: id })
+      .catch((err) => this.logger.warn(`Failed to enqueue search-index: ${err.message}`));
 
     return this.formatProject(project);
   }
@@ -493,9 +494,9 @@ export class ProjectsService {
       this.prisma.project.delete({ where: { id } }),
     ]);
 
-    this.searchIndexQueue.add('delete', { projectId: id }).catch((err) =>
-      this.logger.warn(`Failed to enqueue search-index: ${err.message}`),
-    );
+    this.searchIndexQueue
+      .add('delete', { projectId: id })
+      .catch((err) => this.logger.warn(`Failed to enqueue search-index: ${err.message}`));
   }
 
   async getRelatedProjects(
@@ -539,9 +540,11 @@ export class ProjectsService {
    * (loader.type, loader.versionString) combinations joined to projects of
    * the requested status. Used to render compat-aware version pills.
    */
-  async getLoaderVersionCompatibility(opts: {
-    status?: ProjectStatus;
-  } = {}): Promise<{
+  async getLoaderVersionCompatibility(
+    opts: {
+      status?: ProjectStatus;
+    } = {},
+  ): Promise<{
     total: number;
     loaders: { type: LoaderType; gameVersion: string; projectCount: number }[];
   }> {
@@ -612,10 +615,7 @@ export class ProjectsService {
 
     if (query.search) {
       conditions.push({
-        OR: [
-          { title: { contains: query.search } },
-          { description: { contains: query.search } },
-        ],
+        OR: [{ title: { contains: query.search } }, { description: { contains: query.search } }],
       });
     }
 
@@ -626,7 +626,9 @@ export class ProjectsService {
       });
     }
 
-    const requestedLoaders = this.mergeFacets(query.loaders, query.loader).map((l) => l.toUpperCase());
+    const requestedLoaders = this.mergeFacets(query.loaders, query.loader).map((l) =>
+      l.toUpperCase(),
+    );
     const loaderVals = (Object.values(LoaderType) as LoaderType[]).filter((l) =>
       requestedLoaders.includes(l),
     );
@@ -634,7 +636,9 @@ export class ProjectsService {
       conditions.push({ loaders: { some: { type: { in: loaderVals } } } });
     }
 
-    const requestedTypes = this.mergeFacets(query.projectTypes, query.projectType).map((t) => t.toUpperCase());
+    const requestedTypes = this.mergeFacets(query.projectTypes, query.projectType).map((t) =>
+      t.toUpperCase(),
+    );
     const typeVals = (Object.values(ProjectType) as ProjectType[]).filter((t) =>
       requestedTypes.includes(t),
     );
@@ -681,9 +685,8 @@ export class ProjectsService {
    * Converts dates to ISO strings, nulls to undefined, and extracts loader types.
    */
   private formatProject(project: any): any {
-    const loaderTypes = project.loaders?.map((l: any) =>
-      typeof l === 'string' ? l : l.type,
-    ) ?? [];
+    const loaderTypes =
+      project.loaders?.map((l: any) => (typeof l === 'string' ? l : l.type)) ?? [];
 
     return {
       id: project.id,
@@ -706,12 +709,10 @@ export class ProjectsService {
       serverSide: project.serverSide,
       authorId: project.authorId,
       categoryId: project.categoryId ?? undefined,
-      createdAt: project.createdAt instanceof Date
-        ? project.createdAt.toISOString()
-        : project.createdAt,
-      updatedAt: project.updatedAt instanceof Date
-        ? project.updatedAt.toISOString()
-        : project.updatedAt,
+      createdAt:
+        project.createdAt instanceof Date ? project.createdAt.toISOString() : project.createdAt,
+      updatedAt:
+        project.updatedAt instanceof Date ? project.updatedAt.toISOString() : project.updatedAt,
       author: project.author
         ? {
             id: project.author.id,

@@ -51,7 +51,7 @@ export function FacetFilter({
   const clear = () => onChange([]);
 
   return (
-    <div className={cn('rounded-lg border bg-card', className)}>
+    <div className={cn('bg-card rounded-lg border', className)}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -61,7 +61,7 @@ export function FacetFilter({
         <span className="flex items-center gap-2">
           {title}
           {selected.length > 0 && (
-            <span className="inline-flex items-center justify-center rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
+            <span className="bg-primary text-primary-foreground inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-bold">
               {selected.length}
             </span>
           )}
@@ -69,37 +69,37 @@ export function FacetFilter({
         {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
       </button>
       {open && (
-        <div className="border-t px-4 py-3 space-y-2">
+        <div className="space-y-2 border-t px-4 py-3">
           {searchable && options.length > 5 && (
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={`Filter ${title.toLowerCase()}...`}
-              className="w-full h-8 rounded-md border border-input bg-background px-2 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="border-input bg-background focus-visible:ring-ring h-8 w-full rounded-md border px-2 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1"
             />
           )}
           {filtered.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-2">{emptyMessage}</p>
+            <p className="text-muted-foreground py-2 text-xs">{emptyMessage}</p>
           ) : (
-            <ul className="space-y-1 max-h-64 overflow-y-auto pr-1">
+            <ul className="max-h-64 space-y-1 overflow-y-auto pr-1">
               {filtered.map((opt) => {
                 const checked = selected.includes(opt.value);
                 return (
                   <li key={opt.value}>
-                    <label className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/50 cursor-pointer">
-                      <span className="flex items-center gap-2 min-w-0">
+                    <label className="hover:bg-muted/50 flex cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm">
+                      <span className="flex min-w-0 items-center gap-2">
                         <input
                           type="checkbox"
                           checked={checked}
                           onChange={() => toggle(opt.value)}
                           aria-label={opt.label}
-                          className="h-4 w-4 rounded border-input text-primary focus-visible:ring-1 focus-visible:ring-ring"
+                          className="border-input text-primary focus-visible:ring-ring h-4 w-4 rounded focus-visible:ring-1"
                         />
                         <span className="truncate">{opt.label}</span>
                       </span>
                       {typeof opt.count === 'number' && (
-                        <span className="text-xs text-muted-foreground shrink-0">{opt.count}</span>
+                        <span className="text-muted-foreground shrink-0 text-xs">{opt.count}</span>
                       )}
                     </label>
                   </li>
@@ -111,7 +111,7 @@ export function FacetFilter({
             <button
               type="button"
               onClick={clear}
-              className="text-xs text-primary hover:underline mt-1"
+              className="text-primary mt-1 text-xs hover:underline"
             >
               Clear
             </button>

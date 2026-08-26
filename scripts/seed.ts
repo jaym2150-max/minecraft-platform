@@ -51,7 +51,12 @@ async function main() {
     { name: 'Magic', slug: 'magic', description: 'Magic mods', color: '#9b59b6' },
     { name: 'Utility', slug: 'utility', description: 'Utility mods', color: '#2ecc71' },
     { name: 'Library', slug: 'library', description: 'Library mods', color: '#f39c12' },
-    { name: 'World Gen', slug: 'world-gen', description: 'World generation mods', color: '#1abc9c' },
+    {
+      name: 'World Gen',
+      slug: 'world-gen',
+      description: 'World generation mods',
+      color: '#1abc9c',
+    },
     { name: 'Food', slug: 'food', description: 'Food and cooking mods', color: '#e67e22' },
     { name: 'Storage', slug: 'storage', description: 'Storage mods', color: '#95a5a6' },
   ];

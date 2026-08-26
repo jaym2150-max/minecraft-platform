@@ -6,7 +6,8 @@ import { TypeLandingRedirect } from '@/components/type-landing';
 
 export const metadata: Metadata = {
   title: 'Minecraft Modpacks — Curated Mod Collections for Every Playstyle',
-  description: 'Browse hundreds of Minecraft modpacks: tech, magic, exploration, hardcore and more. One-click installs with automatic dependency resolution.',
+  description:
+    'Browse hundreds of Minecraft modpacks: tech, magic, exploration, hardcore and more. One-click installs with automatic dependency resolution.',
 };
 
 export default function Page() {

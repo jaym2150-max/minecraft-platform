@@ -19,6 +19,7 @@ Observability stack for Minecraft Platform.
 ## Metrics Collected
 
 ### Application
+
 - HTTP request rate and latency
 - Error rates per endpoint
 - Active database connections
@@ -26,11 +27,13 @@ Observability stack for Minecraft Platform.
 - Cache hit/miss rates
 
 ### Infrastructure
+
 - CPU, memory, disk, network
 - Database performance (queries/sec, slow queries)
 - Redis memory usage and eviction rate
 
 ### Business
+
 - New user signups
 - New project uploads
 - Downloads per day
@@ -38,13 +41,13 @@ Observability stack for Minecraft Platform.
 
 ## Key Alerts
 
-| Alert | Trigger | Severity |
-|-------|---------|----------|
-| API Down | No response for 1m | Critical |
-| High Error Rate | >10% 5xx for 5m | Critical |
-| High Latency | p95 > 1s for 5m | Warning |
-| Queue Backlog | >1000 jobs for 10m | Warning |
-| Disk Low | <10% free | Warning |
+| Alert           | Trigger            | Severity |
+| --------------- | ------------------ | -------- |
+| API Down        | No response for 1m | Critical |
+| High Error Rate | >10% 5xx for 5m    | Critical |
+| High Latency    | p95 > 1s for 5m    | Warning  |
+| Queue Backlog   | >1000 jobs for 10m | Warning  |
+| Disk Low        | <10% free          | Warning  |
 
 ## Run
 
@@ -53,6 +56,7 @@ docker compose -f docker-compose.monitoring.yml up -d
 ```
 
 Then visit:
+
 - Prometheus: http://localhost:9090
 - Grafana: http://localhost:3000 (admin/admin)
 - AlertManager: http://localhost:9093

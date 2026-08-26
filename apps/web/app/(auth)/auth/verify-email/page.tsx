@@ -20,7 +20,7 @@ export default function VerifyEmailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
+        <div className="from-background via-muted/30 to-background flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
               <CardTitle>Loading...</CardTitle>
@@ -45,7 +45,8 @@ function VerifyEmailForm() {
   useEffect(() => {
     if (!token) return;
     setStatus('verifying');
-    sdk.verifyEmail(token)
+    sdk
+      .verifyEmail(token)
       .then(() => {
         setStatus('success');
         toast.success('Email verified successfully!');
@@ -72,17 +73,17 @@ function VerifyEmailForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
+    <div className="from-background via-muted/30 to-background flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <Link href="/" className="flex items-center justify-center gap-2 font-bold text-xl mb-6">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
-              <span className="text-primary-foreground font-bold text-lg">MP</span>
+          <Link href="/" className="mb-6 flex items-center justify-center gap-2 text-xl font-bold">
+            <div className="bg-primary shadow-primary/25 flex h-10 w-10 items-center justify-center rounded-xl shadow-lg">
+              <span className="text-primary-foreground text-lg font-bold">MP</span>
             </div>
             Minecraft Platform
           </Link>
-          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <Mail className="h-6 w-6 text-primary" />
+          <div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+            <Mail className="text-primary h-6 w-6" />
           </div>
           <CardTitle className="text-2xl">Email Verification</CardTitle>
           <CardDescription>
@@ -101,15 +102,19 @@ function VerifyEmailForm() {
         <CardContent className="text-center">
           {!token && (
             <>
-              <div className="flex items-start gap-3 rounded-lg border border-amber-500/50 bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400 mb-4">
-                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-500/50 bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>Invalid verification link. Please request a new one.</span>
               </div>
               <Button className="w-full" onClick={handleResend} disabled={resending}>
                 {resending ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending...</>
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...
+                  </>
                 ) : (
-                  <><Send className="h-4 w-4 mr-2" /> Resend Verification Email</>
+                  <>
+                    <Send className="mr-2 h-4 w-4" /> Resend Verification Email
+                  </>
                 )}
               </Button>
             </>
@@ -117,16 +122,16 @@ function VerifyEmailForm() {
 
           {status === 'verifying' && (
             <div className="py-8">
-              <Loader2 className="h-10 w-10 animate-spin text-muted-foreground mx-auto" />
+              <Loader2 className="text-muted-foreground mx-auto h-10 w-10 animate-spin" />
             </div>
           )}
 
           {status === 'success' && (
             <>
-              <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10">
                 <CheckCircle2 className="h-8 w-8 text-emerald-600" />
               </div>
-              <p className="text-sm text-muted-foreground mb-6">
+              <p className="text-muted-foreground mb-6 text-sm">
                 You can now access all features of your account.
               </p>
               <Button asChild className="w-full">
@@ -137,15 +142,19 @@ function VerifyEmailForm() {
 
           {status === 'error' && (
             <>
-              <div className="flex items-start gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive mb-4 text-left">
-                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div className="border-destructive/50 bg-destructive/10 text-destructive mb-4 flex items-start gap-3 rounded-lg border p-3 text-left text-sm">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
               <Button className="w-full" onClick={handleResend} disabled={resending}>
                 {resending ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending...</>
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...
+                  </>
                 ) : (
-                  <><Send className="h-4 w-4 mr-2" /> Resend Verification Email</>
+                  <>
+                    <Send className="mr-2 h-4 w-4" /> Resend Verification Email
+                  </>
                 )}
               </Button>
             </>
@@ -154,9 +163,13 @@ function VerifyEmailForm() {
           {status === 'idle' && !token && (
             <Button className="w-full" onClick={handleResend} disabled={resending}>
               {resending ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending...</>
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...
+                </>
               ) : (
-                <><Send className="h-4 w-4 mr-2" /> Send Verification Email</>
+                <>
+                  <Send className="mr-2 h-4 w-4" /> Send Verification Email
+                </>
               )}
             </Button>
           )}
@@ -165,7 +178,7 @@ function VerifyEmailForm() {
         <CardFooter className="justify-center pb-6">
           <Link
             href="/auth/login"
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to sign in

@@ -37,18 +37,18 @@ export interface BrowseGridProps {
 
 function GridSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="rounded-xl border bg-card p-5 space-y-3">
+        <div key={i} className="bg-card space-y-3 rounded-xl border p-5">
           <div className="flex items-start gap-4">
-            <div className="h-14 w-14 rounded-xl bg-muted animate-pulse shrink-0" />
+            <div className="bg-muted h-14 w-14 shrink-0 animate-pulse rounded-xl" />
             <div className="flex-1 space-y-2">
-              <div className="h-5 w-32 bg-muted animate-pulse rounded" />
-              <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+              <div className="bg-muted h-5 w-32 animate-pulse rounded" />
+              <div className="bg-muted h-4 w-24 animate-pulse rounded" />
             </div>
           </div>
-          <div className="h-4 w-full bg-muted animate-pulse rounded" />
-          <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
+          <div className="bg-muted h-4 w-full animate-pulse rounded" />
+          <div className="bg-muted h-4 w-3/4 animate-pulse rounded" />
         </div>
       ))}
     </div>
@@ -65,12 +65,12 @@ function EmptyState({
   hint?: string;
 }) {
   return (
-    <div className="text-center py-16">
-      <div className="h-20 w-20 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-6">
-        <PackageIcon className="h-10 w-10 text-muted-foreground" />
+    <div className="py-16 text-center">
+      <div className="bg-muted mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl">
+        <PackageIcon className="text-muted-foreground h-10 w-10" />
       </div>
-      <h2 className="text-2xl font-bold mb-2">{title}</h2>
-      <p className="text-muted-foreground max-w-md mx-auto mb-6">{hint}</p>
+      <h2 className="mb-2 text-2xl font-bold">{title}</h2>
+      <p className="text-muted-foreground mx-auto mb-6 max-w-md">{hint}</p>
       {onRetry && (
         <Button variant="outline" onClick={onRetry}>
           Try Again
@@ -82,9 +82,9 @@ function EmptyState({
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
-      <p className="text-destructive font-medium mb-3">Failed to load projects</p>
-      <p className="text-sm text-muted-foreground mb-4">{message}</p>
+    <div className="border-destructive/30 bg-destructive/5 rounded-xl border p-6 text-center">
+      <p className="text-destructive mb-3 font-medium">Failed to load projects</p>
+      <p className="text-muted-foreground mb-4 text-sm">{message}</p>
       <Button onClick={onRetry} variant="outline" size="sm">
         Try Again
       </Button>
@@ -109,24 +109,19 @@ export function BrowseGrid({
   if (error && items.length === 0) return <ErrorState message={error} onRetry={onRetry} />;
 
   if (items.length === 0) {
-    return (
-      <EmptyState
-        title={emptyTitle}
-        hint={emptyHint}
-        onRetry={onRetry}
-      />
-    );
+    return <EmptyState title={emptyTitle} hint={emptyHint} onRetry={onRetry} />;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
+      <div className="text-muted-foreground flex items-center justify-between text-sm">
         <p>
           Showing <strong className="text-foreground">{items.length.toLocaleString()}</strong> of{' '}
           <strong className="text-foreground">{total.toLocaleString()}</strong>
           {query && (
             <>
-              {' '}for &quot;<strong className="text-foreground">{query}</strong>&quot;
+              {' '}
+              for &quot;<strong className="text-foreground">{query}</strong>&quot;
             </>
           )}
         </p>
@@ -137,7 +132,7 @@ export function BrowseGrid({
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => {
           const asProject: Project = {
             id: item.id,
@@ -172,7 +167,7 @@ export function BrowseGrid({
           >
             {loading ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Loading...
               </>
             ) : (

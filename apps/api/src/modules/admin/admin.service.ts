@@ -1,4 +1,11 @@
-import { Injectable, NotFoundException, ForbiddenException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  ConflictException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { UserRole, ProjectStatus, CreatorTier } from '@prisma/client';
 
@@ -297,8 +304,10 @@ export class AdminService {
       status: project.status,
       featured: project.featured,
       authorId: project.authorId,
-      createdAt: project.createdAt instanceof Date ? project.createdAt.toISOString() : project.createdAt,
-      updatedAt: project.updatedAt instanceof Date ? project.updatedAt.toISOString() : project.updatedAt,
+      createdAt:
+        project.createdAt instanceof Date ? project.createdAt.toISOString() : project.createdAt,
+      updatedAt:
+        project.updatedAt instanceof Date ? project.updatedAt.toISOString() : project.updatedAt,
       author: project.author
         ? {
             id: project.author.id,

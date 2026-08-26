@@ -1,4 +1,13 @@
-import React, { createContext, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
@@ -45,7 +54,14 @@ function useDialogAriaIds(explicitTitleId?: string, explicitDescriptionId?: stri
       setHasTitle,
       setHasDescription,
     }),
-    [explicitTitleId, explicitDescriptionId, generatedTitleId, generatedDescriptionId, hasTitle, hasDescription],
+    [
+      explicitTitleId,
+      explicitDescriptionId,
+      generatedTitleId,
+      generatedDescriptionId,
+      hasTitle,
+      hasDescription,
+    ],
   );
 
   return value;
@@ -182,7 +198,7 @@ export function Dialog({
           aria-modal="true"
           aria-labelledby={labelledBy}
           aria-describedby={describedBy}
-          className="relative bg-background rounded-xl border shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto outline-none"
+          className="bg-background relative mx-4 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border shadow-2xl outline-none"
         >
           {children}
         </div>
@@ -191,7 +207,13 @@ export function Dialog({
   );
 }
 
-export function DialogContent({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+export function DialogContent({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return <div className={`p-6 ${className}`}>{children}</div>;
 }
 
@@ -216,13 +238,7 @@ export function DialogTitle({ children, id }: { children: React.ReactNode; id?: 
   );
 }
 
-export function DialogDescription({
-  children,
-  id,
-}: {
-  children: React.ReactNode;
-  id?: string;
-}) {
+export function DialogDescription({ children, id }: { children: React.ReactNode; id?: string }) {
   const ctx = useContext(DialogContext);
   const fallbackId = useId();
   useIsomorphicLayoutEffect(() => {
@@ -233,12 +249,12 @@ export function DialogDescription({
   }, [ctx]);
   const resolvedId = id ?? ctx?.descriptionId ?? fallbackId;
   return (
-    <p id={resolvedId} className="text-sm text-muted-foreground mt-1">
+    <p id={resolvedId} className="text-muted-foreground mt-1 text-sm">
       {children}
     </p>
   );
 }
 
 export function DialogFooter({ children }: { children: React.ReactNode }) {
-  return <div className="flex items-center justify-end gap-2 mt-6 pt-4 border-t">{children}</div>;
+  return <div className="mt-6 flex items-center justify-end gap-2 border-t pt-4">{children}</div>;
 }

@@ -26,9 +26,7 @@ describe('Search E2E', () => {
 
   describe('GET /search', () => {
     it('should return search results', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/search?q=Test')
-        .expect(200);
+      const res = await request(app.getHttpServer()).get('/api/v1/search?q=Test').expect(200);
 
       expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('meta');

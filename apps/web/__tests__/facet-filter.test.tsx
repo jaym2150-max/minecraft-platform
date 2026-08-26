@@ -32,7 +32,9 @@ describe('FacetFilter', () => {
   });
 
   it('marks selected checkboxes as checked', () => {
-    render(<FacetFilter title="Categories" options={OPTIONS} selected={['mod']} onChange={() => {}} />);
+    render(
+      <FacetFilter title="Categories" options={OPTIONS} selected={['mod']} onChange={() => {}} />,
+    );
     const checkbox = screen.getByLabelText('Mod') as HTMLInputElement;
     expect(checkbox.checked).toBe(true);
   });
@@ -46,31 +48,58 @@ describe('FacetFilter', () => {
 
   it('deselects when clicking an already-selected option', () => {
     const onChange = vi.fn();
-    render(<FacetFilter title="Categories" options={OPTIONS} selected={['mod']} onChange={onChange} />);
+    render(
+      <FacetFilter title="Categories" options={OPTIONS} selected={['mod']} onChange={onChange} />,
+    );
     fireEvent.click(screen.getByLabelText('Mod'));
     expect(onChange).toHaveBeenCalledWith([]);
   });
 
   it('shows selected count badge when items are selected', () => {
-    render(<FacetFilter title="Categories" options={OPTIONS} selected={['mod', 'modpack']} onChange={() => {}} />);
+    render(
+      <FacetFilter
+        title="Categories"
+        options={OPTIONS}
+        selected={['mod', 'modpack']}
+        onChange={() => {}}
+      />,
+    );
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 
   it('toggles open/close state via header click', () => {
-    render(<FacetFilter title="Categories" options={OPTIONS} selected={[]} onChange={() => {}} defaultOpen />);
+    render(
+      <FacetFilter
+        title="Categories"
+        options={OPTIONS}
+        selected={[]}
+        onChange={() => {}}
+        defaultOpen
+      />,
+    );
     expect(screen.getByLabelText('Mod')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Categories'));
     expect(screen.queryByLabelText('Mod')).not.toBeInTheDocument();
   });
 
   it('renders empty message when no options', () => {
-    render(<FacetFilter title="Categories" options={[]} selected={[]} onChange={() => {}} emptyMessage="Nothing here" />);
+    render(
+      <FacetFilter
+        title="Categories"
+        options={[]}
+        selected={[]}
+        onChange={() => {}}
+        emptyMessage="Nothing here"
+      />,
+    );
     expect(screen.getByText('Nothing here')).toBeInTheDocument();
   });
 
   it('calls onChange with empty array on Clear', () => {
     const onChange = vi.fn();
-    render(<FacetFilter title="Categories" options={OPTIONS} selected={['mod']} onChange={onChange} />);
+    render(
+      <FacetFilter title="Categories" options={OPTIONS} selected={['mod']} onChange={onChange} />,
+    );
     fireEvent.click(screen.getByText('Clear'));
     expect(onChange).toHaveBeenCalledWith([]);
   });

@@ -75,10 +75,7 @@ export class VersionsController {
   @Get()
   @Public()
   @HttpCode(HttpStatus.OK)
-  async findAll(
-    @Param('projectId') projectIdOrSlug: string,
-    @Query() query: QueryVersionsDto,
-  ) {
+  async findAll(@Param('projectId') projectIdOrSlug: string, @Query() query: QueryVersionsDto) {
     const page = await this.versionsService.findAllByProjectCursor(projectIdOrSlug, {
       cursor: query.cursor,
       limit: query.limit,
@@ -121,7 +118,10 @@ export class VersionByIdController {
   @HttpCode(HttpStatus.OK)
   async list(@Query('ids') ids?: string) {
     if (ids) {
-      const parsed = ids.split(',').map((s) => s.trim()).filter(Boolean);
+      const parsed = ids
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
       // Cap the list at 200 ids — a 100k-element `?ids=` produces an SQL
       // IN-clause + Prisma array allocation that pegs the worker (B23).
       if (parsed.length > 200) parsed.length = 200;
@@ -178,7 +178,11 @@ export class VersionByIdController {
   @UseGuards(JwtAuthGuard, ScopesGuard)
   @Scopes(ApiKeyScope.VERSION_WRITE, ApiKeyScope.DELETE)
   @HttpCode(HttpStatus.OK)
-  async remove(@Param('id') id: string, @CurrentUser('id') userId: string, @CurrentUser('role') userRole: string) {
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: string,
+  ) {
     await this.verifyVersionOwnership(id, { id: userId, role: userRole });
     await this.versionsService.remove(id);
     return {
@@ -229,7 +233,10 @@ export class VersionByIdController {
       where: { id: version.projectId },
       select: { authorId: true },
     });
-    if (!project || (project.authorId !== user.id && !['ADMIN', 'OWNER', 'MODERATOR'].includes(user.role))) {
+    if (
+      !project ||
+      (project.authorId !== user.id && !['ADMIN', 'OWNER', 'MODERATOR'].includes(user.role))
+    ) {
       throw new ForbiddenException('You can only modify versions on your own projects');
     }
   }

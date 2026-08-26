@@ -127,10 +127,7 @@ export function renderMarkdown(md: string): string {
     if (listMatch) {
       const ordered = /\d+\./.test(listMatch[2]);
       const items: string[] = [];
-      while (
-        i < lines.length &&
-        /^(\s*)([-*+]|\d+\.)\s+(.*)$/.test(lines[i])
-      ) {
+      while (i < lines.length && /^(\s*)([-*+]|\d+\.)\s+(.*)$/.test(lines[i])) {
         const itemMatch = /^(\s*)([-*+]|\d+\.)\s+(.*)$/.exec(lines[i])!;
         items.push(`<li>${inline(escapeHtml(itemMatch[3].trim()))}</li>`);
         i++;
@@ -190,18 +187,29 @@ export function renderMarkdown(md: string): string {
   // disallowed tags, on* attributes, and javascript: URLs so the server
   // output is attribute-safe even if MarkdownRenderer is later routed through
   // an RSC subtree. The allow-list mirrors the tags this transformer emits.
-  return html
-    .replace(/<(?!\s*\/?(?:p|h[1-6]|hr|blockquote|ul|ol|li|pre|code|img|a|strong|em|b|i)\b)/gi, '')
-    .replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]+)/gi, '')
-    // B13: scrub dangerous URL schemes in ANY quote style (double, single,
-    // or unquoted). `javascript:|vbscript:|data:` all execute / smuggle
-    // payloads in some UAs. The previous double-quote-only regex left
-    // <img src='javascript:...'> and <img src=javascript:...> untouched.
-    .replace(
-      /((?:href|src)\s*=\s*)(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/gi,
-      (match: string, prefix: string, dq: string | undefined, sq: string | undefined, unq: string | undefined) => {
-        const value = dq ?? sq ?? unq ?? '';
-        return isSafeUrlScheme(value) ? match : `${prefix}"#"`;
-      },
-    );
+  return (
+    html
+      .replace(
+        /<(?!\s*\/?(?:p|h[1-6]|hr|blockquote|ul|ol|li|pre|code|img|a|strong|em|b|i)\b)/gi,
+        '',
+      )
+      .replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]+)/gi, '')
+      // B13: scrub dangerous URL schemes in ANY quote style (double, single,
+      // or unquoted). `javascript:|vbscript:|data:` all execute / smuggle
+      // payloads in some UAs. The previous double-quote-only regex left
+      // <img src='javascript:...'> and <img src=javascript:...> untouched.
+      .replace(
+        /((?:href|src)\s*=\s*)(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/gi,
+        (
+          match: string,
+          prefix: string,
+          dq: string | undefined,
+          sq: string | undefined,
+          unq: string | undefined,
+        ) => {
+          const value = dq ?? sq ?? unq ?? '';
+          return isSafeUrlScheme(value) ? match : `${prefix}"#"`;
+        },
+      )
+  );
 }

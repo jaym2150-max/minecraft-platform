@@ -93,9 +93,7 @@ describe('API key scopes E2E', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
-      expect(['admin_test', 'admin@minecraftplatform.com']).toContain(
-        res.body.data.username,
-      );
+      expect(['admin_test', 'admin@minecraftplatform.com']).toContain(res.body.data.username);
     });
   });
 });

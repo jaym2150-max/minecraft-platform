@@ -48,8 +48,7 @@ export class UploadsService {
     // defaults (50MB) allowed an authenticated user to pin a worker / OOM
     // the API by sending many concurrent uploads. Configurable upward only
     // via MAX_UPLOAD_SIZE env; the controller cap is the hard ceiling.
-    this.maxFileSize =
-      this.config.get<number>('MAX_UPLOAD_SIZE') ?? 25 * 1024 * 1024;
+    this.maxFileSize = this.config.get<number>('MAX_UPLOAD_SIZE') ?? 25 * 1024 * 1024;
     this.endpoint = this.config.get<string>('storage.endpoint')!;
     this.bucket = this.config.get<string>('storage.bucket')!;
     this.s3 = new S3Client({
@@ -75,11 +74,7 @@ export class UploadsService {
     );
   }
 
-  async initiateUpload(
-    userId: string,
-    projectId: string,
-    file: Express.Multer.File,
-  ): Promise<any> {
+  async initiateUpload(userId: string, projectId: string, file: Express.Multer.File): Promise<any> {
     if (file.size > this.maxFileSize) {
       throw new BadRequestException(
         `File too large. Max size is ${this.maxFileSize / 1024 / 1024}MB`,
@@ -93,9 +88,7 @@ export class UploadsService {
     // Verify the file by its actual content (magic bytes), not the client-
     // supplied MIME type which can be trivially spoofed.
     if (!this.hasValidSignature(file)) {
-      throw new BadRequestException(
-        'Invalid file type. Only .jar and .zip archives are allowed.',
-      );
+      throw new BadRequestException('Invalid file type. Only .jar and .zip archives are allowed.');
     }
 
     const project = await this.prisma.project.findUnique({
@@ -107,9 +100,7 @@ export class UploadsService {
     }
 
     if (project.authorId !== userId) {
-      throw new ForbiddenException(
-        'You can only upload files to your own projects',
-      );
+      throw new ForbiddenException('You can only upload files to your own projects');
     }
 
     // Compute the SHA-256 hash from the in-memory buffer before uploading so

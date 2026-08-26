@@ -6,7 +6,8 @@ import { TypeLandingRedirect } from '@/components/type-landing';
 
 export const metadata: Metadata = {
   title: 'Minecraft Server Plugins — Bukkit, Spigot & Paper',
-  description: 'Essential server plugins for Bukkit, Spigot and Paper: moderation, economy, minigames, world protection and more.',
+  description:
+    'Essential server plugins for Bukkit, Spigot and Paper: moderation, economy, minigames, world protection and more.',
 };
 
 export default function Page() {

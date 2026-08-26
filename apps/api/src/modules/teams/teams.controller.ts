@@ -93,10 +93,7 @@ export class TeamsController {
   @Patch('teams/:teamId/members/:memberId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'OWNER')
-  async updateMember(
-    @Param('memberId') memberId: string,
-    @Body() dto: UpdateTeamMemberDto,
-  ) {
+  async updateMember(@Param('memberId') memberId: string, @Body() dto: UpdateTeamMemberDto) {
     const data = await this.teamsService.updateMemberRole(memberId, dto.role);
     return {
       statusCode: HttpStatus.OK,

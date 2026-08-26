@@ -11,7 +11,12 @@ import { PrismaModule } from '../../common/prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule, ConfigModule],
-  controllers: [BillingController, WebhookController, CreatorEarningsController, NewsletterController],
+  controllers: [
+    BillingController,
+    WebhookController,
+    CreatorEarningsController,
+    NewsletterController,
+  ],
   providers: [BillingService, CreatorEarningsService, NewsletterService],
   exports: [BillingService],
 })

@@ -18,8 +18,7 @@
  * too. The api-client cookie-name probe (`AUTH_COOKIE_NAME` consumer in
  * packages/auth) picks up the same `process.env.NODE_ENV` branch.
  */
-export const AUTH_COOKIE_NAME =
-  process.env.NODE_ENV === 'production' ? '__Host-mcp-auth' : 'token';
+export const AUTH_COOKIE_NAME = process.env.NODE_ENV === 'production' ? '__Host-mcp-auth' : 'token';
 
 /**
  * Cookie name for the long-lived refresh token. Kept SEPARATE from the

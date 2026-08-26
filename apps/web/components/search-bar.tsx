@@ -20,13 +20,13 @@ export function SearchBar() {
 
   return (
     <form onSubmit={handleSubmit} className="relative w-full">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
       <input
         type="search"
         placeholder="Search mods..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full h-9 rounded-lg border border-input bg-background pl-9 pr-4 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring h-9 w-full rounded-lg border pl-9 pr-4 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1"
       />
     </form>
   );

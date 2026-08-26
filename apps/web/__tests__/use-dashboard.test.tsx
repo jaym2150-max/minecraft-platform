@@ -102,9 +102,27 @@ describe('useDashboardProjects', () => {
 
   it('derives correct stats from project data', async () => {
     const projects = [
-      makeProject({ id: '1', title: 'Sodium', downloads: 15000, views: 45000, status: ProjectStatus.PUBLISHED }),
-      makeProject({ id: '2', title: 'Lithium', downloads: 8000, views: 20000, status: ProjectStatus.PUBLISHED }),
-      makeProject({ id: '3', title: 'DashLoader', downloads: 500, views: 3000, status: ProjectStatus.DRAFT }),
+      makeProject({
+        id: '1',
+        title: 'Sodium',
+        downloads: 15000,
+        views: 45000,
+        status: ProjectStatus.PUBLISHED,
+      }),
+      makeProject({
+        id: '2',
+        title: 'Lithium',
+        downloads: 8000,
+        views: 20000,
+        status: ProjectStatus.PUBLISHED,
+      }),
+      makeProject({
+        id: '3',
+        title: 'DashLoader',
+        downloads: 500,
+        views: 3000,
+        status: ProjectStatus.DRAFT,
+      }),
     ];
     mockListProjects(projects);
 
@@ -278,9 +296,7 @@ describe('useDashboardProjects', () => {
   });
 
   it('shows "just now" for very recent updates', async () => {
-    const projects = [
-      makeProject({ updatedAt: new Date(Date.now() - 10000).toISOString() }),
-    ];
+    const projects = [makeProject({ updatedAt: new Date(Date.now() - 10000).toISOString() })];
     mockListProjects(projects);
 
     const { result } = renderHook(() => useDashboardProjects());
@@ -291,9 +307,7 @@ describe('useDashboardProjects', () => {
   });
 
   it('shows "recently" when updatedAt is missing', async () => {
-    const projects = [
-      makeProject({ updatedAt: undefined as unknown as string }),
-    ];
+    const projects = [makeProject({ updatedAt: undefined as unknown as string })];
     mockListProjects(projects);
 
     const { result } = renderHook(() => useDashboardProjects());

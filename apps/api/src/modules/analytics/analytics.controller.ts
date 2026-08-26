@@ -1,4 +1,13 @@
-import { Controller, Get, Query, UseGuards, HttpCode, HttpStatus, Param, ForbiddenException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ForbiddenException,
+} from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -28,7 +37,7 @@ export class AnalyticsController {
     if (!data) {
       // Hide existence of private projects behind a 403 so callers can't
       // distinguish "no such project" from "not yours".
-      throw new ForbiddenException('You do not have access to this project\'s analytics');
+      throw new ForbiddenException("You do not have access to this project's analytics");
     }
     return {
       statusCode: HttpStatus.OK,

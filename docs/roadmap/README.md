@@ -32,6 +32,7 @@ Our planned and in-progress work.
 ## Planned 📋
 
 ### Q1 2026
+
 - Plugin marketplace (separate from mods)
 - Server hosting partnership program
 - Donation/tip jar for authors
@@ -39,12 +40,14 @@ Our planned and in-progress work.
 - Custom themes for project pages
 
 ### Q2 2026
+
 - Mobile apps (iOS, Android) - read-only browsing
 - API v2 with breaking changes for GraphQL migration
 - Translation/i18n platform
 - Premium tiers (priority uploads, custom domains)
 
 ### Future
+
 - AI-powered mod recommendations
 - Server hosting integration (one-click deploy)
 - Cross-platform mod sync

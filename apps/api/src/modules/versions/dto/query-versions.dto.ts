@@ -9,7 +9,12 @@ function toArray(value: unknown): string[] {
     return Array.from(new Set(value.map((v) => String(v).trim()).filter(Boolean)));
   }
   return Array.from(
-    new Set(String(value).split(',').map((s) => s.trim()).filter(Boolean)),
+    new Set(
+      String(value)
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ),
   );
 }
 

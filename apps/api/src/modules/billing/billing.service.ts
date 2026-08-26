@@ -1,4 +1,10 @@
-import { Injectable, Logger, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import Stripe from 'stripe';
@@ -34,7 +40,12 @@ export class BillingService {
     });
   }
 
-  async createCheckoutSession(userId: string, planSlug: string, successUrl: string, cancelUrl: string) {
+  async createCheckoutSession(
+    userId: string,
+    planSlug: string,
+    successUrl: string,
+    cancelUrl: string,
+  ) {
     const plan = await this.prisma.subscriptionPlan.findUnique({ where: { slug: planSlug } });
     if (!plan) throw new NotFoundException('Plan not found');
     if (!this.stripe) throw new BadRequestException('Stripe not configured');
@@ -42,12 +53,17 @@ export class BillingService {
     const session = await this.stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [{ price_data: {
-        currency: 'usd',
-        product_data: { name: plan.name, description: plan.description || undefined },
-        unit_amount: plan.price,
-        recurring: { interval: plan.interval as 'month' | 'year' },
-      }, quantity: 1 }],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: { name: plan.name, description: plan.description || undefined },
+            unit_amount: plan.price,
+            recurring: { interval: plan.interval as 'month' | 'year' },
+          },
+          quantity: 1,
+        },
+      ],
       metadata: { userId, planId: plan.id },
       success_url: successUrl,
       cancel_url: cancelUrl,
@@ -103,7 +119,8 @@ export class BillingService {
   }
 
   async handleStripeWebhook(rawBody: Buffer, signature: string) {
-    const webhookSecret = this.config.get<string>('app.stripeWebhookSecret') || process.env.STRIPE_WEBHOOK_SECRET;
+    const webhookSecret =
+      this.config.get<string>('app.stripeWebhookSecret') || process.env.STRIPE_WEBHOOK_SECRET;
     if (!this.stripe || !webhookSecret) {
       throw new BadRequestException('Stripe not configured');
     }
@@ -151,7 +168,8 @@ export class BillingService {
     const planId = session.metadata?.planId;
     if (!userId || !planId || !session.subscription) return;
 
-    const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
+    const subscriptionId =
+      typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
     const stripeSub: any = await this.stripe.subscriptions.retrieve(subscriptionId);
 
     await this.prisma.user.update({
@@ -190,7 +208,8 @@ export class BillingService {
   private async handleInvoicePaid(invoice: Stripe.Invoice) {
     const invAny: any = invoice;
     if (!invAny.subscription) return;
-    const subId = typeof invAny.subscription === 'string' ? invAny.subscription : invAny.subscription.id;
+    const subId =
+      typeof invAny.subscription === 'string' ? invAny.subscription : invAny.subscription.id;
     const sub = await this.prisma.subscription.findUnique({
       where: { stripeSubscriptionId: subId },
     });
@@ -214,10 +233,14 @@ export class BillingService {
     if (!sub) return;
 
     const subAny: any = subscription;
-    const status = subAny.status === 'active' ? 'ACTIVE'
-      : subAny.status === 'past_due' ? 'PAST_DUE'
-      : subAny.status === 'canceled' ? 'CANCELED'
-      : 'EXPIRED';
+    const status =
+      subAny.status === 'active'
+        ? 'ACTIVE'
+        : subAny.status === 'past_due'
+          ? 'PAST_DUE'
+          : subAny.status === 'canceled'
+            ? 'CANCELED'
+            : 'EXPIRED';
 
     await this.prisma.subscription.update({
       where: { id: sub.id },
@@ -257,11 +280,16 @@ export class BillingService {
     const session = await this.stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
-      line_items: [{ price_data: {
-        currency: 'usd',
-        product_data: { name: 'Project Promotion - 30 days' },
-        unit_amount: this.PROMO_PRICE_CENTS,
-      }, quantity: 1 }],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: { name: 'Project Promotion - 30 days' },
+            unit_amount: this.PROMO_PRICE_CENTS,
+          },
+          quantity: 1,
+        },
+      ],
       metadata: { userId, projectId, type: 'promotion' },
       success_url: `${this.getWebUrl()}/mod/${project.slug}?promoted=1`,
       cancel_url: `${this.getWebUrl()}/dashboard/projects/${projectId}`,
@@ -270,7 +298,13 @@ export class BillingService {
     return { url: session.url };
   }
 
-  async createDonation(donorId: string, recipientId: string, amount: number, message?: string, anonymous?: boolean) {
+  async createDonation(
+    donorId: string,
+    recipientId: string,
+    amount: number,
+    message?: string,
+    anonymous?: boolean,
+  ) {
     if (amount < 100) throw new BadRequestException('Minimum donation is $1.00');
     if (donorId === recipientId) throw new BadRequestException('Cannot donate to yourself');
 
@@ -281,11 +315,16 @@ export class BillingService {
     const session = await this.stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
-      line_items: [{ price_data: {
-        currency: 'usd',
-        product_data: { name: `Donation to ${user.username}` },
-        unit_amount: amount,
-      }, quantity: 1 }],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: { name: `Donation to ${user.username}` },
+            unit_amount: amount,
+          },
+          quantity: 1,
+        },
+      ],
       metadata: {
         donorId,
         recipientId,
@@ -305,8 +344,16 @@ export class BillingService {
     if (meta?.type === 'promotion' && meta.projectId) {
       await this.prisma.promotedProject.upsert({
         where: { projectId: meta.projectId },
-        update: { endsAt: new Date(Date.now() + this.PROMO_DURATION_DAYS * 86400000), active: true, stripePaymentIntentId: paymentIntent.id },
-        create: { projectId: meta.projectId, endsAt: new Date(Date.now() + this.PROMO_DURATION_DAYS * 86400000), stripePaymentIntentId: paymentIntent.id },
+        update: {
+          endsAt: new Date(Date.now() + this.PROMO_DURATION_DAYS * 86400000),
+          active: true,
+          stripePaymentIntentId: paymentIntent.id,
+        },
+        create: {
+          projectId: meta.projectId,
+          endsAt: new Date(Date.now() + this.PROMO_DURATION_DAYS * 86400000),
+          stripePaymentIntentId: paymentIntent.id,
+        },
       });
       await this.prisma.project.update({
         where: { id: meta.projectId },
@@ -336,8 +383,12 @@ export class BillingService {
   }
 
   async upgradeApiKey(userId: string, apiKeyId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { creatorTier: true } });
-    if (user?.creatorTier === 'FREE') throw new ForbiddenException('Upgrade to Creator tier to increase API limits');
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { creatorTier: true },
+    });
+    if (user?.creatorTier === 'FREE')
+      throw new ForbiddenException('Upgrade to Creator tier to increase API limits');
 
     const tier: string = user?.creatorTier === 'PRO' ? 'PRO' : 'BASIC';
 

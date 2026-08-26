@@ -9,10 +9,7 @@ export class WebhookController {
 
   @Public()
   @Post()
-  async handleWebhook(
-    @Req() req: Request,
-    @Headers('stripe-signature') signature: string,
-  ) {
+  async handleWebhook(@Req() req: Request, @Headers('stripe-signature') signature: string) {
     const raw = (req as any).rawBody || Buffer.from(JSON.stringify(req.body));
     return this.billing.handleStripeWebhook(raw, signature);
   }

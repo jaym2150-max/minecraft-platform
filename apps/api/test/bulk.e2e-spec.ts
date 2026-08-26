@@ -45,9 +45,7 @@ describe('Bulk endpoints E2E', () => {
   describe('GET /users?ids=', () => {
     it.skip('should return multiple users by id list', async () => {
       const { userId } = getTestIds();
-      const res = await request(app.getHttpServer())
-        .get(`/api/v1/users?ids=${userId}`)
-        .expect(200);
+      const res = await request(app.getHttpServer()).get(`/api/v1/users?ids=${userId}`).expect(200);
       expect(Array.isArray(res.body.data)).toBe(true);
     });
   });

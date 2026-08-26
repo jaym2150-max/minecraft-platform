@@ -6,7 +6,8 @@ import { TypeLandingRedirect } from '@/components/type-landing';
 
 export const metadata: Metadata = {
   title: 'Minecraft Shaders — Beautiful Visuals & Ray Tracing Packs',
-  description: 'Transform Minecraft with shaders: realistic lighting, water reflections, volumetric clouds. Compatible with Iris, OptiFine and Sodium.',
+  description:
+    'Transform Minecraft with shaders: realistic lighting, water reflections, volumetric clouds. Compatible with Iris, OptiFine and Sodium.',
 };
 
 export default function Page() {

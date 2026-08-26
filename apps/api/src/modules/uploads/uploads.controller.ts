@@ -64,10 +64,7 @@ export class UploadsController {
   }
 
   @Get(':uploadId/status')
-  async getStatus(
-    @Param('uploadId') uploadId: string,
-    @CurrentUser('id') userId: string,
-  ) {
+  async getStatus(@Param('uploadId') uploadId: string, @CurrentUser('id') userId: string) {
     const data = await this.uploadsService.getUploadStatus(uploadId, userId);
     return {
       statusCode: HttpStatus.OK,
@@ -79,10 +76,7 @@ export class UploadsController {
 
   @Delete(':uploadId')
   @HttpCode(HttpStatus.OK)
-  async cancel(
-    @Param('uploadId') uploadId: string,
-    @CurrentUser('id') userId: string,
-  ) {
+  async cancel(@Param('uploadId') uploadId: string, @CurrentUser('id') userId: string) {
     await this.uploadsService.cancelUpload(uploadId, userId);
     return {
       statusCode: HttpStatus.OK,

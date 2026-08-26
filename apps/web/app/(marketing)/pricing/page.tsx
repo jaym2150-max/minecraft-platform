@@ -20,33 +20,35 @@ interface Plan {
 
 function PricingCard({ plan, onSelect }: { plan: Plan; onSelect: () => void }) {
   return (
-    <div className={`relative rounded-2xl border p-6 flex flex-col ${
-      plan.popular
-        ? 'border-primary shadow-lg shadow-primary/10 scale-[1.02]'
-        : 'border-border'
-    }`}>
+    <div
+      className={`relative flex flex-col rounded-2xl border p-6 ${
+        plan.popular ? 'border-primary shadow-primary/10 scale-[1.02] shadow-lg' : 'border-border'
+      }`}
+    >
       {plan.popular && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+          <span className="bg-primary text-primary-foreground rounded-full px-3 py-1 text-xs font-semibold">
             Most Popular
           </span>
         </div>
       )}
       <div className="mb-6">
         <h3 className="text-lg font-bold">{plan.name}</h3>
-        <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
+        <p className="text-muted-foreground mt-1 text-sm">{plan.description}</p>
       </div>
       <div className="mb-6">
         <span className="text-3xl font-bold">${(plan.price / 100).toFixed(2)}</span>
-        <span className="text-muted-foreground text-sm ml-1">
+        <span className="text-muted-foreground ml-1 text-sm">
           / {plan.interval === 'year' ? 'year' : 'month'}
         </span>
-        {plan.price === 0 && <span className="text-muted-foreground text-sm ml-1">— Free forever</span>}
+        {plan.price === 0 && (
+          <span className="text-muted-foreground ml-1 text-sm">— Free forever</span>
+        )}
       </div>
-      <ul className="space-y-3 mb-8 flex-1">
+      <ul className="mb-8 flex-1 space-y-3">
         {plan.features.map((f, i) => (
           <li key={i} className="flex items-start gap-2 text-sm">
-            <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+            <Check className="text-primary mt-0.5 h-4 w-4 shrink-0" />
             <span>{f}</span>
           </li>
         ))}
@@ -68,7 +70,8 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    sdk.listPlans?.()
+    sdk
+      .listPlans?.()
       .then((res: any) => setPlans(Array.isArray(res.data) ? res.data : []))
       .catch(() => setPlans([]))
       .finally(() => setLoading(false));
@@ -96,14 +99,16 @@ export default function PricingPage() {
 
   return (
     <main className="flex-1">
-      <section className="border-b bg-gradient-to-b from-primary/5 to-background py-16">
-        <div className="container text-center max-w-2xl">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <span className="text-sm font-semibold text-primary uppercase tracking-wider">Pricing</span>
+      <section className="from-primary/5 to-background border-b bg-gradient-to-b py-16">
+        <div className="container max-w-2xl text-center">
+          <div className="mb-4 flex items-center justify-center gap-2">
+            <Sparkles className="text-primary h-5 w-5" />
+            <span className="text-primary text-sm font-semibold uppercase tracking-wider">
+              Pricing
+            </span>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight mb-3">Choose Your Creator Plan</h1>
-          <p className="text-lg text-muted-foreground">
+          <h1 className="mb-3 text-4xl font-bold tracking-tight">Choose Your Creator Plan</h1>
+          <p className="text-muted-foreground text-lg">
             Unlock powerful features for your mods. Free tier included — upgrade when you grow.
           </p>
         </div>
@@ -111,32 +116,34 @@ export default function PricingPage() {
 
       <section className="container py-12">
         {loading ? (
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-2xl border p-6 space-y-4 animate-pulse">
-                <div className="h-5 w-24 bg-muted rounded" />
-                <div className="h-4 w-40 bg-muted rounded" />
-                <div className="h-8 w-28 bg-muted rounded" />
+              <div key={i} className="animate-pulse space-y-4 rounded-2xl border p-6">
+                <div className="bg-muted h-5 w-24 rounded" />
+                <div className="bg-muted h-4 w-40 rounded" />
+                <div className="bg-muted h-8 w-28 rounded" />
                 <div className="space-y-2">
                   {[1, 2, 3, 4].map((j) => (
-                    <div key={j} className="h-4 w-full bg-muted rounded" />
+                    <div key={j} className="bg-muted h-4 w-full rounded" />
                   ))}
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {plans.filter(p => p.active !== false).map((plan) => (
-              <PricingCard key={plan.id} plan={plan} onSelect={() => handleSelect(plan)} />
-            ))}
+          <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-3">
+            {plans
+              .filter((p) => p.active !== false)
+              .map((plan) => (
+                <PricingCard key={plan.id} plan={plan} onSelect={() => handleSelect(plan)} />
+              ))}
           </div>
         )}
       </section>
 
       <section className="border-t py-12">
-        <div className="container text-center max-w-xl">
-          <h2 className="text-xl font-bold mb-2">Need Higher Limits?</h2>
+        <div className="container max-w-xl text-center">
+          <h2 className="mb-2 text-xl font-bold">Need Higher Limits?</h2>
           <p className="text-muted-foreground mb-6">
             Contact us for enterprise-grade rate limits, dedicated support, and custom integrations.
           </p>

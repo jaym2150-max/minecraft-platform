@@ -66,8 +66,14 @@ const prodSchema = baseSchema
     // an empty STRIPE_SECRET_KEY, so every checkout request would 401 / no-op
     // out. Required + format-guarded here so the API refuses to start until
     // a real `sk_live_…` / `whsec_…` is configured.
-    STRIPE_SECRET_KEY: z.string().regex(/^sk_(test_|live_)/, 'STRIPE_SECRET_KEY must be a Stripe live or test key').min(1),
-    STRIPE_WEBHOOK_SECRET: z.string().regex(/^whsec_/, 'STRIPE_WEBHOOK_SECRET must start with whsec_').min(1),
+    STRIPE_SECRET_KEY: z
+      .string()
+      .regex(/^sk_(test_|live_)/, 'STRIPE_SECRET_KEY must be a Stripe live or test key')
+      .min(1),
+    STRIPE_WEBHOOK_SECRET: z
+      .string()
+      .regex(/^whsec_/, 'STRIPE_WEBHOOK_SECRET must start with whsec_')
+      .min(1),
   })
   .superRefine((data, ctx) => {
     // Full cross-secret equality guard. None of these four values may match
@@ -154,10 +160,12 @@ export function validateEnv(): AppEnv {
     ] as const) {
       const value = (result.data as Record<string, string | undefined>)[key];
       if (isPlaceholder(value)) {
-        logger.warn(`Env: ${key} looks like a placeholder value — replace before deploying to production`);
+        logger.warn(
+          `Env: ${key} looks like a placeholder value — replace before deploying to production`,
+        );
       }
     }
   }
 
-  return (result.success ? result.data : (process.env as unknown as AppEnv));
+  return result.success ? result.data : (process.env as unknown as AppEnv);
 }

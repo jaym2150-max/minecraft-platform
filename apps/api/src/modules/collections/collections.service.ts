@@ -63,13 +63,14 @@ export class CollectionsService {
       where,
       orderBy: { createdAt: 'desc' },
       prismaDelegate: {
-        findMany: (args) => this.prisma.collection.findMany({
-          ...(args as any),
-          include: {
-            user: { select: { id: true, username: true, avatarUrl: true } },
-            _count: { select: { projects: true } },
-          },
-        }),
+        findMany: (args) =>
+          this.prisma.collection.findMany({
+            ...(args as any),
+            include: {
+              user: { select: { id: true, username: true, avatarUrl: true } },
+              _count: { select: { projects: true } },
+            },
+          }),
       },
     }).then((page) => ({
       ...page,
@@ -190,8 +191,14 @@ export class CollectionsService {
       isPublic: collection.isPublic,
       userId: collection.userId,
       user: collection.user,
-      createdAt: collection.createdAt instanceof Date ? collection.createdAt.toISOString() : collection.createdAt,
-      updatedAt: collection.updatedAt instanceof Date ? collection.updatedAt.toISOString() : collection.updatedAt,
+      createdAt:
+        collection.createdAt instanceof Date
+          ? collection.createdAt.toISOString()
+          : collection.createdAt,
+      updatedAt:
+        collection.updatedAt instanceof Date
+          ? collection.updatedAt.toISOString()
+          : collection.updatedAt,
     };
   }
 }

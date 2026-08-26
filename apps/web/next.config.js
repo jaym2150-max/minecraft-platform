@@ -148,9 +148,7 @@ function buildRemotePatterns() {
   patterns.push({ protocol: 'https', hostname: 'i.modrinth.com', port: '' });
   patterns.push({ protocol: 'https', hostname: 'placehold.co', port: '' });
 
-  const cdn = parseEndpoint(
-    process.env.CDN_DOMAIN || process.env.NEXT_PUBLIC_CDN_DOMAIN,
-  );
+  const cdn = parseEndpoint(process.env.CDN_DOMAIN || process.env.NEXT_PUBLIC_CDN_DOMAIN);
   if (cdn) {
     patterns.push({
       protocol: cdn.protocol.replace(':', ''),

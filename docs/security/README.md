@@ -19,6 +19,7 @@ Role-based access control (RBAC) is enforced via NestJS guards:
 - `@CurrentUser()` - Injects the authenticated user
 
 Roles hierarchy (from least to most privileged):
+
 - `USER` - Default
 - `MODERATOR` - Can resolve reports
 - `ADMIN` - Full platform management

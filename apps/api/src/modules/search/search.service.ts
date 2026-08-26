@@ -41,9 +41,7 @@ const ALLOWED_SORTS: ReadonlySet<string> = new Set([
  * (including filter-language metacharacters like `"`, `=`, spaces) is dropped.
  */
 function isValidCategoryId(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-    value,
-  );
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
 @Injectable()
@@ -122,9 +120,7 @@ export class SearchService implements OnModuleInit {
         filters.push(`loaders = '${options.loader}'`);
       }
 
-      const sort = options.sort && ALLOWED_SORTS.has(options.sort)
-        ? [options.sort]
-        : undefined;
+      const sort = options.sort && ALLOWED_SORTS.has(options.sort) ? [options.sort] : undefined;
 
       const result = await this.projectIndex.search(query, {
         limit,
@@ -259,7 +255,9 @@ export class SearchService implements OnModuleInit {
     try {
       await this.projectIndex.deleteDocument(projectId);
     } catch (error) {
-      this.logger.error(`Failed to remove project ${projectId} from index: ${(error as Error).message}`);
+      this.logger.error(
+        `Failed to remove project ${projectId} from index: ${(error as Error).message}`,
+      );
     }
   }
 

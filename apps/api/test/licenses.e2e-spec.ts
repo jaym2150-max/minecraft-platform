@@ -1,11 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { PrismaService } from '../src/common/prisma/prisma.service';
-import {
-  setupTestApp,
-  teardownTestApp,
-  cleanDatabase,
-} from './test-helpers';
+import { setupTestApp, teardownTestApp, cleanDatabase } from './test-helpers';
 
 describe('Licenses E2E', () => {
   let app: INestApplication;
@@ -47,9 +43,7 @@ describe('Licenses E2E', () => {
 
   describe('GET /licenses', () => {
     it('should list all licenses', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/licenses')
-        .expect(200);
+      const res = await request(app.getHttpServer()).get('/api/v1/licenses').expect(200);
 
       expect(Array.isArray(res.body.data)).toBe(true);
       expect(res.body.data.length).toBeGreaterThanOrEqual(2);
@@ -59,26 +53,20 @@ describe('Licenses E2E', () => {
 
   describe('GET /licenses/:shortId', () => {
     it('should return a license by shortId', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/licenses/MIT')
-        .expect(200);
+      const res = await request(app.getHttpServer()).get('/api/v1/licenses/MIT').expect(200);
 
       expect(res.body.data).toHaveProperty('shortId', 'MIT');
       expect(res.body.data).toHaveProperty('type', 'PERMISSIVE');
     });
 
     it('should return 404 for unknown license', async () => {
-      await request(app.getHttpServer())
-        .get('/api/v1/licenses/does-not-exist')
-        .expect(404);
+      await request(app.getHttpServer()).get('/api/v1/licenses/does-not-exist').expect(404);
     });
   });
 
   describe('GET /licenses/:shortId/text', () => {
     it.skip('should return the license body text (requires controller)', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/licenses/MIT/text')
-        .expect(200);
+      const res = await request(app.getHttpServer()).get('/api/v1/licenses/MIT/text').expect(200);
       expect(res.body.data).toHaveProperty('shortId', 'MIT');
     });
   });

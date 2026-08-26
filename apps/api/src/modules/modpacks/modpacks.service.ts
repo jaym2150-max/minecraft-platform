@@ -21,9 +21,7 @@ function reasonOf(reason: unknown): string {
     // AbortError is a DOMException subclass with name 'AbortError' surfaced by
     // fetch-aborts; treat it distinctly so callers see "timeout" not the
     // generic message.
-    return (reason as Error & { name?: string }).name === 'AbortError'
-      ? 'timeout'
-      : reason.message;
+    return (reason as Error & { name?: string }).name === 'AbortError' ? 'timeout' : reason.message;
   }
   return String(reason);
 }
@@ -98,7 +96,9 @@ export class ModpacksService {
 
     if (!packVersion) {
       throw new NotFoundException(
-        versionId ? `Version "${versionId}" not found` : `No approved versions for "${project.slug}"`,
+        versionId
+          ? `Version "${versionId}" not found`
+          : `No approved versions for "${project.slug}"`,
       );
     }
 
@@ -237,7 +237,9 @@ export class ModpacksService {
 
     // Surface archiver/writer errors as a 500 mid-stream. Once headers are
     // flushed we can't change the status, so best-effort: log + end.
-    archive.on('warning', (err: any) => this.logger.warn(`server-pack archive warning: ${err?.message ?? err}`));
+    archive.on('warning', (err: any) =>
+      this.logger.warn(`server-pack archive warning: ${err?.message ?? err}`),
+    );
     const onWriterError = (err: Error) => {
       this.logger.error(`server-pack response stream error: ${err.message}`);
       if (!res.headersSent) res.status(500).end();
@@ -272,9 +274,7 @@ export class ModpacksService {
           added++;
         } else {
           skipped++;
-          this.logger.warn(
-            `server-pack: skipping ${batch[j].path} (${reasonOf(outcome.reason)})`,
-          );
+          this.logger.warn(`server-pack: skipping ${batch[j].path} (${reasonOf(outcome.reason)})`);
         }
       }
     }
@@ -443,7 +443,9 @@ client-only mods excluded:  ${manifest.files.length - serverFiles.length}
     res.setHeader('Content-Disposition', `attachment; filename="${archiveName}"`);
     res.setHeader('X-Content-Type-Options', 'nosniff');
 
-    archive.on('warning', (err: any) => this.logger.warn(`mrpack archive warning: ${err?.message ?? err}`));
+    archive.on('warning', (err: any) =>
+      this.logger.warn(`mrpack archive warning: ${err?.message ?? err}`),
+    );
     const onWriterError = (err: Error) => {
       this.logger.error(`mrpack response stream error: ${err.message}`);
       if (!res.headersSent) res.status(500).end();

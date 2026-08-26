@@ -14,7 +14,9 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('next/link', () => ({
   default: ({ children, href, ...props }: any) => (
-    <a href={href} {...props}>{children}</a>
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
 }));
 
@@ -98,21 +100,36 @@ describe('RegisterPage', () => {
 
   it('shows error when username is empty', async () => {
     render(<RegisterPage />);
-    await fillAndSubmit({ username: '', email: 'test@example.com', password: 'Password1', confirmPassword: 'Password1' });
+    await fillAndSubmit({
+      username: '',
+      email: 'test@example.com',
+      password: 'Password1',
+      confirmPassword: 'Password1',
+    });
     expect(screen.getByText('Username is required')).toBeInTheDocument();
     expect(mockRegister).not.toHaveBeenCalled();
   });
 
   it('shows error when username is too short', async () => {
     render(<RegisterPage />);
-    await fillAndSubmit({ username: 'ab', email: 'test@example.com', password: 'Password1', confirmPassword: 'Password1' });
+    await fillAndSubmit({
+      username: 'ab',
+      email: 'test@example.com',
+      password: 'Password1',
+      confirmPassword: 'Password1',
+    });
     expect(screen.getByText('Username must be at least 3 characters')).toBeInTheDocument();
     expect(mockRegister).not.toHaveBeenCalled();
   });
 
   it('shows error when username has invalid characters', async () => {
     render(<RegisterPage />);
-    await fillAndSubmit({ username: 'user name!', email: 'test@example.com', password: 'Password1', confirmPassword: 'Password1' });
+    await fillAndSubmit({
+      username: 'user name!',
+      email: 'test@example.com',
+      password: 'Password1',
+      confirmPassword: 'Password1',
+    });
     expect(screen.getByText('Letters, numbers, and underscores only')).toBeInTheDocument();
     expect(mockRegister).not.toHaveBeenCalled();
   });
@@ -121,14 +138,24 @@ describe('RegisterPage', () => {
 
   it('shows error when email is empty', async () => {
     render(<RegisterPage />);
-    await fillAndSubmit({ username: 'johndoe', email: '', password: 'Password1', confirmPassword: 'Password1' });
+    await fillAndSubmit({
+      username: 'johndoe',
+      email: '',
+      password: 'Password1',
+      confirmPassword: 'Password1',
+    });
     expect(screen.getByText('Email is required')).toBeInTheDocument();
     expect(mockRegister).not.toHaveBeenCalled();
   });
 
   it('shows error for invalid email', async () => {
     render(<RegisterPage />);
-    await fillAndSubmit({ username: 'johndoe', email: 'notanemail', password: 'Password1', confirmPassword: 'Password1' });
+    await fillAndSubmit({
+      username: 'johndoe',
+      email: 'notanemail',
+      password: 'Password1',
+      confirmPassword: 'Password1',
+    });
     expect(screen.getByText('Invalid email address')).toBeInTheDocument();
     expect(mockRegister).not.toHaveBeenCalled();
   });
@@ -137,35 +164,60 @@ describe('RegisterPage', () => {
 
   it('shows error when password is empty', async () => {
     render(<RegisterPage />);
-    await fillAndSubmit({ username: 'johndoe', email: 'test@example.com', password: '', confirmPassword: '' });
+    await fillAndSubmit({
+      username: 'johndoe',
+      email: 'test@example.com',
+      password: '',
+      confirmPassword: '',
+    });
     expect(screen.getByText('Password is required')).toBeInTheDocument();
     expect(mockRegister).not.toHaveBeenCalled();
   });
 
   it('shows error when password is too short', async () => {
     render(<RegisterPage />);
-    await fillAndSubmit({ username: 'johndoe', email: 'test@example.com', password: 'Short1A', confirmPassword: 'Short1A' });
+    await fillAndSubmit({
+      username: 'johndoe',
+      email: 'test@example.com',
+      password: 'Short1A',
+      confirmPassword: 'Short1A',
+    });
     expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
     expect(mockRegister).not.toHaveBeenCalled();
   });
 
   it('shows error when password lacks uppercase letter', async () => {
     render(<RegisterPage />);
-    await fillAndSubmit({ username: 'johndoe', email: 'test@example.com', password: 'password1', confirmPassword: 'password1' });
+    await fillAndSubmit({
+      username: 'johndoe',
+      email: 'test@example.com',
+      password: 'password1',
+      confirmPassword: 'password1',
+    });
     expect(screen.getByText('Must contain an uppercase letter')).toBeInTheDocument();
     expect(mockRegister).not.toHaveBeenCalled();
   });
 
   it('shows error when password lacks lowercase letter', async () => {
     render(<RegisterPage />);
-    await fillAndSubmit({ username: 'johndoe', email: 'test@example.com', password: 'PASSWORD1', confirmPassword: 'PASSWORD1' });
+    await fillAndSubmit({
+      username: 'johndoe',
+      email: 'test@example.com',
+      password: 'PASSWORD1',
+      confirmPassword: 'PASSWORD1',
+    });
     expect(screen.getByText('Must contain a lowercase letter')).toBeInTheDocument();
     expect(mockRegister).not.toHaveBeenCalled();
   });
 
   it('shows error when password lacks a number', async () => {
     render(<RegisterPage />);
-    await fillAndSubmit({ username: 'johndoe', email: 'test@example.com', password: 'PasswordA', confirmPassword: 'PasswordA' });
+    await fillAndSubmit({
+      username: 'johndoe',
+      email: 'test@example.com',
+      password: 'PasswordA',
+      confirmPassword: 'PasswordA',
+    });
     expect(screen.getByText('Must contain a number')).toBeInTheDocument();
     expect(mockRegister).not.toHaveBeenCalled();
   });
@@ -174,14 +226,24 @@ describe('RegisterPage', () => {
 
   it('shows error when confirm password is empty', async () => {
     render(<RegisterPage />);
-    await fillAndSubmit({ username: 'johndoe', email: 'test@example.com', password: 'Password1', confirmPassword: '' });
+    await fillAndSubmit({
+      username: 'johndoe',
+      email: 'test@example.com',
+      password: 'Password1',
+      confirmPassword: '',
+    });
     expect(screen.getByText('Please confirm your password')).toBeInTheDocument();
     expect(mockRegister).not.toHaveBeenCalled();
   });
 
   it('shows error when passwords do not match', async () => {
     render(<RegisterPage />);
-    await fillAndSubmit({ username: 'johndoe', email: 'test@example.com', password: 'Password1', confirmPassword: 'Different1' });
+    await fillAndSubmit({
+      username: 'johndoe',
+      email: 'test@example.com',
+      password: 'Password1',
+      confirmPassword: 'Different1',
+    });
     expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
     expect(mockRegister).not.toHaveBeenCalled();
   });
@@ -314,9 +376,15 @@ describe('RegisterPage', () => {
     await user.type(screen.getByLabelText('Password', { exact: true }), 'SecurePass1');
 
     // All four rules should be visible with the passed styling class
-    expect(screen.getByText('At least 8 characters').closest('div')?.className).toMatch(/text-emerald-600/);
-    expect(screen.getByText('One uppercase letter').closest('div')?.className).toMatch(/text-emerald-600/);
-    expect(screen.getByText('One lowercase letter').closest('div')?.className).toMatch(/text-emerald-600/);
+    expect(screen.getByText('At least 8 characters').closest('div')?.className).toMatch(
+      /text-emerald-600/,
+    );
+    expect(screen.getByText('One uppercase letter').closest('div')?.className).toMatch(
+      /text-emerald-600/,
+    );
+    expect(screen.getByText('One lowercase letter').closest('div')?.className).toMatch(
+      /text-emerald-600/,
+    );
     expect(screen.getByText('One number').closest('div')?.className).toMatch(/text-emerald-600/);
   });
 
@@ -330,9 +398,17 @@ describe('RegisterPage', () => {
     await user.type(screen.getByLabelText('Password', { exact: true }), '!!!!');
 
     // All four rules should be visible with the muted styling
-    expect(screen.getByText('At least 8 characters').closest('div')?.className).toMatch(/text-muted-foreground/);
-    expect(screen.getByText('One uppercase letter').closest('div')?.className).toMatch(/text-muted-foreground/);
-    expect(screen.getByText('One lowercase letter').closest('div')?.className).toMatch(/text-muted-foreground/);
-    expect(screen.getByText('One number').closest('div')?.className).toMatch(/text-muted-foreground/);
+    expect(screen.getByText('At least 8 characters').closest('div')?.className).toMatch(
+      /text-muted-foreground/,
+    );
+    expect(screen.getByText('One uppercase letter').closest('div')?.className).toMatch(
+      /text-muted-foreground/,
+    );
+    expect(screen.getByText('One lowercase letter').closest('div')?.className).toMatch(
+      /text-muted-foreground/,
+    );
+    expect(screen.getByText('One number').closest('div')?.className).toMatch(
+      /text-muted-foreground/,
+    );
   });
 });

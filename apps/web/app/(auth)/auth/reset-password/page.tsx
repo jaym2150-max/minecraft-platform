@@ -28,7 +28,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
+        <div className="from-background via-muted/30 to-background flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
               <CardTitle>Loading...</CardTitle>
@@ -89,14 +89,11 @@ function ResetPasswordForm() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        '/api/v1/auth/reset-password',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token, password: form.password }),
-        },
-      );
+      const response = await fetch('/api/v1/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password: form.password }),
+      });
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
@@ -128,17 +125,17 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
+      <div className="from-background via-muted/30 to-background flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
               <CheckCircle2 className="h-6 w-6 text-emerald-600" />
             </div>
             <CardTitle className="text-2xl">Password Reset Complete</CardTitle>
             <CardDescription>Your password has been successfully updated.</CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <p className="text-sm text-muted-foreground mb-6">
+            <p className="text-muted-foreground mb-6 text-sm">
               You will be redirected to the sign-in page in a moment.
             </p>
             <Button asChild className="w-full">
@@ -151,17 +148,17 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
+    <div className="from-background via-muted/30 to-background flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <Link href="/" className="flex items-center justify-center gap-2 font-bold text-xl mb-6">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
-              <span className="text-primary-foreground font-bold text-lg">MP</span>
+          <Link href="/" className="mb-6 flex items-center justify-center gap-2 text-xl font-bold">
+            <div className="bg-primary shadow-primary/25 flex h-10 w-10 items-center justify-center rounded-xl shadow-lg">
+              <span className="text-primary-foreground text-lg font-bold">MP</span>
             </div>
             Minecraft Platform
           </Link>
-          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <KeyRound className="h-6 w-6 text-primary" />
+          <div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+            <KeyRound className="text-primary h-6 w-6" />
           </div>
           <CardTitle className="text-2xl">Set new password</CardTitle>
           <CardDescription>Enter your new password below.</CardDescription>
@@ -169,8 +166,8 @@ function ResetPasswordForm() {
 
         {!token && (
           <CardContent>
-            <div className="flex items-start gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive mb-4">
-              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+            <div className="border-destructive/50 bg-destructive/10 text-destructive mb-4 flex items-start gap-3 rounded-lg border p-3 text-sm">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>Invalid reset link. Please request a new password reset.</span>
             </div>
             <Button asChild className="w-full" variant="outline">
@@ -183,8 +180,8 @@ function ResetPasswordForm() {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               {error && (
-                <div className="flex items-start gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-                  <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div className="border-destructive/50 bg-destructive/10 text-destructive flex items-start gap-3 rounded-lg border p-3 text-sm">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
@@ -198,31 +195,36 @@ function ResetPasswordForm() {
                     placeholder="••••••••"
                     value={form.password}
                     onChange={(e) => updateField('password', e.target.value)}
-                    className={(fieldErrors.password ? 'border-destructive ring-destructive/20' : '') + ' pr-10'}
+                    className={
+                      (fieldErrors.password ? 'border-destructive ring-destructive/20' : '') +
+                      ' pr-10'
+                    }
                     disabled={isLoading}
                     autoComplete="new-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-muted-foreground hover:text-foreground absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {fieldErrors.password && (
-                  <p className="text-xs text-destructive mt-1">{fieldErrors.password}</p>
+                  <p className="text-destructive mt-1 text-xs">{fieldErrors.password}</p>
                 )}
                 {form.password && (
-                  <div className="space-y-1 mt-2">
+                  <div className="mt-2 space-y-1">
                     {PASSWORD_RULES.map((rule) => {
                       const passed = rule.test(form.password);
                       return (
                         <div
                           key={rule.label}
                           className={`flex items-center gap-2 text-xs ${
-                            passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+                            passed
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-muted-foreground'
                           }`}
                         >
                           {passed ? (
@@ -247,33 +249,37 @@ function ResetPasswordForm() {
                     placeholder="••••••••"
                     value={form.confirmPassword}
                     onChange={(e) => updateField('confirmPassword', e.target.value)}
-                    className={(fieldErrors.confirmPassword ? 'border-destructive ring-destructive/20' : '') + ' pr-10'}
+                    className={
+                      (fieldErrors.confirmPassword
+                        ? 'border-destructive ring-destructive/20'
+                        : '') + ' pr-10'
+                    }
                     disabled={isLoading}
                     autoComplete="new-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-muted-foreground hover:text-foreground absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
                     tabIndex={-1}
                   >
                     {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {fieldErrors.confirmPassword && (
-                  <p className="text-xs text-destructive mt-1">{fieldErrors.confirmPassword}</p>
+                  <p className="text-destructive mt-1 text-xs">{fieldErrors.confirmPassword}</p>
                 )}
               </div>
 
               <Button className="w-full" size="lg" disabled={isLoading}>
                 {isLoading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Resetting password...
                   </>
                 ) : (
                   <>
-                    <KeyRound className="h-4 w-4 mr-2" />
+                    <KeyRound className="mr-2 h-4 w-4" />
                     Reset Password
                   </>
                 )}
@@ -285,7 +291,7 @@ function ResetPasswordForm() {
         <CardFooter className="justify-center pb-6">
           <Link
             href="/auth/login"
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to sign in

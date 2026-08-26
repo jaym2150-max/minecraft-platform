@@ -14,7 +14,9 @@ vi.mock('@/services/api', () => ({
 
 const NOW_ISO = '2026-05-21T12:00:00.000Z';
 
-function makeProject(overrides?: Partial<Project> & { loaders?: string[]; category?: { name: string } }): Project & { loaders?: string[]; category?: { name: string } } {
+function makeProject(
+  overrides?: Partial<Project> & { loaders?: string[]; category?: { name: string } },
+): Project & { loaders?: string[]; category?: { name: string } } {
   return {
     id: 'proj_1',
     title: 'Sodium',
@@ -52,7 +54,12 @@ function mockListProjects(projects: Project[], meta?: PaginatedResponse<Project>
     message: 'OK',
     data: projects,
     timestamp: NOW_ISO,
-    meta: meta ?? { page: 1, limit: 12, total: projects.length, totalPages: Math.ceil(projects.length / 12) || 1 },
+    meta: meta ?? {
+      page: 1,
+      limit: 12,
+      total: projects.length,
+      totalPages: Math.ceil(projects.length / 12) || 1,
+    },
   } as PaginatedResponse<Project>);
 }
 
@@ -65,11 +72,17 @@ function mockListCategories(categories: Category[]) {
   });
 }
 
-function setupMocks(projects: Project[] = [], meta?: PaginatedResponse<Project>['meta'], categories?: Category[]) {
-  mockListCategories(categories ?? [
-    makeCategory({ id: 'cat_1', name: 'Performance', slug: 'performance' }),
-    makeCategory({ id: 'cat_2', name: 'Technology', slug: 'technology' }),
-  ]);
+function setupMocks(
+  projects: Project[] = [],
+  meta?: PaginatedResponse<Project>['meta'],
+  categories?: Category[],
+) {
+  mockListCategories(
+    categories ?? [
+      makeCategory({ id: 'cat_1', name: 'Performance', slug: 'performance' }),
+      makeCategory({ id: 'cat_2', name: 'Technology', slug: 'technology' }),
+    ],
+  );
   mockListProjects(projects, meta);
 }
 
@@ -169,9 +182,12 @@ describe('useMods', () => {
       result.current.refetch();
     });
 
-    await waitFor(() => {
-      expect(result.current.mods[0].downloads).toBe(2000);
-    }, { timeout: 5000 });
+    await waitFor(
+      () => {
+        expect(result.current.mods[0].downloads).toBe(2000);
+      },
+      { timeout: 5000 },
+    );
   }, 15000);
 
   it('setFilter updates filters state', async () => {
@@ -264,7 +280,10 @@ describe('useMods', () => {
 
   it('defaults missing author to Unknown', async () => {
     setupMocks([
-      makeProject({ id: '1', author: undefined as unknown as { username: string; avatarUrl?: string } }),
+      makeProject({
+        id: '1',
+        author: undefined as unknown as { username: string; avatarUrl?: string },
+      }),
     ]);
 
     const { result } = renderHook(() => useMods());
@@ -275,9 +294,7 @@ describe('useMods', () => {
   }, 10000);
 
   it('defaults missing loaders to empty array', async () => {
-    setupMocks([
-      makeProject({ id: '1', loaders: undefined as unknown as string[] }),
-    ]);
+    setupMocks([makeProject({ id: '1', loaders: undefined as unknown as string[] })]);
 
     const { result } = renderHook(() => useMods());
 
@@ -287,10 +304,7 @@ describe('useMods', () => {
   }, 10000);
 
   it('derives total and totalPages from meta', async () => {
-    setupMocks(
-      [makeProject({ id: '1' })],
-      { page: 1, limit: 12, total: 50, totalPages: 5 },
-    );
+    setupMocks([makeProject({ id: '1' })], { page: 1, limit: 12, total: 50, totalPages: 5 });
 
     const { result } = renderHook(() => useMods());
 

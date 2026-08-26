@@ -62,8 +62,18 @@ export class VersionFilesController {
     }
     const data = await this.versionsService.getLatestByHash(
       hash,
-      loaders ? loaders.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
-      gameVersions ? gameVersions.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
+      loaders
+        ? loaders
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined,
+      gameVersions
+        ? gameVersions
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined,
     );
     return {
       statusCode: HttpStatus.OK,
@@ -76,10 +86,7 @@ export class VersionFilesController {
   @Get(':hash')
   @Public()
   @HttpCode(HttpStatus.OK)
-  async getByHash(
-    @Param('hash') hash: string,
-    @Query('algorithm') algorithm?: string,
-  ) {
+  async getByHash(@Param('hash') hash: string, @Query('algorithm') algorithm?: string) {
     const data = await this.versionsService.getByHash(hash, algorithm ?? 'sha256');
     return {
       statusCode: HttpStatus.OK,
@@ -94,10 +101,7 @@ export class VersionFilesController {
   @Scopes(ApiKeyScope.VERSION_READ, ApiKeyScope.PROJECT_READ, ApiKeyScope.READ)
   @HttpCode(HttpStatus.OK)
   async bulk(@Body() dto: BulkLookupDto) {
-    const data = await this.versionsService.getBulkByHashes(
-      dto.hashes,
-      dto.algorithm ?? 'sha256',
-    );
+    const data = await this.versionsService.getBulkByHashes(dto.hashes, dto.algorithm ?? 'sha256');
     return {
       statusCode: HttpStatus.OK,
       message: 'Bulk lookup completed',
@@ -120,10 +124,7 @@ export class VersionsHashCompatController {
   @Get('hash-by-id/:hash')
   @Public()
   @HttpCode(HttpStatus.OK)
-  async getByHash(
-    @Param('hash') hash: string,
-    @Query('algorithm') algorithm?: string,
-  ) {
+  async getByHash(@Param('hash') hash: string, @Query('algorithm') algorithm?: string) {
     const data = await this.versionsService.getByHash(hash, algorithm ?? 'sha256');
     return {
       statusCode: HttpStatus.OK,
@@ -151,8 +152,18 @@ export class VersionsHashCompatController {
     }
     const data = await this.versionsService.getLatestByHash(
       hash,
-      loaders ? loaders.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
-      gameVersions ? gameVersions.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
+      loaders
+        ? loaders
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined,
+      gameVersions
+        ? gameVersions
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined,
     );
     return {
       statusCode: HttpStatus.OK,

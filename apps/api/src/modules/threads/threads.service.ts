@@ -9,10 +9,7 @@ export class ThreadsService {
   async listMine(userId: string) {
     const threads = await this.prisma.thread.findMany({
       where: {
-        OR: [
-          { initiatorId: userId },
-          { participants: { some: { userId } } },
-        ],
+        OR: [{ initiatorId: userId }, { participants: { some: { userId } } }],
       },
       orderBy: { lastMessageAt: 'desc' },
       include: {
@@ -45,8 +42,7 @@ export class ThreadsService {
     if (!thread) throw new NotFoundException('Thread not found');
 
     const isParticipant =
-      thread.initiatorId === userId ||
-      thread.participants.some((p) => p.userId === userId);
+      thread.initiatorId === userId || thread.participants.some((p) => p.userId === userId);
     if (!isParticipant) throw new ForbiddenException('Not a participant of this thread');
 
     return this.format(thread);
@@ -103,7 +99,8 @@ export class ThreadsService {
         joinedAt: p.joinedAt?.toISOString?.() ?? p.joinedAt,
         user: p.user,
       })),
-      lastMessageAt: t.lastMessageAt instanceof Date ? t.lastMessageAt.toISOString() : t.lastMessageAt,
+      lastMessageAt:
+        t.lastMessageAt instanceof Date ? t.lastMessageAt.toISOString() : t.lastMessageAt,
       createdAt: t.createdAt instanceof Date ? t.createdAt.toISOString() : t.createdAt,
       updatedAt: t.updatedAt instanceof Date ? t.updatedAt.toISOString() : t.updatedAt,
       messageCount: t._count?.messages ?? t.messages?.length ?? 0,

@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+.next
+coverage
+.turbo
+out
+pnpm-lock.yaml
+
+# Stale compiled JS shadowing TypeScript sources (build output, never source)
+apps/api/src/**/*.js
+apps/api/test/**/*.js
+!apps/api/test/jest-e2e.js
+apps/api/prisma/seed.js

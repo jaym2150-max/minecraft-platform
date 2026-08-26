@@ -5,7 +5,7 @@ module.exports = {
     'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'prefer-const': 'error',
-    'eqeqeq': ['error', 'always'],
+    eqeqeq: ['error', 'always'],
   },
   ignorePatterns: ['dist', '.next', 'node_modules', '*.js'],
 };

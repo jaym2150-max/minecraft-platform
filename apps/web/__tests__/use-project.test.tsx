@@ -21,7 +21,9 @@ vi.mock('@/services/api', () => ({
 
 const NOW_ISO = '2026-05-21T12:00:00.000Z';
 
-function makeProject(overrides?: Partial<Project> & Record<string, any>): Project & Record<string, any> {
+function makeProject(
+  overrides?: Partial<Project> & Record<string, any>,
+): Project & Record<string, any> {
   return {
     id: 'proj_1',
     title: 'Sodium',
@@ -44,7 +46,9 @@ function makeProject(overrides?: Partial<Project> & Record<string, any>): Projec
   };
 }
 
-function makeVersion(overrides?: Partial<ProjectVersion> & Record<string, any>): ProjectVersion & Record<string, any> {
+function makeVersion(
+  overrides?: Partial<ProjectVersion> & Record<string, any>,
+): ProjectVersion & Record<string, any> {
   return {
     id: 'ver_1',
     version: '1.0.0',
@@ -355,7 +359,14 @@ describe('useProject', () => {
 
   it('maps versions to VersionDisplay[] correctly', async () => {
     const project = makeProject();
-    const version = makeVersion({ id: 'ver_1', version: '1.0.0', downloads: 5000, status: VersionStatus.APPROVED, loaders: [LoaderType.FABRIC], minecraftVersion: '1.20.4' });
+    const version = makeVersion({
+      id: 'ver_1',
+      version: '1.0.0',
+      downloads: 5000,
+      status: VersionStatus.APPROVED,
+      loaders: [LoaderType.FABRIC],
+      minecraftVersion: '1.20.4',
+    });
 
     mockGetProject(project);
     mockGetProjectVersions([version]);
@@ -415,7 +426,10 @@ describe('useProject', () => {
     const project = makeProject();
     mockGetProject(project);
     mockGetProjectVersions([]);
-    mockGetProjectDependencies([makeDependency(), makeDependency({ id: 'dep_2', name: 'Sodium Extra', slug: 'sodium-extra', required: false })]);
+    mockGetProjectDependencies([
+      makeDependency(),
+      makeDependency({ id: 'dep_2', name: 'Sodium Extra', slug: 'sodium-extra', required: false }),
+    ]);
     mockGetProjectTeam([]);
     mockGetProjectRelated([]);
 
@@ -424,8 +438,16 @@ describe('useProject', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.dependencies).toHaveLength(2);
-    expect(result.current.dependencies[0]).toMatchObject({ name: 'Fabric API', slug: 'fabric-api', required: true });
-    expect(result.current.dependencies[1]).toMatchObject({ name: 'Sodium Extra', slug: 'sodium-extra', required: false });
+    expect(result.current.dependencies[0]).toMatchObject({
+      name: 'Fabric API',
+      slug: 'fabric-api',
+      required: true,
+    });
+    expect(result.current.dependencies[1]).toMatchObject({
+      name: 'Sodium Extra',
+      slug: 'sodium-extra',
+      required: false,
+    });
   });
 
   // ── Maps team correctly ──
@@ -435,7 +457,10 @@ describe('useProject', () => {
     mockGetProject(project);
     mockGetProjectVersions([]);
     mockGetProjectDependencies([]);
-    mockGetProjectTeam([makeTeamMember(), makeTeamMember({ id: 'tm_2', name: 'contributor', role: 'Developer', avatarUrl: undefined })]);
+    mockGetProjectTeam([
+      makeTeamMember(),
+      makeTeamMember({ id: 'tm_2', name: 'contributor', role: 'Developer', avatarUrl: undefined }),
+    ]);
     mockGetProjectRelated([]);
 
     const { result } = renderHook(() => useProject('sodium'));
@@ -443,7 +468,11 @@ describe('useProject', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.team).toHaveLength(2);
-    expect(result.current.team[0]).toMatchObject({ name: 'jellysquid', role: 'Owner', avatarUrl: 'https://img.test/avatar.png' });
+    expect(result.current.team[0]).toMatchObject({
+      name: 'jellysquid',
+      role: 'Owner',
+      avatarUrl: 'https://img.test/avatar.png',
+    });
     expect(result.current.team[1]).toMatchObject({ name: 'contributor', role: 'Developer' });
     expect(result.current.team[1].avatarUrl).toBeUndefined();
   });

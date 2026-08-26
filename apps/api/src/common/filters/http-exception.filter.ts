@@ -1,4 +1,11 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 
 /**
@@ -6,12 +13,7 @@ import { Request, Response } from 'express';
  * paths we should never write authorization tokens, session cookies, or API
  * keys to disk — a leaked log file would let an attacker replay credentials.
  */
-const REDACTED_HEADERS = new Set([
-  'authorization',
-  'cookie',
-  'set-cookie',
-  'x-api-key',
-]);
+const REDACTED_HEADERS = new Set(['authorization', 'cookie', 'set-cookie', 'x-api-key']);
 
 function redactHeaders(headers: Record<string, unknown> | undefined): Record<string, unknown> {
   if (!headers) return {};
@@ -53,10 +55,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // upstream callers don't see a Nest stacktrace.
     const isHttp = exception instanceof HttpException;
     const status = isHttp ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
-    const errorName = isHttp ? exception.name : (exception as Error)?.name ?? 'InternalServerError';
+    const errorName = isHttp
+      ? exception.name
+      : ((exception as Error)?.name ?? 'InternalServerError');
     const errorMessage = isHttp
       ? exception.message
-      : (exception as Error)?.message ?? 'Internal server error';
+      : ((exception as Error)?.message ?? 'Internal server error');
     const errorResponse = isHttp ? exception.getResponse() : { message: errorMessage };
 
     const safeHeaders = redactHeaders(request.headers as any);
@@ -65,13 +69,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (!isHttp) {
       this.logger.error(
         `${request.method} ${request.url} 500 - unhandled ${errorName}: ${scrubString(errorMessage)} ` +
-        `headers=${JSON.stringify(safeHeaders)}`,
+          `headers=${JSON.stringify(safeHeaders)}`,
         (exception as Error)?.stack,
       );
     } else {
       this.logger.error(
         `${request.method} ${request.url} ${status} - ${scrubString(errorMessage)} ` +
-        `headers=${JSON.stringify(safeHeaders)}`,
+          `headers=${JSON.stringify(safeHeaders)}`,
       );
     }
 

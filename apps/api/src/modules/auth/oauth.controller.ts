@@ -1,4 +1,13 @@
-import { Controller, Get, Req, Res, UseGuards, Logger, Query, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Req,
+  Res,
+  UseGuards,
+  Logger,
+  Query,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Public } from '../../common/decorators/public.decorator';
 import { AuthService } from './auth.service';
@@ -29,11 +38,11 @@ export class OauthController {
   // any outbound request.
   @UseGuards(AuthGuard('github'))
   async githubAuth() {
-    if (!this.configService.get<string>('app.githubClientId') ||
-        !this.configService.get<string>('app.githubClientSecret')) {
-      throw new ServiceUnavailableException(
-        'GitHub OAuth is not configured on this deployment',
-      );
+    if (
+      !this.configService.get<string>('app.githubClientId') ||
+      !this.configService.get<string>('app.githubClientSecret')
+    ) {
+      throw new ServiceUnavailableException('GitHub OAuth is not configured on this deployment');
     }
   }
 
@@ -52,11 +61,11 @@ export class OauthController {
   @Get('discord')
   @UseGuards(AuthGuard('discord'))
   async discordAuth() {
-    if (!this.configService.get<string>('app.discordClientId') ||
-        !this.configService.get<string>('app.discordClientSecret')) {
-      throw new ServiceUnavailableException(
-        'Discord OAuth is not configured on this deployment',
-      );
+    if (
+      !this.configService.get<string>('app.discordClientId') ||
+      !this.configService.get<string>('app.discordClientSecret')
+    ) {
+      throw new ServiceUnavailableException('Discord OAuth is not configured on this deployment');
     }
   }
 
@@ -102,9 +111,14 @@ export class OauthController {
       });
 
       if (this.consentCodes.isEnabled()) {
-        const { code } = await this.consentCodes.issueCode(jwtPayload.data.user.id, sanitizedCallback ?? undefined);
+        const { code } = await this.consentCodes.issueCode(
+          jwtPayload.data.user.id,
+          sanitizedCallback ?? undefined,
+        );
         const target = sanitizedCallback ?? `/auth/oauth/callback?provider=${provider}`;
-        return res.redirect(`${webUrl}${target}${target.includes('?') ? '&' : '?'}code=${encodeURIComponent(code)}`);
+        return res.redirect(
+          `${webUrl}${target}${target.includes('?') ? '&' : '?'}code=${encodeURIComponent(code)}`,
+        );
       }
 
       return res.redirect(sanitizedCallback ?? `${webUrl}/dashboard`);

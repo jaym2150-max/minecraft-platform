@@ -35,7 +35,9 @@ describe('useOAuth', () => {
 
     act(() => result.current.start('discord'));
 
-    expect((openSpy.mock.calls[0] as unknown as [string, string])[0]).toBe('https://api.example.com/auth/discord');
+    expect((openSpy.mock.calls[0] as unknown as [string, string])[0]).toBe(
+      'https://api.example.com/auth/discord',
+    );
   });
 
   it('reports error when popup is blocked', () => {
@@ -111,8 +113,12 @@ describe('useOAuth', () => {
     act(() => {
       // Same-origin messages with an unrecognized/empty payload must still be
       // ignored — proving the guard is payload-typed, not just origin-typed.
-      window.dispatchEvent(new MessageEvent('message', { origin: window.location.origin, data: { foo: 'bar' } }));
-      window.dispatchEvent(new MessageEvent('message', { origin: window.location.origin, data: null }));
+      window.dispatchEvent(
+        new MessageEvent('message', { origin: window.location.origin, data: { foo: 'bar' } }),
+      );
+      window.dispatchEvent(
+        new MessageEvent('message', { origin: window.location.origin, data: null }),
+      );
     });
 
     expect(onSuccess).not.toHaveBeenCalled();

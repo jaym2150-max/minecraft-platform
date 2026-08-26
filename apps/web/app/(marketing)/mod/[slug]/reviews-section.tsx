@@ -91,10 +91,19 @@ function ReviewForm({
 
     try {
       if (initial?.id) {
-        await sdk.updateReview(initial.id, { rating, title: title || undefined, body: body || undefined });
+        await sdk.updateReview(initial.id, {
+          rating,
+          title: title || undefined,
+          body: body || undefined,
+        });
         toast.success('Review updated');
       } else {
-        await sdk.createReview({ rating, title: title || undefined, body: body || undefined, projectId });
+        await sdk.createReview({
+          rating,
+          title: title || undefined,
+          body: body || undefined,
+          projectId,
+        });
         toast.success('Review submitted');
       }
       onDone();
@@ -110,8 +119,8 @@ function ReviewForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="flex items-start gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+        <div className="border-destructive/50 bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg border p-3 text-sm">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -148,7 +157,7 @@ function ReviewForm({
         <Button type="submit" size="sm" disabled={submitting}>
           {submitting ? (
             <>
-              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
               Submitting...
             </>
           ) : initial?.id ? (
@@ -201,29 +210,37 @@ function ReviewCard({
   };
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-2">
+    <div className="bg-card space-y-2 rounded-lg border p-4">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="relative h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0 overflow-hidden">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="bg-primary/10 text-primary relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold">
             {review.user?.avatarUrl ? (
-              <Image src={review.user.avatarUrl} alt="" fill sizes="32px" className="h-full w-full object-cover" />
+              <Image
+                src={review.user.avatarUrl}
+                alt=""
+                fill
+                sizes="32px"
+                className="h-full w-full object-cover"
+              />
             ) : (
               <User className="h-4 w-4" />
             )}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium truncate">{review.user?.username || 'Unknown'}</p>
-            <p className="text-[10px] text-muted-foreground">{new Date(review.createdAt).toLocaleDateString()}</p>
+            <p className="truncate text-sm font-medium">{review.user?.username || 'Unknown'}</p>
+            <p className="text-muted-foreground text-[10px]">
+              {new Date(review.createdAt).toLocaleDateString()}
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex shrink-0 items-center gap-2">
           <StarRating value={review.rating} readonly size="sm" />
           {isOwn && (
             <div className="flex gap-1">
               <button
                 type="button"
                 onClick={onEdit}
-                className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                className="hover:bg-muted text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
               >
                 <Edit3 className="h-3.5 w-3.5" />
               </button>
@@ -231,7 +248,7 @@ function ReviewCard({
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-destructive"
+                className="hover:bg-muted text-muted-foreground hover:text-destructive rounded p-1 transition-colors"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -241,16 +258,18 @@ function ReviewCard({
       </div>
 
       {review.title && <p className="text-sm font-semibold">{review.title}</p>}
-      {review.body && <p className="text-sm text-muted-foreground">{review.body}</p>}
-      <div className="flex items-center gap-3 pt-2 border-t mt-2">
+      {review.body && <p className="text-muted-foreground text-sm">{review.body}</p>}
+      <div className="mt-2 flex items-center gap-3 border-t pt-2">
         <button
           onClick={onHelpful}
-          className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors ${voted ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted text-muted-foreground hover:text-foreground'}`}
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors ${voted ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted text-muted-foreground hover:text-foreground'}`}
           aria-pressed={voted}
         >
           <ThumbsUp className="h-3.5 w-3.5" /> Helpful {helpfulCount ? `(${helpfulCount})` : ''}
         </button>
-        <span className="text-xs text-muted-foreground">{helpfulCount ? `${helpfulCount} found helpful` : 'Be first to vote'}</span>
+        <span className="text-muted-foreground text-xs">
+          {helpfulCount ? `${helpfulCount} found helpful` : 'Be first to vote'}
+        </span>
       </div>
     </div>
   );
@@ -267,7 +286,9 @@ export function ReviewsSection({ projectId }: ReviewsSectionProps) {
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'rating_high' | 'rating_low' | 'helpful'>('newest');
+  const [sortBy, setSortBy] = useState<
+    'newest' | 'oldest' | 'rating_high' | 'rating_low' | 'helpful'
+  >('newest');
   const [helpful, setHelpful] = useState<Record<string, number>>({});
   const [helpfulVoted, setHelpfulVoted] = useState<Set<string>>(new Set());
   const limit = 10;
@@ -303,7 +324,9 @@ export function ReviewsSection({ projectId }: ReviewsSectionProps) {
     const arr = [...reviews];
     switch (sortBy) {
       case 'oldest':
-        return arr.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        return arr.sort(
+          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        );
       case 'rating_high':
         return arr.sort((a, b) => b.rating - a.rating);
       case 'rating_low':
@@ -311,7 +334,9 @@ export function ReviewsSection({ projectId }: ReviewsSectionProps) {
       case 'helpful':
         return arr.sort((a, b) => (helpful[b.id] || 0) - (helpful[a.id] || 0));
       default:
-        return arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        return arr.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
     }
   }, [reviews, sortBy, helpful]);
 
@@ -347,50 +372,52 @@ export function ReviewsSection({ projectId }: ReviewsSectionProps) {
 
   if (loading && reviews.length === 0) {
     return (
-      <div className="rounded-xl border bg-card p-6">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+      <div className="bg-card rounded-xl border p-6">
+        <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
           <Star className="h-5 w-5 text-amber-400" />
           Reviews & Ratings
         </h2>
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border bg-card p-6" id="reviews-section">
-      <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+    <div className="bg-card rounded-xl border p-6" id="reviews-section">
+      <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
         <Star className="h-5 w-5 text-amber-400" />
         Reviews & Ratings
       </h2>
 
       {/* Stats Summary */}
       {stats && stats.count > 0 && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-6 p-4 rounded-lg bg-muted/30">
+        <div className="bg-muted/30 mb-6 flex flex-col items-start gap-4 rounded-lg p-4 sm:flex-row sm:items-center sm:gap-6">
           <div className="text-center">
             <p className="text-4xl font-bold">{stats.average.toFixed(1)}</p>
-            <div className="flex justify-center mt-1">
+            <div className="mt-1 flex justify-center">
               <StarRating value={Math.round(stats.average)} readonly size="sm" />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{stats.count} review{stats.count !== 1 ? 's' : ''}</p>
+            <p className="text-muted-foreground mt-1 text-xs">
+              {stats.count} review{stats.count !== 1 ? 's' : ''}
+            </p>
           </div>
-          <div className="flex-1 space-y-1 w-full">
+          <div className="w-full flex-1 space-y-1">
             {[5, 4, 3, 2, 1].map((star) => {
               const count = stats.distribution[star] || 0;
               const pct = stats.count > 0 ? (count / stats.count) * 100 : 0;
               return (
                 <div key={star} className="flex items-center gap-2 text-xs">
-                  <span className="w-3 text-right text-muted-foreground">{star}</span>
-                  <Star className="h-3 w-3 text-amber-400 fill-current" />
-                  <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                  <span className="text-muted-foreground w-3 text-right">{star}</span>
+                  <Star className="h-3 w-3 fill-current text-amber-400" />
+                  <div className="bg-muted h-2 flex-1 overflow-hidden rounded-full">
                     <div
                       className="h-full rounded-full bg-amber-400 transition-all"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <span className="w-8 text-right text-muted-foreground">{count}</span>
+                  <span className="text-muted-foreground w-8 text-right">{count}</span>
                 </div>
               );
             })}
@@ -402,7 +429,7 @@ export function ReviewsSection({ projectId }: ReviewsSectionProps) {
       {isAuthenticated ? (
         userReview && !showForm && !editingReview ? (
           <div className="mb-4">
-            <p className="text-xs text-muted-foreground mb-2">Your review:</p>
+            <p className="text-muted-foreground mb-2 text-xs">Your review:</p>
             <ReviewCard
               review={userReview}
               isOwn
@@ -414,15 +441,20 @@ export function ReviewsSection({ projectId }: ReviewsSectionProps) {
             />
           </div>
         ) : showForm || editingReview ? (
-          <div className="mb-6 p-4 rounded-lg border bg-muted/20">
-            <p className="text-sm font-medium mb-3">
+          <div className="bg-muted/20 mb-6 rounded-lg border p-4">
+            <p className="mb-3 text-sm font-medium">
               {editingReview ? 'Edit your review' : 'Write a review'}
             </p>
             <ReviewForm
               projectId={projectId}
               initial={
                 editingReview
-                  ? { id: editingReview.id, rating: editingReview.rating, title: editingReview.title, body: editingReview.body }
+                  ? {
+                      id: editingReview.id,
+                      rating: editingReview.rating,
+                      title: editingReview.title,
+                      body: editingReview.body,
+                    }
                   : undefined
               }
               onDone={handleReviewDone}
@@ -441,7 +473,7 @@ export function ReviewsSection({ projectId }: ReviewsSectionProps) {
           </div>
         )
       ) : (
-        <div className="mb-4 text-center py-3 text-sm text-muted-foreground">
+        <div className="text-muted-foreground mb-4 py-3 text-center text-sm">
           <Button variant="outline" size="sm" asChild className="gap-1.5">
             <Link href="/auth/login">Sign in to leave a review</Link>
           </Button>
@@ -450,16 +482,23 @@ export function ReviewsSection({ projectId }: ReviewsSectionProps) {
 
       {/* Error */}
       {error && (
-        <div className="flex items-start gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive mb-4">
-          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+        <div className="border-destructive/50 bg-destructive/10 text-destructive mb-4 flex items-start gap-2 rounded-lg border p-3 text-sm">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Sort + Reviews List */}
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-sm text-muted-foreground">{sortedReviews.length} review{sortedReviews.length !== 1 ? 's' : ''}</p>
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="h-8 rounded-lg border bg-background px-2 text-xs" aria-label="Sort reviews">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-muted-foreground text-sm">
+          {sortedReviews.length} review{sortedReviews.length !== 1 ? 's' : ''}
+        </p>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as any)}
+          className="bg-background h-8 rounded-lg border px-2 text-xs"
+          aria-label="Sort reviews"
+        >
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>
           <option value="rating_high">Highest rating</option>
@@ -496,7 +535,7 @@ export function ReviewsSection({ projectId }: ReviewsSectionProps) {
               >
                 Previous
               </Button>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-muted-foreground text-xs">
                 Page {page} of {totalPages}
               </span>
               <Button
@@ -512,8 +551,8 @@ export function ReviewsSection({ projectId }: ReviewsSectionProps) {
         </div>
       ) : (
         !loading && (
-          <div className="text-center py-8 text-muted-foreground">
-            <Star className="h-10 w-10 mx-auto mb-2 opacity-40" />
+          <div className="text-muted-foreground py-8 text-center">
+            <Star className="mx-auto mb-2 h-10 w-10 opacity-40" />
             <p className="text-sm">No reviews yet. Be the first!</p>
           </div>
         )
@@ -522,7 +561,7 @@ export function ReviewsSection({ projectId }: ReviewsSectionProps) {
       {/* Loading more */}
       {loading && reviews.length > 0 && (
         <div className="flex justify-center py-4">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <Loader2 className="text-muted-foreground h-5 w-5 animate-spin" />
         </div>
       )}
     </div>

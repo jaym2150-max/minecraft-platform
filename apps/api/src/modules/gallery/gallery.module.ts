@@ -5,10 +5,7 @@ import { GalleryService } from './gallery.service';
 import { PrismaModule } from '../../common/prisma/prisma.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    BullModule.registerQueue({ name: 'image-process' }),
-  ],
+  imports: [PrismaModule, BullModule.registerQueue({ name: 'image-process' })],
   controllers: [GalleryController],
   providers: [GalleryService],
   exports: [GalleryService],

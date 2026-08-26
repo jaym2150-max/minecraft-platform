@@ -105,19 +105,26 @@ export class McpSDK {
   }
 
   async saveNotificationPreferences(preferences: Record<string, boolean>) {
-    return this.client.post<ApiResponse<void>>('/users/me/notification-preferences', { preferences });
+    return this.client.post<ApiResponse<void>>('/users/me/notification-preferences', {
+      preferences,
+    });
   }
 
   async getUserAnalytics(period: '7d' | '30d' | '90d' | '1y' | 'all' = '30d') {
     return this.client.get<ApiResponse<any>>(`/analytics/user?period=${period}`);
   }
 
-  async getProjectAnalytics(projectId: string, period: '7d' | '30d' | '90d' | '1y' | 'all' = '30d') {
+  async getProjectAnalytics(
+    projectId: string,
+    period: '7d' | '30d' | '90d' | '1y' | 'all' = '30d',
+  ) {
     return this.client.get<ApiResponse<any>>(`/analytics/project/${projectId}?period=${period}`);
   }
 
   async enable2FA() {
-    return this.client.post<ApiResponse<{ secret: string; qrCodeUrl: string; backupCodes: string[] }>>('/auth/2fa/enable', {});
+    return this.client.post<
+      ApiResponse<{ secret: string; qrCodeUrl: string; backupCodes: string[] }>
+    >('/auth/2fa/enable', {});
   }
 
   async verify2FA(code: string) {
@@ -165,9 +172,7 @@ export class McpSDK {
       return this.client.get<PaginatedResponse<Project>>('/projects');
     }
     // Enum-valued facets map assemble their querystring here.
-    return this.client.get<PaginatedResponse<Project>>(
-      `/projects?${buildProjectQuery(query)}`,
-    );
+    return this.client.get<PaginatedResponse<Project>>(`/projects?${buildProjectQuery(query)}`);
   }
 
   async getProject(slug: string) {
@@ -208,7 +213,10 @@ export class McpSDK {
   }
 
   async updateVersion(projectId: string, versionId: string, data: Partial<ProjectVersion>) {
-    return this.client.patch<ApiResponse<ProjectVersion>>(`/projects/${projectId}/versions/${versionId}`, data);
+    return this.client.patch<ApiResponse<ProjectVersion>>(
+      `/projects/${projectId}/versions/${versionId}`,
+      data,
+    );
   }
 
   async deleteVersion(projectId: string, versionId: string) {
@@ -316,10 +324,18 @@ export class McpSDK {
   async uploadFile(projectId: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    return this.client.post<ApiResponse<{ uploadId: string; projectVersionId: string; fileUrl: string; filename: string; size: number; hash: string; status: string; scanStatus: string }>>(
-      `/uploads/project/${projectId}`,
-      formData,
-    );
+    return this.client.post<
+      ApiResponse<{
+        uploadId: string;
+        projectVersionId: string;
+        fileUrl: string;
+        filename: string;
+        size: number;
+        hash: string;
+        status: string;
+        scanStatus: string;
+      }>
+    >(`/uploads/project/${projectId}`, formData);
   }
 
   async getUploadStatus(uploadId: string) {
@@ -389,7 +405,9 @@ export class McpSDK {
   }
 
   async removeProjectFromCollection(collectionId: string, projectId: string) {
-    return this.client.delete<ApiResponse<any>>(`/collections/${collectionId}/projects/${projectId}`);
+    return this.client.delete<ApiResponse<any>>(
+      `/collections/${collectionId}/projects/${projectId}`,
+    );
   }
 
   async listPlans() {
@@ -405,9 +423,7 @@ export class McpSDK {
     // serialize identically and the backend `@Transform(toArray)` strips the
     // CSV back out the same way from any caller path.
     const qs = buildProjectQuery({ ...query, author: userId });
-    return this.client.get<PaginatedResponse<Project>>(
-      qs ? `/projects?${qs}` : '/projects',
-    );
+    return this.client.get<PaginatedResponse<Project>>(qs ? `/projects?${qs}` : '/projects');
   }
 
   async listLicenses() {
@@ -419,7 +435,9 @@ export class McpSDK {
   }
 
   async getLicenseText(shortId: string) {
-    return this.client.get<ApiResponse<{ shortId: string; body: string }>>(`/licenses/${shortId}/text`);
+    return this.client.get<ApiResponse<{ shortId: string; body: string }>>(
+      `/licenses/${shortId}/text`,
+    );
   }
 
   /**
@@ -429,9 +447,7 @@ export class McpSDK {
    */
   async getVersionByHash(hash: string, algorithm: HashAlgorithm = 'sha256') {
     const qs = algorithm === 'sha256' ? '' : `?algorithm=${algorithm}`;
-    return this.client.get<ApiResponse<VersionFileLookup>>(
-      `/version-files/${hash}${qs}`,
-    );
+    return this.client.get<ApiResponse<VersionFileLookup>>(`/version-files/${hash}${qs}`);
   }
 
   /**
@@ -454,10 +470,10 @@ export class McpSDK {
    * `POST /version-files/bulk` with body `{ hashes, algorithm }`.
    */
   async getVersionsFromHashes(hashes: string[], algorithm: HashAlgorithm = 'sha256') {
-    return this.client.post<ApiResponse<Record<string, VersionFileLookup>>>(
-      '/version-files/bulk',
-      { hashes, algorithm },
-    );
+    return this.client.post<ApiResponse<Record<string, VersionFileLookup>>>('/version-files/bulk', {
+      hashes,
+      algorithm,
+    });
   }
 
   /**
@@ -506,9 +522,7 @@ export class McpSDK {
 
   /** Loader × game-version compatibility matrix for a project. */
   async getProjectCompatibility(slug: string) {
-    return this.client.get<ApiResponse<ProjectCompatibility>>(
-      `/projects/${slug}/compatibility`,
-    );
+    return this.client.get<ApiResponse<ProjectCompatibility>>(`/projects/${slug}/compatibility`);
   }
 
   async getProjects(ids: string[]) {
@@ -571,7 +585,12 @@ export class McpSDK {
     return this.client.post<ApiResponse<ThreadMessage>>(`/threads/${threadId}/messages`, { body });
   }
 
-  async createApiKey(data: { name: string; scopes: ApiKeyScope[]; ipAllowlist?: string[]; expiresAt?: string }) {
+  async createApiKey(data: {
+    name: string;
+    scopes: ApiKeyScope[];
+    ipAllowlist?: string[];
+    expiresAt?: string;
+  }) {
     return this.client.post<ApiResponse<ApiKeyWithSecret>>('/api-keys', data);
   }
 

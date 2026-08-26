@@ -17,12 +17,11 @@ export function TypeLandingRedirect({ type }: { type: string }) {
     const params = new URLSearchParams(searchParams?.toString() ?? '');
     params.set('type', type);
     router.replace(`/mods?${params.toString()}`, { scroll: false });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type]);
 
   return (
-    <main className="flex-1 flex items-center justify-center py-24">
-      <div className="flex items-center gap-3 text-muted-foreground">
+    <main className="flex flex-1 items-center justify-center py-24">
+      <div className="text-muted-foreground flex items-center gap-3">
         <Loader2 className="h-5 w-5 animate-spin" />
         <span>Loading {type.toLowerCase()}s…</span>
       </div>

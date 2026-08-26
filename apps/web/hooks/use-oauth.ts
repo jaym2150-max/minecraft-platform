@@ -39,7 +39,7 @@ export function useOAuth(options: UseOAuthOptions = {}): UseOAuthResult {
       window.removeEventListener('message', listenerRef.current);
       listenerRef.current = null;
     }
-    if (pollRef.current != null && typeof window !== 'undefined') {
+    if (pollRef.current !== null && typeof window !== 'undefined') {
       window.clearInterval(pollRef.current);
       pollRef.current = null;
     }
@@ -72,12 +72,20 @@ export function useOAuth(options: UseOAuthOptions = {}): UseOAuthResult {
         if (!data || typeof data !== 'object') return;
         if (data.type === 'mcp-oauth' && data.token && data.user) {
           cleanup();
-          try { win.close(); } catch { /* noop */ }
+          try {
+            win.close();
+          } catch {
+            /* noop */
+          }
           setLoading(false);
           onSuccess?.({ token: data.token, user: data.user });
         } else if (data.type === 'mcp-oauth-error') {
           cleanup();
-          try { win.close(); } catch { /* noop */ }
+          try {
+            win.close();
+          } catch {
+            /* noop */
+          }
           const message = data.error || 'OAuth failed';
           setError(message);
           setLoading(false);

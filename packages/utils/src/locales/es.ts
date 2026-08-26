@@ -1,7 +1,8 @@
 export default {
   'home.hero.title1': 'ENCUENTRA TU',
   'home.hero.title2': 'PRÓXIMO MOD',
-  'home.hero.subtitle': 'El hogar de los mods, modpacks y plugins de Minecraft. Una búsqueda, todos los loaders, todas las versiones.',
+  'home.hero.subtitle':
+    'El hogar de los mods, modpacks y plugins de Minecraft. Una búsqueda, todos los loaders, todas las versiones.',
   'home.search.placeholder': 'Buscar mods, modpacks, plugins...',
   'home.search.cta': 'BUSCAR',
   'home.ticker.label': 'EN VIVO',

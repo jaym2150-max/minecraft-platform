@@ -16,16 +16,16 @@ export interface StatCardProps {
 
 export function StatCard({ label, value, icon: Icon, change, changeType }: StatCardProps) {
   return (
-    <Card className="hover:shadow-md transition-shadow" data-testid="stat-card">
+    <Card className="transition-shadow hover:shadow-md" data-testid="stat-card">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Icon className="h-4 w-4 text-primary" />
+        <CardTitle className="text-muted-foreground text-sm font-medium">{label}</CardTitle>
+        <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+          <Icon className="text-primary h-4 w-4" />
         </div>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold tracking-tight">{value}</div>
-        <div className="flex items-center gap-1 mt-1">
+        <div className="mt-1 flex items-center gap-1">
           {changeType === 'up' && <TrendingUp className="h-3 w-3 text-emerald-500" />}
           <p
             className={`text-xs ${

@@ -1,9 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ApiKeyScope, UserRole } from '@prisma/client';
 import { SCOPES_KEY } from '../decorators/scopes.decorator';
@@ -13,10 +8,10 @@ export class ScopesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const required = this.reflector.getAllAndOverride<ApiKeyScope[] | undefined>(
-      SCOPES_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const required = this.reflector.getAllAndOverride<ApiKeyScope[] | undefined>(SCOPES_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
     if (!required || required.length === 0) return true;
 
     const request = context.switchToHttp().getRequest();
@@ -35,7 +30,10 @@ export class ScopesGuard implements CanActivate {
     const scopes: ApiKeyScope[] = Array.isArray(user.scopes)
       ? user.scopes
       : typeof user.scopes === 'string'
-        ? (user.scopes.split(',').map((s: string) => s.trim()).filter(Boolean) as ApiKeyScope[])
+        ? (user.scopes
+            .split(',')
+            .map((s: string) => s.trim())
+            .filter(Boolean) as ApiKeyScope[])
         : [];
 
     // ADMIN scope satisfies any requirement.
@@ -43,9 +41,7 @@ export class ScopesGuard implements CanActivate {
 
     const hasMatch = required.some((s) => scopes.includes(s));
     if (!hasMatch) {
-      throw new ForbiddenException(
-        `Missing required API key scope(s): ${required.join(', ')}`,
-      );
+      throw new ForbiddenException(`Missing required API key scope(s): ${required.join(', ')}`);
     }
     return true;
   }

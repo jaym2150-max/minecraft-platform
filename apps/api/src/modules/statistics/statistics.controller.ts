@@ -12,9 +12,7 @@ import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('statistics')
 export class StatisticsController {
-  constructor(
-    private readonly statisticsService: StatisticsService,
-  ) {}
+  constructor(private readonly statisticsService: StatisticsService) {}
 
   @Public()
   @Get()

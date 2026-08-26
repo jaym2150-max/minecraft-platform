@@ -29,7 +29,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
     const usernames = Array.from(
-      new Set(projects.map((p: any) => p.author?.username).filter((u: unknown): u is string => typeof u === 'string')),
+      new Set(
+        projects
+          .map((p: any) => p.author?.username)
+          .filter((u: unknown): u is string => typeof u === 'string'),
+      ),
     );
     const userRoutes: MetadataRoute.Sitemap = usernames.map((username) => ({
       url: `${siteUrl}/user/${username}`,

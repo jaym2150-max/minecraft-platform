@@ -6,7 +6,11 @@ import type { Collection, CollectionDetail } from '@mcp/types';
 
 export function useCollections(params?: { userId?: string; page?: number; limit?: number }) {
   const [collections, setCollections] = useState<Collection[]>([]);
-  const [meta, setMeta] = useState<{ total: number; page: number; totalPages: number }>({ total: 0, page: 1, totalPages: 0 });
+  const [meta, setMeta] = useState<{ total: number; page: number; totalPages: number }>({
+    total: 0,
+    page: 1,
+    totalPages: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -23,7 +27,7 @@ export function useCollections(params?: { userId?: string; page?: number; limit?
       const res = await sdk.listCollections(params);
       if (controller.signal.aborted) return;
       const data = res.data ?? res;
-      setCollections(Array.isArray(data) ? data : data.data ?? []);
+      setCollections(Array.isArray(data) ? data : (data.data ?? []));
       if (data.meta) setMeta(data.meta);
     } catch (err: any) {
       if (controller.signal.aborted) return;
@@ -35,7 +39,9 @@ export function useCollections(params?: { userId?: string; page?: number; limit?
 
   useEffect(() => {
     fetchData();
-    return () => { abortRef.current?.abort(); };
+    return () => {
+      abortRef.current?.abort();
+    };
   }, [fetchData]);
 
   return { collections, meta, loading, error, refetch: fetchData };
@@ -73,7 +79,9 @@ export function useCollection(id: string) {
 
   useEffect(() => {
     fetchData();
-    return () => { abortRef.current?.abort(); };
+    return () => {
+      abortRef.current?.abort();
+    };
   }, [fetchData]);
 
   return { collection, loading, error, notFound, refetch: fetchData };
@@ -81,7 +89,11 @@ export function useCollection(id: string) {
 
 export function useMyCollections(page = 1, limit = 20) {
   const [collections, setCollections] = useState<Collection[]>([]);
-  const [meta, setMeta] = useState<{ total: number; page: number; totalPages: number }>({ total: 0, page: 1, totalPages: 0 });
+  const [meta, setMeta] = useState<{ total: number; page: number; totalPages: number }>({
+    total: 0,
+    page: 1,
+    totalPages: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -109,7 +121,9 @@ export function useMyCollections(page = 1, limit = 20) {
 
   useEffect(() => {
     fetchData();
-    return () => { abortRef.current?.abort(); };
+    return () => {
+      abortRef.current?.abort();
+    };
   }, [fetchData]);
 
   return { collections, meta, loading, error, refetch: fetchData };

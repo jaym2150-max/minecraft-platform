@@ -3,16 +3,15 @@ export default function DocsHomePage() {
     <article>
       <h1>Minecraft Platform Documentation</h1>
       <p>
-        Welcome to the official documentation for the Minecraft Platform. This guide will help
-        you understand the platform, integrate with our API, and get the most out of your
-        experience.
+        Welcome to the official documentation for the Minecraft Platform. This guide will help you
+        understand the platform, integrate with our API, and get the most out of your experience.
       </p>
 
       <h2>What is Minecraft Platform?</h2>
       <p>
-        Minecraft Platform is a hosting service for Minecraft mods, modpacks, and plugins.
-        Inspired by CurseForge and Modrinth, it provides a fast, secure, and developer-friendly
-        environment for mod authors and players alike.
+        Minecraft Platform is a hosting service for Minecraft mods, modpacks, and plugins. Inspired
+        by CurseForge and Modrinth, it provides a fast, secure, and developer-friendly environment
+        for mod authors and players alike.
       </p>
 
       <h2>Key Features</h2>
@@ -21,7 +20,8 @@ export default function DocsHomePage() {
           <strong>Free hosting</strong> for all your mods and modpacks, with generous bandwidth
         </li>
         <li>
-          <strong>Multi-loader support</strong>: Fabric, Forge, NeoForge, Quilt, Bukkit, Spigot, Paper, and Purpur
+          <strong>Multi-loader support</strong>: Fabric, Forge, NeoForge, Quilt, Bukkit, Spigot,
+          Paper, and Purpur
         </li>
         <li>
           <strong>Automatic malware scanning</strong> using ClamAV
@@ -45,8 +45,8 @@ export default function DocsHomePage() {
 
       <h2>Getting Started</h2>
       <p>
-        New to the platform? Start with our{' '}
-        <a href="/quickstart">Quickstart guide</a> to create your first project in minutes.
+        New to the platform? Start with our <a href="/quickstart">Quickstart guide</a> to create
+        your first project in minutes.
       </p>
 
       <h2>For Developers</h2>

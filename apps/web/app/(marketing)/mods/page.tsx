@@ -1,13 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
-import {
-  Search,
-  X,
-  ArrowUpDown,
-  Loader2,
-  Package as PackageIcon,
-} from 'lucide-react';
+import { Search, X, ArrowUpDown, Loader2, Package as PackageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '@mcp/ui/components/input';
 import { Button } from '@mcp/ui/components/button';
@@ -16,7 +10,13 @@ import { FacetFilter, type FacetOption } from '@/components/facet-filter';
 import { BrowseGrid } from '@/components/browse-grid';
 import { Pagination } from '@/components/pagination';
 import { ProjectTypeTabs } from '@/components/project-type-tabs';
-import { useBrowse, useCategories, useLicenses, useMinecraftVersions, type BrowseFilters } from '@/hooks/use-browse';
+import {
+  useBrowse,
+  useCategories,
+  useLicenses,
+  useMinecraftVersions,
+  type BrowseFilters,
+} from '@/hooks/use-browse';
 import { useDebounce } from '@/hooks/use-debounce';
 import { ProjectType } from '@mcp/types';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -73,8 +73,15 @@ function parseFiltersFromParams(params: URLSearchParams): BrowseFilters {
   const sort = params.get('sort') as BrowseFilters['sort'] | null;
   return {
     search,
-    sort: sort && ['relevance', 'downloads', 'follows', 'updated', 'newest'].includes(sort) ? sort : DEFAULT_FILTERS.sort,
-    projectTypes: type ? [type] : getList('projectTypes').length ? getList('projectTypes') : getList('types'),
+    sort:
+      sort && ['relevance', 'downloads', 'follows', 'updated', 'newest'].includes(sort)
+        ? sort
+        : DEFAULT_FILTERS.sort,
+    projectTypes: type
+      ? [type]
+      : getList('projectTypes').length
+        ? getList('projectTypes')
+        : getList('types'),
     categories: getList('categories'),
     loaders: getList('loaders'),
     environments: getList('environments') as BrowseFilters['environments'],
@@ -113,7 +120,10 @@ function useProjectTypeCounts() {
         types.map(async (t) => {
           try {
             const res: any = await sdk.listProjects({ projectTypes: [t], limit: 1 } as any);
-            const total = res?.meta?.total ?? res?.pagination?.total ?? (Array.isArray(res?.data) ? res.data.length : 0);
+            const total =
+              res?.meta?.total ??
+              res?.pagination?.total ??
+              (Array.isArray(res?.data) ? res.data.length : 0);
             // Fallback: if API returns total in different shape, try to use length as hint
             return [t, total] as const;
           } catch {
@@ -154,11 +164,12 @@ function BrowsePageContent() {
       setFilters(parsed);
       setSearchInput(parsed.search);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    setFilters((prev) => (prev.search === debouncedSearch ? prev : { ...prev, search: debouncedSearch }));
+    setFilters((prev) =>
+      prev.search === debouncedSearch ? prev : { ...prev, search: debouncedSearch },
+    );
   }, [debouncedSearch]);
 
   // Push filters to URL (replaceState, no scroll/jump)
@@ -168,7 +179,6 @@ function BrowsePageContent() {
     if (qs !== current) {
       router.replace(qs ? `/mods?${qs}` : '/mods', { scroll: false });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   const { items, total, hasMore, loading, loadingMore, error, fetchNextPage, refetch } = useBrowse({
@@ -233,24 +243,24 @@ function BrowsePageContent() {
     setSearchInput('');
   };
 
-            const hasResults = items.length > 0 || loading;
-            const pageNumber = filters.page ?? 1;
+  const hasResults = items.length > 0 || loading;
+  const pageNumber = filters.page ?? 1;
 
   return (
     <main className="flex-1">
       {/* Hero */}
-      <section className="border-b bg-gradient-to-b from-primary/5 via-primary/[0.02] to-background">
+      <section className="from-primary/5 via-primary/[0.02] to-background border-b bg-gradient-to-b">
         <div className="container py-10">
           <div className="max-w-2xl">
-            <h1 className="text-4xl font-bold tracking-tight mb-2">Browse Projects</h1>
+            <h1 className="mb-2 text-4xl font-bold tracking-tight">Browse Projects</h1>
             <p className="text-muted-foreground mb-6">
               Discover thousands of mods, modpacks, resource packs, and more.
             </p>
             <div className="relative max-w-lg">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder="Search projects by name, author, or keyword..."
-                className="pl-10 h-12 text-base bg-background"
+                className="bg-background h-12 pl-10 text-base"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 aria-label="Search projects"
@@ -258,7 +268,7 @@ function BrowsePageContent() {
               {searchInput && (
                 <button
                   onClick={() => setSearchInput('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
                   aria-label="Clear search"
                 >
                   <X className="h-4 w-4" />
@@ -270,12 +280,16 @@ function BrowsePageContent() {
       </section>
 
       {/* CurseForge-style horizontal tabs - exclusive single-select with live counts */}
-      <ProjectTypeTabs selected={filters.projectTypes} onSelect={handleTabSelect} counts={typeCounts} />
+      <ProjectTypeTabs
+        selected={filters.projectTypes}
+        onSelect={handleTabSelect}
+        counts={typeCounts}
+      />
 
       <div className="container py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_1fr]">
           {/* Sidebar - Project Type now only via sticky tabs (option 1), no duplicate facet */}
-          <aside className="space-y-3 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto pr-1">
+          <aside className="space-y-3 pr-1 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto">
             <FacetFilter
               title="Categories"
               options={categoryOptions}
@@ -317,12 +331,7 @@ function BrowsePageContent() {
             />
 
             {activeFilterCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="w-full gap-1"
-              >
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full gap-1">
                 <X className="h-3.5 w-3.5" />
                 Clear all filters ({activeFilterCount})
               </Button>
@@ -332,8 +341,8 @@ function BrowsePageContent() {
           {/* Main content */}
           <div className="space-y-6">
             {/* Sort + active filters bar */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
                 {filters.search && (
                   <Badge variant="secondary" className="gap-1 text-xs">
                     Search: {filters.search}
@@ -345,7 +354,14 @@ function BrowsePageContent() {
                 {filters.projectTypes.map((t) => (
                   <Badge key={t} variant="secondary" className="gap-1 text-xs">
                     {PROJECT_TYPE_OPTIONS.find((o) => o.value === t)?.label ?? t}
-                    <button onClick={() => updateFilter('projectTypes', filters.projectTypes.filter((v) => v !== t))}>
+                    <button
+                      onClick={() =>
+                        updateFilter(
+                          'projectTypes',
+                          filters.projectTypes.filter((v) => v !== t),
+                        )
+                      }
+                    >
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>
@@ -353,7 +369,14 @@ function BrowsePageContent() {
                 {filters.categories.map((c) => (
                   <Badge key={c} variant="secondary" className="gap-1 text-xs">
                     {categories.find((x) => x.id === c)?.name ?? c}
-                    <button onClick={() => updateFilter('categories', filters.categories.filter((v) => v !== c))}>
+                    <button
+                      onClick={() =>
+                        updateFilter(
+                          'categories',
+                          filters.categories.filter((v) => v !== c),
+                        )
+                      }
+                    >
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>
@@ -361,7 +384,14 @@ function BrowsePageContent() {
                 {filters.loaders.map((l) => (
                   <Badge key={l} variant="secondary" className="gap-1 text-xs">
                     {LOADER_OPTIONS.find((o) => o.value === l)?.label ?? l}
-                    <button onClick={() => updateFilter('loaders', filters.loaders.filter((v) => v !== l))}>
+                    <button
+                      onClick={() =>
+                        updateFilter(
+                          'loaders',
+                          filters.loaders.filter((v) => v !== l),
+                        )
+                      }
+                    >
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>
@@ -369,7 +399,14 @@ function BrowsePageContent() {
                 {filters.gameVersions.map((gv) => (
                   <Badge key={gv} variant="secondary" className="gap-1 text-xs">
                     MC {gv}
-                    <button onClick={() => updateFilter('gameVersions', filters.gameVersions.filter((v) => v !== gv))}>
+                    <button
+                      onClick={() =>
+                        updateFilter(
+                          'gameVersions',
+                          filters.gameVersions.filter((v) => v !== gv),
+                        )
+                      }
+                    >
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>
@@ -378,11 +415,11 @@ function BrowsePageContent() {
 
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                  <ArrowUpDown className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2" />
                   <select
                     value={filters.sort}
                     onChange={(e) => updateFilter('sort', e.target.value as BrowseFilters['sort'])}
-                    className="h-9 rounded-lg border border-input bg-background pl-9 pr-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring appearance-none"
+                    className="border-input bg-background focus-visible:ring-ring h-9 appearance-none rounded-lg border pl-9 pr-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1"
                     aria-label="Sort"
                   >
                     {SORT_OPTIONS.map((opt) => (
@@ -409,7 +446,7 @@ function BrowsePageContent() {
                 emptyHint="Try adjusting your filters or search term."
               />
             ) : loadingMore ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="text-muted-foreground flex items-center gap-2 text-sm">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Loading more...
               </div>
@@ -428,12 +465,14 @@ function BrowsePageContent() {
             )}
 
             {!hasResults && !loading && !error && (
-              <div className="text-center py-16">
-                <div className="h-20 w-20 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-6">
-                  <PackageIcon className="h-10 w-10 text-muted-foreground" />
+              <div className="py-16 text-center">
+                <div className="bg-muted mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl">
+                  <PackageIcon className="text-muted-foreground h-10 w-10" />
                 </div>
-                <h2 className="text-2xl font-bold mb-2">No Projects Found</h2>
-                <p className="text-muted-foreground mb-6">Try adjusting your filters or search term.</p>
+                <h2 className="mb-2 text-2xl font-bold">No Projects Found</h2>
+                <p className="text-muted-foreground mb-6">
+                  Try adjusting your filters or search term.
+                </p>
                 <Button onClick={clearFilters} variant="outline">
                   Clear All Filters
                 </Button>
@@ -448,7 +487,13 @@ function BrowsePageContent() {
 
 export default function BrowsePage() {
   return (
-    <Suspense fallback={<div className="container py-8"><div className="h-64 animate-pulse bg-muted rounded-xl" /></div>}>
+    <Suspense
+      fallback={
+        <div className="container py-8">
+          <div className="bg-muted h-64 animate-pulse rounded-xl" />
+        </div>
+      }
+    >
       <BrowsePageContent />
     </Suspense>
   );
@@ -463,10 +508,11 @@ export default function BrowsePage() {
  * release — but only used for display ordering, not correctness.
  */
 function compareMcVersion(a: string, b: string): number {
-  const parse = (v: string) => v
-    .replace(/[^\d.]/g, '')
-    .split('.')
-    .map((n) => parseInt(n, 10) || 0);
+  const parse = (v: string) =>
+    v
+      .replace(/[^\d.]/g, '')
+      .split('.')
+      .map((n) => parseInt(n, 10) || 0);
   const pa = parse(a);
   const pb = parse(b);
   const len = Math.max(pa.length, pb.length);

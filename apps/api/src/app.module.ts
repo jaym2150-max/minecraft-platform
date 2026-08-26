@@ -3,7 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerBehindProxyGuard } from './common/guards/throttler-behind-proxy.guard';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
-import { BullModule } from '@nestjs/bullmq';import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER, Reflector } from '@nestjs/core';
+import { BullModule } from '@nestjs/bullmq';
+import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER, Reflector } from '@nestjs/core';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -44,12 +45,17 @@ import storageConfig from './config/storage.config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, load: [appConfig, databaseConfig, redisConfig, storageConfig] }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [appConfig, databaseConfig, redisConfig, storageConfig],
+    }),
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        throttlers: [{ ttl: config.get('RATE_LIMIT_TTL', 60), limit: config.get('RATE_LIMIT_MAX', 100) }],
+        throttlers: [
+          { ttl: config.get('RATE_LIMIT_TTL', 60), limit: config.get('RATE_LIMIT_MAX', 100) },
+        ],
       }),
     }),
     BullModule.forRootAsync({
@@ -87,17 +93,41 @@ import storageConfig from './config/storage.config';
       { name: 'virus-scan' },
       { name: 'uploads' },
     ),
-    PrismaModule, AuthModule, UsersModule, ApiKeysModule, ProjectsModule, VersionsModule, UploadsModule, FilesModule,
-    CommentsModule, ReviewsModule, ModerationModule, AnalyticsModule,     SearchModule, AdminModule, HealthModule, CollectionsModule, GalleryModule,
-    NotificationsModule, DependenciesModule, TeamsModule, CategoriesModule,
-    LoadersModule, MinecraftVersionsModule, BillingModule,
-    LicensesModule, StatisticsModule, ThreadsModule, ModpacksModule,
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+    ApiKeysModule,
+    ProjectsModule,
+    VersionsModule,
+    UploadsModule,
+    FilesModule,
+    CommentsModule,
+    ReviewsModule,
+    ModerationModule,
+    AnalyticsModule,
+    SearchModule,
+    AdminModule,
+    HealthModule,
+    CollectionsModule,
+    GalleryModule,
+    NotificationsModule,
+    DependenciesModule,
+    TeamsModule,
+    CategoriesModule,
+    LoadersModule,
+    MinecraftVersionsModule,
+    BillingModule,
+    LicensesModule,
+    StatisticsModule,
+    ThreadsModule,
+    ModpacksModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerBehindProxyGuard },
     {
       provide: APP_GUARD,
-      useFactory: (reflector: Reflector, apiKeysService: ApiKeysService) => new JwtAuthGuard(reflector, apiKeysService),
+      useFactory: (reflector: Reflector, apiKeysService: ApiKeysService) =>
+        new JwtAuthGuard(reflector, apiKeysService),
       inject: [Reflector, ApiKeysService],
     },
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },

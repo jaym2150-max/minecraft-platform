@@ -28,7 +28,10 @@ export class OAuthConsentCodeService {
     private configService: ConfigService,
   ) {}
 
-  async issueCode(userId: string, callbackUrl?: string): Promise<{ code: string; expiresAt: Date }> {
+  async issueCode(
+    userId: string,
+    callbackUrl?: string,
+  ): Promise<{ code: string; expiresAt: Date }> {
     const raw = randomBytes(32).toString('hex');
     const codeHash = createHash('sha256').update(raw).digest('hex');
     const ttl = this.resolveTtl();
@@ -91,7 +94,10 @@ export class OAuthConsentCodeService {
   }
 
   private resolveTtl(): number {
-    const raw = parseInt(process.env.OAUTH_CONSENT_CODE_TTL_SECONDS ?? `${DEFAULT_TTL_SECONDS}`, 10);
+    const raw = parseInt(
+      process.env.OAUTH_CONSENT_CODE_TTL_SECONDS ?? `${DEFAULT_TTL_SECONDS}`,
+      10,
+    );
     if (Number.isNaN(raw)) return DEFAULT_TTL_SECONDS;
     return Math.min(MAX_TTL_SECONDS, Math.max(MIN_TTL_SECONDS, raw));
   }

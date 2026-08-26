@@ -159,28 +159,35 @@ export class GalleryService {
     // retries), which on a 10MB PNG scales badly and risks OOM under load.
     // The worker streams GetObject out of the private bucket, processes it,
     // and writes the public thumbnails into the public bucket.
-    this.imageProcessQueue.add('process-image', {
-      sourceKey: objectKey,
-      sourceBucket: this.bucket,
-      filename: `gallery/${itemId}${ext}`,
-      mimeType: detectedMime,
-      // Guard against a duplicate re-enqueue producing N redundant variant
-      // sets for the same gallery item: dedup by the gallery item id.
-    }, {
-      jobId: `gallery-image:${itemId}`,
-      attempts: 3,
-      backoff: { type: 'exponential', delay: 2000 },
-      removeOnComplete: 100,
-      removeOnFail: 200,
-    }).catch((err) =>
-      this.logger.warn(`Failed to enqueue image-process: ${err.message}`),
-    );
+    this.imageProcessQueue
+      .add(
+        'process-image',
+        {
+          sourceKey: objectKey,
+          sourceBucket: this.bucket,
+          filename: `gallery/${itemId}${ext}`,
+          mimeType: detectedMime,
+          // Guard against a duplicate re-enqueue producing N redundant variant
+          // sets for the same gallery item: dedup by the gallery item id.
+        },
+        {
+          jobId: `gallery-image:${itemId}`,
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 2000 },
+          removeOnComplete: 100,
+          removeOnFail: 200,
+        },
+      )
+      .catch((err) => this.logger.warn(`Failed to enqueue image-process: ${err.message}`));
 
     return item;
   }
 
   async update(id: string, userId: string, dto: UpdateGalleryItemDto) {
-    const item = await this.prisma.galleryImage.findUnique({ where: { id }, include: { project: { select: { authorId: true } } } });
+    const item = await this.prisma.galleryImage.findUnique({
+      where: { id },
+      include: { project: { select: { authorId: true } } },
+    });
     if (!item) throw new NotFoundException('Gallery item not found');
     if (item.project.authorId !== userId) throw new ForbiddenException('Not your project');
 
@@ -191,7 +198,10 @@ export class GalleryService {
   }
 
   async remove(id: string, userId: string) {
-    const item = await this.prisma.galleryImage.findUnique({ where: { id }, include: { project: { select: { authorId: true } } } });
+    const item = await this.prisma.galleryImage.findUnique({
+      where: { id },
+      include: { project: { select: { authorId: true } } },
+    });
     if (!item) throw new NotFoundException('Gallery item not found');
     if (item.project.authorId !== userId) throw new ForbiddenException('Not your project');
 
@@ -201,7 +211,9 @@ export class GalleryService {
         await this.s3.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
       }
     } catch (err) {
-      this.logger.warn(`Failed to delete S3 object for gallery item ${id}: ${(err as Error).message}`);
+      this.logger.warn(
+        `Failed to delete S3 object for gallery item ${id}: ${(err as Error).message}`,
+      );
     }
 
     await this.prisma.galleryImage.delete({ where: { id } });
@@ -241,9 +253,7 @@ export class GalleryService {
   private detectMimeFromBytes(buf: Buffer | undefined): string | null {
     if (!buf || buf.length < 12) return null;
     for (const [mime, signatures] of Object.entries(IMAGE_SIGNATURES)) {
-      const match = signatures.some((bytes) =>
-        bytes.every((b, i) => buf[i] === b),
-      );
+      const match = signatures.some((bytes) => bytes.every((b, i) => buf[i] === b));
       // For WEBP the RIFF four-bytes are not enough — the WEBP form type
       // ("WEBP") lives at bytes 8..11. Confirm it so a generic RIFF/WAVE
       // file can't masquerade as WEBP.

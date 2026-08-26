@@ -1,11 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import {
-  setupTestApp,
-  teardownTestApp,
-  cleanDatabase,
-  seedTestData,
-} from './test-helpers';
+import { setupTestApp, teardownTestApp, cleanDatabase, seedTestData } from './test-helpers';
 
 describe('Version Files (hash lookup) E2E', () => {
   let app: INestApplication;
@@ -38,7 +33,9 @@ describe('Version Files (hash lookup) E2E', () => {
   describe('GET /version_file/:hash/update', () => {
     it.skip('should return the latest matching version (requires controller)', async () => {
       const res = await request(app.getHttpServer())
-        .get('/api/v1/version_file/da39a3ee5e6b4b0d3255bfef95601890afd80709/update?loaders=fabric&game_versions=1.21.1')
+        .get(
+          '/api/v1/version_file/da39a3ee5e6b4b0d3255bfef95601890afd80709/update?loaders=fabric&game_versions=1.21.1',
+        )
         .expect(200);
       expect(res.body.data).toHaveProperty('fileUrl');
     });

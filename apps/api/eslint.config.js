@@ -16,7 +16,7 @@ module.exports = [
       'no-unused-vars': 'off',
       'no-console': ['warn', { allow: ['warn', 'error', 'log'] }],
       'prefer-const': 'error',
-      'eqeqeq': ['error', 'always'],
+      eqeqeq: ['error', 'always'],
     },
   },
 ];

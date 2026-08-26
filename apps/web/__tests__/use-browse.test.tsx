@@ -2,7 +2,13 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
-import { useBrowse, useCategories, useLicenses, useLicense, type BrowseFilters } from '@/hooks/use-browse';
+import {
+  useBrowse,
+  useCategories,
+  useLicenses,
+  useLicense,
+  type BrowseFilters,
+} from '@/hooks/use-browse';
 import { sdk } from '@/services/api';
 import type { PaginatedResponse, Project } from '@mcp/types';
 import { ProjectStatus } from '@mcp/types';
@@ -44,7 +50,14 @@ function mockProjectsOnce(projects: Project[], meta?: any) {
     message: 'OK',
     timestamp: NOW_ISO,
     data: projects,
-    meta: meta ?? { page: 1, limit: 20, total: projects.length, totalPages: 1, hasMore: false, nextCursor: null },
+    meta: meta ?? {
+      page: 1,
+      limit: 20,
+      total: projects.length,
+      totalPages: 1,
+      hasMore: false,
+      nextCursor: null,
+    },
   } as PaginatedResponse<Project>);
 }
 
@@ -103,9 +116,12 @@ describe('useBrowse', () => {
   it('passes search filter to SDK', async () => {
     mockProjectsOnce([makeProject()]);
 
-    const { result } = renderHook(() => useBrowse({ filters: { ...DEFAULT_FILTERS, search: 'sodium' } }), {
-      wrapper: makeWrapper(),
-    });
+    const { result } = renderHook(
+      () => useBrowse({ filters: { ...DEFAULT_FILTERS, search: 'sodium' } }),
+      {
+        wrapper: makeWrapper(),
+      },
+    );
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(sdk.listProjects).toHaveBeenCalled();
@@ -116,9 +132,12 @@ describe('useBrowse', () => {
   it('passes sort selection to SDK', async () => {
     mockProjectsOnce([makeProject()]);
 
-    const { result } = renderHook(() => useBrowse({ filters: { ...DEFAULT_FILTERS, sort: 'newest' } }), {
-      wrapper: makeWrapper(),
-    });
+    const { result } = renderHook(
+      () => useBrowse({ filters: { ...DEFAULT_FILTERS, sort: 'newest' } }),
+      {
+        wrapper: makeWrapper(),
+      },
+    );
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     const call = vi.mocked(sdk.listProjects).mock.calls[0][0] as any;
@@ -138,7 +157,12 @@ describe('useBrowse', () => {
 
   it('supports fetchNextPage when nextCursor returned', async () => {
     mockProjectsOnce([makeProject({ id: 'p1' })], {
-      page: 1, limit: 20, total: 2, totalPages: 2, hasMore: true, nextCursor: 'cursor_2',
+      page: 1,
+      limit: 20,
+      total: 2,
+      totalPages: 2,
+      hasMore: true,
+      nextCursor: 'cursor_2',
     });
 
     const { result } = renderHook(() => useBrowse({ filters: DEFAULT_FILTERS }), {
@@ -149,7 +173,12 @@ describe('useBrowse', () => {
     expect(result.current.hasMore).toBe(true);
 
     mockProjectsOnce([makeProject({ id: 'p2', slug: 'lithium' })], {
-      page: 2, limit: 20, total: 2, totalPages: 2, hasMore: false, nextCursor: null,
+      page: 2,
+      limit: 20,
+      total: 2,
+      totalPages: 2,
+      hasMore: false,
+      nextCursor: null,
     });
 
     await act(async () => {
@@ -164,14 +193,21 @@ describe('useBrowse', () => {
     // The backend ORs categories server-side, so the hook issues ONE
     // listProjects call (not a per-category fan-out any more) and expects
     // every project matching c1 OR c2 in that single response.
-    mockProjectsOnce(
-      [makeProject({ id: 'a' }), makeProject({ id: 'b', slug: 'b' })],
-      { page: 1, limit: 20, total: 2, totalPages: 1, hasMore: false, nextCursor: null },
-    );
-
-    const { result } = renderHook(() => useBrowse({ filters: { ...DEFAULT_FILTERS, categories: ['c1', 'c2'] } }), {
-      wrapper: makeWrapper(),
+    mockProjectsOnce([makeProject({ id: 'a' }), makeProject({ id: 'b', slug: 'b' })], {
+      page: 1,
+      limit: 20,
+      total: 2,
+      totalPages: 1,
+      hasMore: false,
+      nextCursor: null,
     });
+
+    const { result } = renderHook(
+      () => useBrowse({ filters: { ...DEFAULT_FILTERS, categories: ['c1', 'c2'] } }),
+      {
+        wrapper: makeWrapper(),
+      },
+    );
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.items.map((i) => i.id).sort()).toEqual(['a', 'b']);
@@ -230,7 +266,15 @@ describe('useLicense', () => {
 
   it('fetches when shortId is provided', async () => {
     vi.mocked(sdk.getLicense).mockResolvedValueOnce({
-      data: { id: 'l1', shortId: 'MIT', name: 'MIT License', type: 'PERMISSIVE', featured: true, createdAt: NOW_ISO, updatedAt: NOW_ISO },
+      data: {
+        id: 'l1',
+        shortId: 'MIT',
+        name: 'MIT License',
+        type: 'PERMISSIVE',
+        featured: true,
+        createdAt: NOW_ISO,
+        updatedAt: NOW_ISO,
+      },
       statusCode: 200,
       message: 'OK',
       timestamp: NOW_ISO,

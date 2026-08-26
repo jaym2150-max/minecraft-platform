@@ -96,11 +96,7 @@ export function memoize<T extends (...args: unknown[]) => unknown>(
   }) as T;
 }
 
-export async function retry<T>(
-  fn: () => Promise<T>,
-  maxRetries = 3,
-  delay = 1000,
-): Promise<T> {
+export async function retry<T>(fn: () => Promise<T>, maxRetries = 3, delay = 1000): Promise<T> {
   let lastError: Error | undefined;
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {

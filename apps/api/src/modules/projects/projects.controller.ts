@@ -41,10 +41,7 @@ export class ProjectsController {
   @UseGuards(JwtAuthGuard, ScopesGuard)
   @Scopes(ApiKeyScope.PROJECT_WRITE, ApiKeyScope.WRITE)
   @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Body() dto: CreateProjectDto,
-    @CurrentUser('id') userId: string,
-  ) {
+  async create(@Body() dto: CreateProjectDto, @CurrentUser('id') userId: string) {
     const data = await this.projectsService.create(dto, userId);
     return {
       statusCode: HttpStatus.CREATED,
@@ -268,10 +265,7 @@ export class ProjectsController {
   ) {
     const viewer = userId ? { id: userId, role: userRole ?? 'USER' } : undefined;
     const project = await this.projectsService.findProjectOr404(slug, viewer);
-    const data = await this.projectsService.getRelatedProjects(
-      project.categoryId,
-      project.id,
-    );
+    const data = await this.projectsService.getRelatedProjects(project.categoryId, project.id);
     return {
       statusCode: HttpStatus.OK,
       message: 'Related projects retrieved successfully',

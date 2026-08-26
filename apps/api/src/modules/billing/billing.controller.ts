@@ -17,8 +17,16 @@ export class BillingController {
 
   @Post('checkout')
   @UseGuards(JwtAuthGuard)
-  async createCheckout(@Body() body: { planSlug: string; successUrl: string; cancelUrl: string }, @Req() req: Request) {
-    const data = await this.billing.createCheckoutSession((req as any).user.id, body.planSlug, body.successUrl, body.cancelUrl);
+  async createCheckout(
+    @Body() body: { planSlug: string; successUrl: string; cancelUrl: string },
+    @Req() req: Request,
+  ) {
+    const data = await this.billing.createCheckoutSession(
+      (req as any).user.id,
+      body.planSlug,
+      body.successUrl,
+      body.cancelUrl,
+    );
     return { statusCode: 200, message: 'Checkout session created', data };
   }
 
@@ -52,8 +60,17 @@ export class BillingController {
 
   @Post('donate')
   @UseGuards(JwtAuthGuard)
-  async donate(@Body() body: { recipientId: string; amount: number; message?: string; anonymous?: boolean }, @Req() req: Request) {
-    const data = await this.billing.createDonation((req as any).user.id, body.recipientId, body.amount, body.message, body.anonymous);
+  async donate(
+    @Body() body: { recipientId: string; amount: number; message?: string; anonymous?: boolean },
+    @Req() req: Request,
+  ) {
+    const data = await this.billing.createDonation(
+      (req as any).user.id,
+      body.recipientId,
+      body.amount,
+      body.message,
+      body.anonymous,
+    );
     return { statusCode: 200, message: 'Donation checkout created', data };
   }
 

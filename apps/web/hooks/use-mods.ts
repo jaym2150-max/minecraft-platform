@@ -37,10 +37,22 @@ export const PROJECT_TYPES = [
 ] as const;
 
 export const MINECRAFT_VERSIONS_FALLBACK = [
-  '1.21.4', '1.21.3', '1.21.1', '1.21',
-  '1.20.6', '1.20.4', '1.20.2', '1.20.1', '1.20',
-  '1.19.4', '1.19.3', '1.19.2', '1.19',
-  '1.18.2', '1.18.1', '1.18',
+  '1.21.4',
+  '1.21.3',
+  '1.21.1',
+  '1.21',
+  '1.20.6',
+  '1.20.4',
+  '1.20.2',
+  '1.20.1',
+  '1.20',
+  '1.19.4',
+  '1.19.3',
+  '1.19.2',
+  '1.19',
+  '1.18.2',
+  '1.18.1',
+  '1.18',
 ];
 
 // ── Types ──
@@ -112,14 +124,23 @@ export function useMods(initialPage = 1): UseModsResult {
 
   // Fetch categories on mount
   useEffect(() => {
-    sdk.listCategories()
+    sdk
+      .listCategories()
       .then((res) => {
         const cats = Array.isArray(res.data) ? res.data : [];
         setCategories(cats.map((c: Category) => c.name));
       })
       .catch(() => {
         // Fallback categories if API fails
-        setCategories(['Performance', 'Technology', 'Utility', 'Graphics', 'Magic', 'Adventure', 'Storage']);
+        setCategories([
+          'Performance',
+          'Technology',
+          'Utility',
+          'Graphics',
+          'Magic',
+          'Adventure',
+          'Storage',
+        ]);
       });
   }, []);
 
@@ -158,7 +179,11 @@ export function useMods(initialPage = 1): UseModsResult {
       if (controller.signal.aborted) return;
 
       const projects = Array.isArray(res.data) ? res.data : [];
-      const meta = res.meta ?? { total: projects.length, page: 1, totalPages: Math.ceil(projects.length / 12) };
+      const meta = res.meta ?? {
+        total: projects.length,
+        page: 1,
+        totalPages: Math.ceil(projects.length / 12),
+      };
 
       setMods(
         projects.map((p: Project) => ({

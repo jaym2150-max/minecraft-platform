@@ -4,7 +4,15 @@ export { useMediaQuery } from './use-media-query';
 export { useMods } from './use-mods';
 export type { ModCardData, ModFilters, UseModsResult } from './use-mods';
 export { useProject } from './use-project';
-export type { VersionDisplay, DependencyDisplay, TeamDisplay, RelatedMod, ProjectData, UseProjectResult, GalleryItem } from './use-project';
+export type {
+  VersionDisplay,
+  DependencyDisplay,
+  TeamDisplay,
+  RelatedMod,
+  ProjectData,
+  UseProjectResult,
+  GalleryItem,
+} from './use-project';
 export { useDashboardProjects } from './use-dashboard';
 export type { DashboardStats, DashboardProject } from './use-dashboard';
 export { useUser } from './use-user';

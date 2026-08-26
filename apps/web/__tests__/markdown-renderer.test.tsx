@@ -27,7 +27,9 @@ describe('renderMarkdown', () => {
   });
 
   it('renders images', () => {
-    expect(renderMarkdown('![alt](https://x.test/img.png)')).toMatch(/<img src="https:\/\/x\.test\/img\.png" alt="alt"/);
+    expect(renderMarkdown('![alt](https://x.test/img.png)')).toMatch(
+      /<img src="https:\/\/x\.test\/img\.png" alt="alt"/,
+    );
   });
 
   it('renders unordered lists', () => {

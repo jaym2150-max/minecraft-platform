@@ -96,7 +96,10 @@ export class CommentsService {
       throw new NotFoundException(`Comment with id "${id}" not found`);
     }
 
-    if (comment.authorId !== userId && !['MODERATOR', 'ADMIN', 'OWNER'].includes(userRole?.toUpperCase())) {
+    if (
+      comment.authorId !== userId &&
+      !['MODERATOR', 'ADMIN', 'OWNER'].includes(userRole?.toUpperCase())
+    ) {
       throw new ForbiddenException('You can only edit your own comments');
     }
 
@@ -117,7 +120,10 @@ export class CommentsService {
       throw new NotFoundException(`Comment with id "${id}" not found`);
     }
 
-    if (comment.authorId !== userId && !['MODERATOR', 'ADMIN', 'OWNER'].includes(userRole?.toUpperCase())) {
+    if (
+      comment.authorId !== userId &&
+      !['MODERATOR', 'ADMIN', 'OWNER'].includes(userRole?.toUpperCase())
+    ) {
       throw new ForbiddenException('You can only delete your own comments');
     }
 

@@ -1,4 +1,18 @@
-import { Controller, Get, Post, Delete, Param, Body, Query, UseGuards, HttpCode, HttpStatus, BadRequestException, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+  BadRequestException,
+  UnauthorizedException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { ScopesGuard } from '../../common/guards/scopes.guard';
@@ -52,7 +66,10 @@ export class UsersController {
         timestamp: new Date().toISOString(),
       };
     }
-    const parsed = ids.split(',').map((s) => s.trim()).filter(Boolean);
+    const parsed = ids
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
     // Cap the batch to match the POST /users/batch limit. Without this,
     // a caller could pass ?ids=u1,u2,...,u10000 and force a single Prisma
     // `findMany({ where: { id: { in: [...] } } })` over thousands of ids,
@@ -146,7 +163,11 @@ export class UsersController {
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ) {
-    const { data, meta } = await this.followsService.getFollowing(userId, Number(page), Number(limit));
+    const { data, meta } = await this.followsService.getFollowing(
+      userId,
+      Number(page),
+      Number(limit),
+    );
     return {
       statusCode: HttpStatus.OK,
       message: 'Following list retrieved successfully',
@@ -164,7 +185,11 @@ export class UsersController {
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ) {
-    const { data, meta } = await this.followsService.getFollowers(userId, Number(page), Number(limit));
+    const { data, meta } = await this.followsService.getFollowers(
+      userId,
+      Number(page),
+      Number(limit),
+    );
     return {
       statusCode: HttpStatus.OK,
       message: 'Followers list retrieved successfully',
@@ -182,7 +207,11 @@ export class UsersController {
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ) {
-    const { data, meta } = await this.userFollowsService.getFollowing(userId, Number(page), Number(limit));
+    const { data, meta } = await this.userFollowsService.getFollowing(
+      userId,
+      Number(page),
+      Number(limit),
+    );
     return {
       statusCode: HttpStatus.OK,
       message: 'User following list retrieved successfully',
@@ -200,7 +229,11 @@ export class UsersController {
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ) {
-    const { data, meta } = await this.userFollowsService.getFollowers(userId, Number(page), Number(limit));
+    const { data, meta } = await this.userFollowsService.getFollowers(
+      userId,
+      Number(page),
+      Number(limit),
+    );
     return {
       statusCode: HttpStatus.OK,
       message: 'User followers list retrieved successfully',
@@ -225,7 +258,7 @@ export class UsersController {
       1000, // Reasonable limit for number of users one can follow
     );
 
-    const followedUserIds = followingUsers.map(user => user.id);
+    const followedUserIds = followingUsers.map((user) => user.id);
 
     // If user isn't following anyone, return empty activity feed
     if (followedUserIds.length === 0) {
@@ -264,22 +297,22 @@ export class UsersController {
               username: true,
               displayName: true,
               avatarUrl: true,
-            }
-          }
+            },
+          },
         },
         orderBy: {
-          createdAt: 'desc'
+          createdAt: 'desc',
         },
-        take: 50
+        take: 50,
       }),
 
       // Get versions published by followed users (through their projects)
       this.prisma.projectVersion.findMany({
         where: {
           project: {
-            authorId: { in: followedUserIds }
+            authorId: { in: followedUserIds },
           },
-          status: 'APPROVED' // Only show approved/public versions
+          status: 'APPROVED', // Only show approved/public versions
         },
         select: {
           id: true,
@@ -296,21 +329,21 @@ export class UsersController {
                   username: true,
                   displayName: true,
                   avatarUrl: true,
-                }
-              }
-            }
-          }
+                },
+              },
+            },
+          },
         },
         orderBy: {
-          createdAt: 'desc'
+          createdAt: 'desc',
         },
-        take: 50
+        take: 50,
       }),
 
       // Get reviews written by followed users
       this.prisma.review.findMany({
         where: {
-          userId: { in: followedUserIds }
+          userId: { in: followedUserIds },
         },
         select: {
           id: true,
@@ -324,26 +357,26 @@ export class UsersController {
               username: true,
               displayName: true,
               avatarUrl: true,
-            }
+            },
           },
           project: {
             select: {
               id: true,
               title: true,
               slug: true,
-            }
-          }
+            },
+          },
         },
         orderBy: {
-          createdAt: 'desc'
+          createdAt: 'desc',
         },
-        take: 50
+        take: 50,
       }),
 
       // Get comments made by followed users
       this.prisma.comment.findMany({
         where: {
-          authorId: { in: followedUserIds }
+          authorId: { in: followedUserIds },
         },
         select: {
           id: true,
@@ -355,21 +388,21 @@ export class UsersController {
               username: true,
               displayName: true,
               avatarUrl: true,
-            }
+            },
           },
           project: {
             select: {
               id: true,
               title: true,
               slug: true,
-            }
-          }
+            },
+          },
         },
         orderBy: {
-          createdAt: 'desc'
+          createdAt: 'desc',
         },
-        take: 50
-      })
+        take: 50,
+      }),
     ]);
 
     // Helper function to get display name (fallback to username)
@@ -380,7 +413,7 @@ export class UsersController {
     const activityItems: any[] = [];
 
     // Process projects (creation)
-    projects.forEach(project => {
+    projects.forEach((project) => {
       activityItems.push({
         id: `project_${project.id}`,
         type: 'create',
@@ -397,7 +430,7 @@ export class UsersController {
     });
 
     // Process versions (releases)
-    versions.forEach(version => {
+    versions.forEach((version) => {
       activityItems.push({
         id: `version_${version.id}`,
         type: 'release',
@@ -415,7 +448,7 @@ export class UsersController {
     });
 
     // Process reviews
-    reviews.forEach(review => {
+    reviews.forEach((review) => {
       activityItems.push({
         id: `review_${review.id}`,
         type: 'review',
@@ -433,7 +466,7 @@ export class UsersController {
     });
 
     // Process comments
-    comments.forEach(comment => {
+    comments.forEach((comment) => {
       activityItems.push({
         id: `comment_${comment.id}`,
         type: 'comment',
@@ -444,17 +477,14 @@ export class UsersController {
         projectId: comment.project.id,
         projectTitle: comment.project.title,
         projectSlug: comment.project.slug,
-        description: comment.content.length > 100
-          ? comment.content.substring(0, 97) + '...'
-          : comment.content,
+        description:
+          comment.content.length > 100 ? comment.content.substring(0, 97) + '...' : comment.content,
         createdAt: comment.createdAt,
       });
     });
 
     // Sort all activities by date (most recent first)
-    activityItems.sort((a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    activityItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     // Get total count for pagination
     const total = activityItems.length;
@@ -463,7 +493,7 @@ export class UsersController {
     const paginatedActivities = activityItems.slice(skip, skip + limit);
 
     // Format for frontend
-    const formattedActivities = paginatedActivities.map(activity => ({
+    const formattedActivities = paginatedActivities.map((activity) => ({
       id: activity.id,
       type: activity.type,
       description: `${getDisplayName(activity.username, activity.displayName)} ${activity.description}`,
@@ -484,7 +514,7 @@ export class UsersController {
         },
         ...(activity.type === 'release' && { version: activity.versionNumber }),
         ...(activity.type === 'review' && { rating: activity.rating }),
-      }
+      },
     }));
 
     return {
@@ -504,10 +534,7 @@ export class UsersController {
   @Post('me/follow')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async followUser(
-    @CurrentUser('id') followerId: string,
-    @Body() dto: FollowUserDto,
-  ) {
+  async followUser(@CurrentUser('id') followerId: string, @Body() dto: FollowUserDto) {
     await this.userFollowsService.followUser(followerId, dto.userId);
     return {
       statusCode: HttpStatus.OK,
@@ -520,10 +547,7 @@ export class UsersController {
   @Delete('me/unfollow/:userId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async unfollowUser(
-    @CurrentUser('id') followerId: string,
-    @Param('userId') followedId: string,
-  ) {
+  async unfollowUser(@CurrentUser('id') followerId: string, @Param('userId') followedId: string) {
     await this.userFollowsService.unfollowUser(followerId, followedId);
     return {
       statusCode: HttpStatus.OK,
@@ -551,10 +575,7 @@ export class UsersController {
   @Post('me/delete')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async deleteAccount(
-    @CurrentUser('id') userId: string,
-    @Body() body: { password: string },
-  ) {
+  async deleteAccount(@CurrentUser('id') userId: string, @Body() body: { password: string }) {
     if (!body.password) {
       throw new BadRequestException('Password is required to delete account');
     }
@@ -563,7 +584,9 @@ export class UsersController {
     // rather than relying on a hash carried on req.user (which we no longer
     // surface — see UsersService.formatUser).
     const storedHash = await this.usersService.getPasswordHash(userId);
-    const isValid = storedHash ? await this.usersService.comparePassword(body.password, storedHash) : false;
+    const isValid = storedHash
+      ? await this.usersService.comparePassword(body.password, storedHash)
+      : false;
     if (!isValid) {
       throw new UnauthorizedException('Password is incorrect');
     }
@@ -642,10 +665,7 @@ export class UsersController {
   @Delete('me/sessions/:sessionId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async revokeSession(
-    @CurrentUser('id') userId: string,
-    @Param('sessionId') sessionId: string,
-  ) {
+  async revokeSession(@CurrentUser('id') userId: string, @Param('sessionId') sessionId: string) {
     await this.prisma.session.deleteMany({
       where: { id: sessionId, userId },
     });
@@ -660,7 +680,10 @@ export class UsersController {
   @Post('me/sessions/revoke-all')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async revokeAllOtherSessions(@CurrentUser('id') userId: string, @Body() body: { currentSessionId?: string }) {
+  async revokeAllOtherSessions(
+    @CurrentUser('id') userId: string,
+    @Body() body: { currentSessionId?: string },
+  ) {
     const where: any = { userId };
     if (body.currentSessionId) {
       where.id = { not: body.currentSessionId };

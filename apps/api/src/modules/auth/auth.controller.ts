@@ -1,4 +1,22 @@
-﻿import { Controller, Post, Body, Res, HttpStatus, HttpCode, UseGuards, Request, Get, UsePipes, ValidationPipe, Req, Logger, ConflictException, UnauthorizedException, BadRequestException, Header } from '@nestjs/common';
+﻿import {
+  Controller,
+  Post,
+  Body,
+  Res,
+  HttpStatus,
+  HttpCode,
+  UseGuards,
+  Request,
+  Get,
+  UsePipes,
+  ValidationPipe,
+  Req,
+  Logger,
+  ConflictException,
+  UnauthorizedException,
+  BadRequestException,
+  Header,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { OAuthConsentCodeService } from './oauth-consent-code.service';
 import { LoginDto } from './dto/login.dto';
@@ -34,11 +52,12 @@ export class AuthController {
   @Post('login')
   @Throttle({ default: { ttl: 60000, limit: 5 } })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async login(@Body() loginDto: LoginDto, @Req() req: AuthRequest, @Res({ passthrough: true }) res: Response) {
-    const user = await this.authService.validateUser(
-      loginDto.email,
-      loginDto.password,
-    );
+  async login(
+    @Body() loginDto: LoginDto,
+    @Req() req: AuthRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const user = await this.authService.validateUser(loginDto.email, loginDto.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -183,14 +202,8 @@ export class AuthController {
   @Scopes(ApiKeyScope.USER_WRITE, ApiKeyScope.WRITE)
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ValidationPipe({ transform: true }))
-  async changePassword(
-    @Req() req: AuthRequest,
-    @Body() body: ChangePasswordDto,
-  ) {
-    const isValid = await this.authService.validateUser(
-      req.user.email,
-      body.currentPassword,
-    );
+  async changePassword(@Req() req: AuthRequest, @Body() body: ChangePasswordDto) {
+    const isValid = await this.authService.validateUser(req.user.email, body.currentPassword);
 
     if (!isValid) {
       throw new UnauthorizedException('Current password is incorrect');
@@ -220,8 +233,7 @@ export class AuthController {
     void result;
     return {
       statusCode: HttpStatus.OK,
-      message:
-        'If an account exists with that email, a verification email has been sent.',
+      message: 'If an account exists with that email, a verification email has been sent.',
       timestamp: new Date().toISOString(),
     };
   }
@@ -331,10 +343,7 @@ export class AuthController {
   @Post('oauth/exchange')
   @Throttle({ default: { ttl: 60000, limit: 10 } })
   @HttpCode(HttpStatus.OK)
-  async exchangeOAuthCode(
-    @Body('code') code: string,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async exchangeOAuthCode(@Body('code') code: string, @Res({ passthrough: true }) res: Response) {
     if (!code || typeof code !== 'string') {
       throw new BadRequestException('Missing consent code');
     }
@@ -396,4 +405,3 @@ export class AuthController {
     return req?.ip ?? undefined;
   }
 }
-

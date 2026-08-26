@@ -10,7 +10,7 @@ import { paginateCursor, CursorPage } from '../../common/pagination';
 import * as crypto from 'crypto';
 
 const VALID_HASH_ALGORITHMS = ['sha256', 'sha1', 'sha512'] as const;
-type HashAlgorithm = typeof VALID_HASH_ALGORITHMS[number];
+type HashAlgorithm = (typeof VALID_HASH_ALGORITHMS)[number];
 
 function algorithmToField(algo: HashAlgorithm): 'hash' | 'hashSha1' | 'hashSha512' {
   if (algo === 'sha1') return 'hashSha1';
@@ -126,9 +126,9 @@ export class VersionsService {
 
     // Notify followers about the new version
     if (dto.status === VersionStatus.APPROVED || version.status === VersionStatus.APPROVED) {
-      this.followsService.notifyFollowers(projectId, dto.version).catch((err) =>
-        this.logger.warn(`Failed to notify followers: ${err.message}`),
-      );
+      this.followsService
+        .notifyFollowers(projectId, dto.version)
+        .catch((err) => this.logger.warn(`Failed to notify followers: ${err.message}`));
     }
 
     return this.formatVersion(version);
@@ -193,11 +193,7 @@ export class VersionsService {
    * the most recent matching version. Modrinth parity — launcher integrators
    * call this to confirm a file is up-to-date.
    */
-  async getLatestByHash(
-    hash: string,
-    loaders?: string[],
-    gameVersions?: string[],
-  ): Promise<any> {
+  async getLatestByHash(hash: string, loaders?: string[], gameVersions?: string[]): Promise<any> {
     const baseMatch = await this.prisma.projectVersion.findFirst({
       where: { hash },
       include: {
@@ -313,13 +309,14 @@ export class VersionsService {
       where,
       orderBy: { createdAt: 'desc' },
       prismaDelegate: {
-        findMany: (args) => this.prisma.projectVersion.findMany({
-          ...(args as any),
-          include: {
-            loaders: true,
-            project: { select: { id: true, title: true, slug: true } },
-          },
-        }),
+        findMany: (args) =>
+          this.prisma.projectVersion.findMany({
+            ...(args as any),
+            include: {
+              loaders: true,
+              project: { select: { id: true, title: true, slug: true } },
+            },
+          }),
       },
     }).then((page) => ({
       ...page,
@@ -335,10 +332,7 @@ export class VersionsService {
    * authors/admins (passed via `viewer`) bypass the gate so they can preview
    * their own drafts from the dashboard.
    */
-  async findOne(
-    id: string,
-    viewer: { id?: string; role?: string } | null = null,
-  ): Promise<any> {
+  async findOne(id: string, viewer: { id?: string; role?: string } | null = null): Promise<any> {
     const version = await this.prisma.projectVersion.findUnique({
       where: { id },
       include: {
@@ -427,7 +421,12 @@ export class VersionsService {
     ]);
   }
 
-  async incrementDownloads(id: string, ip?: string, userAgent?: string, userId?: string): Promise<{ fileUrl: string; hash: string; projectId: string }> {
+  async incrementDownloads(
+    id: string,
+    ip?: string,
+    userAgent?: string,
+    userId?: string,
+  ): Promise<{ fileUrl: string; hash: string; projectId: string }> {
     const version = await this.prisma.projectVersion.findUnique({
       where: { id },
       select: {
@@ -507,9 +506,9 @@ export class VersionsService {
         .catch((err) => this.logger.warn(`Earning accrual failed: ${err.message}`));
     }
 
-    this.analyticsQueue.add('download', { projectId: version.projectId, versionId: id, userId }).catch((err) =>
-      this.logger.warn(`Failed to enqueue analytics: ${err.message}`),
-    );
+    this.analyticsQueue
+      .add('download', { projectId: version.projectId, versionId: id, userId })
+      .catch((err) => this.logger.warn(`Failed to enqueue analytics: ${err.message}`));
 
     return { fileUrl: version.fileUrl, hash: version.hash, projectId: version.projectId };
   }
@@ -533,15 +532,18 @@ export class VersionsService {
       scanStatus: version.scanStatus,
       projectId: version.projectId,
       minecraftVersion,
-      createdAt: version.createdAt instanceof Date ? version.createdAt.toISOString() : version.createdAt,
-      updatedAt: version.updatedAt instanceof Date ? version.updatedAt.toISOString() : version.updatedAt,
+      createdAt:
+        version.createdAt instanceof Date ? version.createdAt.toISOString() : version.createdAt,
+      updatedAt:
+        version.updatedAt instanceof Date ? version.updatedAt.toISOString() : version.updatedAt,
       loaders: version.loaders?.map((l: any) => l.type) ?? [],
-      dependencies: version.dependencies?.map((d: any) => ({
-        id: d.required.id,
-        name: d.required.title,
-        slug: d.required.slug,
-        required: d.isRequired ?? !d.isOptional,
-      })) ?? [],
+      dependencies:
+        version.dependencies?.map((d: any) => ({
+          id: d.required.id,
+          name: d.required.title,
+          slug: d.required.slug,
+          required: d.isRequired ?? !d.isOptional,
+        })) ?? [],
       project: version.project,
     };
   }

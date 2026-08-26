@@ -43,14 +43,11 @@ export default function ForgotPasswordPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch(
-        '/api/v1/auth/forgot-password',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        },
-      );
+      const response = await fetch('/api/v1/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
       if (!response.ok && response.status !== 202) {
         const data = await response.json().catch(() => ({}));
@@ -69,20 +66,20 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
+    <div className="from-background via-muted/30 to-background flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <Link href="/" className="flex items-center justify-center gap-2 font-bold text-xl mb-6">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
-              <span className="text-primary-foreground font-bold text-lg">MP</span>
+          <Link href="/" className="mb-6 flex items-center justify-center gap-2 text-xl font-bold">
+            <div className="bg-primary shadow-primary/25 flex h-10 w-10 items-center justify-center rounded-xl shadow-lg">
+              <span className="text-primary-foreground text-lg font-bold">MP</span>
             </div>
             Minecraft Platform
           </Link>
-          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
             {step === 'request' ? (
-              <KeyRound className="h-6 w-6 text-primary" />
+              <KeyRound className="text-primary h-6 w-6" />
             ) : (
-              <CheckCircle2 className="h-6 w-6 text-primary" />
+              <CheckCircle2 className="text-primary h-6 w-6" />
             )}
           </div>
           <CardTitle className="text-2xl">
@@ -99,8 +96,8 @@ export default function ForgotPasswordPage() {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               {error && (
-                <div className="flex items-start gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-                  <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div className="border-destructive/50 bg-destructive/10 text-destructive flex items-start gap-3 rounded-lg border p-3 text-sm">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
@@ -126,12 +123,12 @@ export default function ForgotPasswordPage() {
               <Button className="w-full" size="lg" disabled={isLoading}>
                 {isLoading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Sending reset link...
                   </>
                 ) : (
                   <>
-                    <Mail className="h-4 w-4 mr-2" />
+                    <Mail className="mr-2 h-4 w-4" />
                     Send reset link
                   </>
                 )}
@@ -140,17 +137,17 @@ export default function ForgotPasswordPage() {
           </form>
         ) : (
           <CardContent className="space-y-4">
-            <div className="rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
+            <div className="bg-muted/40 text-muted-foreground rounded-lg border p-4 text-sm">
               <p>
                 We sent a password reset link to{' '}
-                <span className="font-medium text-foreground">{email}</span>. The link expires in
-                1 hour.
+                <span className="text-foreground font-medium">{email}</span>. The link expires in 1
+                hour.
               </p>
               <p className="mt-2">
                 Didn&apos;t get the email? Check your spam folder, or{' '}
                 <button
                   type="button"
-                  className="text-primary hover:underline font-medium"
+                  className="text-primary font-medium hover:underline"
                   onClick={() => setStep('request')}
                 >
                   try again
@@ -164,7 +161,7 @@ export default function ForgotPasswordPage() {
         <CardFooter className="justify-center pb-6">
           <Link
             href="/auth/login"
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to sign in

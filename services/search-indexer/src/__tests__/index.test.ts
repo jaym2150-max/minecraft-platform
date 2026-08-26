@@ -23,7 +23,9 @@ vi.mock('@prisma/client', () => {
 });
 
 vi.mock('meilisearch', () => ({
-  MeiliSearch: function () { return mockMeili; },
+  MeiliSearch: function () {
+    return mockMeili;
+  },
 }));
 
 vi.mock('bullmq', () => {
@@ -248,9 +250,7 @@ describe('processIndex', () => {
       updateProgress: vi.fn(),
     } as any;
 
-    await expect(processIndex(mockJob)).rejects.toThrow(
-      'Unknown job type: invalid',
-    );
+    await expect(processIndex(mockJob)).rejects.toThrow('Unknown job type: invalid');
   });
 
   it('throws when project not found for upsert', async () => {
@@ -261,8 +261,6 @@ describe('processIndex', () => {
       updateProgress: vi.fn(),
     } as any;
 
-    await expect(processIndex(mockJob)).rejects.toThrow(
-      'Project nonexistent not found',
-    );
+    await expect(processIndex(mockJob)).rejects.toThrow('Project nonexistent not found');
   });
 });

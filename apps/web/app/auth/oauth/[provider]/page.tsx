@@ -82,34 +82,34 @@ function OAuthCallbackInner() {
   }, [router, search]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
-      <div className="w-full max-w-md rounded-xl border bg-card p-8 text-center shadow-sm">
+    <div className="bg-muted/30 flex min-h-screen items-center justify-center px-4">
+      <div className="bg-card w-full max-w-md rounded-xl border p-8 text-center shadow-sm">
         {status === 'processing' && (
           <>
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+            <div className="bg-primary/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+              <Loader2 className="text-primary h-8 w-8 animate-spin" />
             </div>
-            <h1 className="text-xl font-semibold mb-2">Completing sign in</h1>
-            <p className="text-sm text-muted-foreground">{message}</p>
+            <h1 className="mb-2 text-xl font-semibold">Completing sign in</h1>
+            <p className="text-muted-foreground text-sm">{message}</p>
           </>
         )}
         {status === 'success' && (
           <>
-            <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10">
               <CheckCircle2 className="h-8 w-8 text-emerald-500" />
             </div>
-            <h1 className="text-xl font-semibold mb-2">Signed in</h1>
-            <p className="text-sm text-muted-foreground">{message}</p>
+            <h1 className="mb-2 text-xl font-semibold">Signed in</h1>
+            <p className="text-muted-foreground text-sm">{message}</p>
           </>
         )}
         {status === 'error' && (
           <>
-            <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="h-8 w-8 text-destructive" />
+            <div className="bg-destructive/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+              <AlertTriangle className="text-destructive h-8 w-8" />
             </div>
-            <h1 className="text-xl font-semibold mb-2">Authentication failed</h1>
-            <p className="text-sm text-muted-foreground mb-6">{message}</p>
-            <div className="flex gap-3 justify-center">
+            <h1 className="mb-2 text-xl font-semibold">Authentication failed</h1>
+            <p className="text-muted-foreground mb-6 text-sm">{message}</p>
+            <div className="flex justify-center gap-3">
               <Button asChild>
                 <Link href="/auth/login">Back to sign in</Link>
               </Button>
@@ -178,11 +178,13 @@ async function verifyCookie(router: ReturnType<typeof useRouter>): Promise<boole
 
 export default function OAuthCallbackPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-primary animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Loader2 className="text-primary h-8 w-8 animate-spin" />
+        </div>
+      }
+    >
       <OAuthCallbackInner />
     </Suspense>
   );

@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
@@ -140,7 +146,9 @@ export class ReviewsService {
     await this.updateProjectRating(review.projectId);
   }
 
-  async getProjectStats(projectId: string): Promise<{ average: number; count: number; distribution: Record<number, number> }> {
+  async getProjectStats(
+    projectId: string,
+  ): Promise<{ average: number; count: number; distribution: Record<number, number> }> {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       select: { ratingAverage: true, ratingCount: true },
@@ -187,8 +195,10 @@ export class ReviewsService {
       body: review.body ?? undefined,
       userId: review.userId,
       projectId: review.projectId,
-      createdAt: review.createdAt instanceof Date ? review.createdAt.toISOString() : review.createdAt,
-      updatedAt: review.updatedAt instanceof Date ? review.updatedAt.toISOString() : review.updatedAt,
+      createdAt:
+        review.createdAt instanceof Date ? review.createdAt.toISOString() : review.createdAt,
+      updatedAt:
+        review.updatedAt instanceof Date ? review.updatedAt.toISOString() : review.updatedAt,
       user: review.user
         ? {
             id: review.user.id,

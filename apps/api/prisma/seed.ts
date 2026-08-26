@@ -1,4 +1,11 @@
-import { PrismaClient, UserRole, ProjectStatus, VersionStatus, ScanStatus, LoaderType } from '@prisma/client';
+import {
+  PrismaClient,
+  UserRole,
+  ProjectStatus,
+  VersionStatus,
+  ScanStatus,
+  LoaderType,
+} from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { USERS, CATEGORIES, MINECRAFT_VERSIONS, PROJECTS, COLLECTIONS } from './seed-data';
 
@@ -18,7 +25,8 @@ function rng(seedStr: string) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-const between = (r: () => number, min: number, max: number) => Math.floor(r() * (max - min + 1)) + min;
+const between = (r: () => number, min: number, max: number) =>
+  Math.floor(r() * (max - min + 1)) + min;
 
 const COMMENTS = [
   'Amazing mod! Really improved my experience.',
@@ -29,14 +37,34 @@ const COMMENTS = [
 ];
 
 const REVIEWS = [
-  { rating: 5, title: 'Excellent!', body: 'Exactly what I was looking for. Works flawlessly on the latest version.' },
-  { rating: 4, title: 'Very good', body: 'Great overall. A bit tricky to configure at first, but worth the effort.' },
-  { rating: 5, title: 'Must have', body: 'Essential for any playthrough. The developer is responsive and updates come quickly.' },
-  { rating: 4, title: 'Solid choice', body: 'Does what it promises. Would love a few more config options in future releases.' },
-  { rating: 3, title: 'Decent', body: 'Works fine but I ran into minor compatibility issues with another mod.' },
+  {
+    rating: 5,
+    title: 'Excellent!',
+    body: 'Exactly what I was looking for. Works flawlessly on the latest version.',
+  },
+  {
+    rating: 4,
+    title: 'Very good',
+    body: 'Great overall. A bit tricky to configure at first, but worth the effort.',
+  },
+  {
+    rating: 5,
+    title: 'Must have',
+    body: 'Essential for any playthrough. The developer is responsive and updates come quickly.',
+  },
+  {
+    rating: 4,
+    title: 'Solid choice',
+    body: 'Does what it promises. Would love a few more config options in future releases.',
+  },
+  {
+    rating: 3,
+    title: 'Decent',
+    body: 'Works fine but I ran into minor compatibility issues with another mod.',
+  },
 ];
 
-function buildBody(p: typeof PROJECTS[number]): string {
+function buildBody(p: (typeof PROJECTS)[number]): string {
   const gv = p.gameVersions.join(', ');
   const faq = [
     ['Is this free?', 'Yes - it is completely free to download and use.'],
@@ -116,7 +144,13 @@ async function main() {
     }
     const lic = licenses.find((l) => l.shortId === p.licenseShortId);
 
-    const initials = p.title.replace(/[^a-zA-Z ]/g, '').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+    const initials = p.title
+      .replace(/[^a-zA-Z ]/g, '')
+      .split(' ')
+      .map((w) => w[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
     const created = await prisma.project.create({
       data: {
         title: p.title,
@@ -163,7 +197,12 @@ async function main() {
       if (vi === 0) primaryVersionId = pv.id;
       for (const lt of p.loaders) {
         await prisma.loader.create({
-          data: { type: lt as LoaderType, versionString: `0.${between(r, 14, 16)}.0`, projectId: created.id, versionId: pv.id },
+          data: {
+            type: lt as LoaderType,
+            versionString: `0.${between(r, 14, 16)}.0`,
+            projectId: created.id,
+            versionId: pv.id,
+          },
         });
       }
     }
@@ -172,25 +211,45 @@ async function main() {
     for (const depSlug of p.requires ?? []) {
       const dep = await prisma.project.findUnique({ where: { slug: depSlug } });
       if (dep && primaryVersionId) {
-        await prisma.dependency.create({
-          data: { dependentId: created.id, requiredId: dep.id, versionId: primaryVersionId, isRequired: true },
-        }).catch(() => {});
+        await prisma.dependency
+          .create({
+            data: {
+              dependentId: created.id,
+              requiredId: dep.id,
+              versionId: primaryVersionId,
+              isRequired: true,
+            },
+          })
+          .catch(() => {});
       }
     }
 
     // Team
     const team = await prisma.team.create({
-      data: { name: `${p.title} Team`, description: `Official team for ${p.title}.`, projectId: created.id },
+      data: {
+        name: `${p.title} Team`,
+        description: `Official team for ${p.title}.`,
+        projectId: created.id,
+      },
     });
     await prisma.teamMember.create({
       data: { role: 'OWNER' as any, userId: author.id, teamId: team.id, projectId: created.id },
     });
     const others = USERS.filter((u) => u.username !== p.authorUsername);
-    const contribUser = await prisma.user.findUnique({ where: { username: others[Math.floor(r() * others.length)].username } });
+    const contribUser = await prisma.user.findUnique({
+      where: { username: others[Math.floor(r() * others.length)].username },
+    });
     if (contribUser) {
-      await prisma.teamMember.create({
-        data: { role: 'CONTRIBUTOR' as any, userId: contribUser.id, teamId: team.id, projectId: created.id },
-      }).catch(() => {});
+      await prisma.teamMember
+        .create({
+          data: {
+            role: 'CONTRIBUTOR' as any,
+            userId: contribUser.id,
+            teamId: team.id,
+            projectId: created.id,
+          },
+        })
+        .catch(() => {});
     }
 
     // Gallery
@@ -201,7 +260,9 @@ async function main() {
           url: `https://placehold.co/800x450/${encodeURIComponent(p.color)}/ffffff?text=${encodeURIComponent(p.title)}+${gi}`,
           thumbnailUrl: `https://placehold.co/400x225/${encodeURIComponent(p.color)}/ffffff?text=${gi}`,
           alt: `${p.title} screenshot ${gi}`,
-          width: 800, height: 450, order: gi,
+          width: 800,
+          height: 450,
+          order: gi,
           projectId: created.id,
         },
       });
@@ -215,7 +276,11 @@ async function main() {
       });
       if (cu) {
         await prisma.comment.create({
-          data: { content: COMMENTS[(p.slug.length + ci) % COMMENTS.length], authorId: cu.id, projectId: created.id },
+          data: {
+            content: COMMENTS[(p.slug.length + ci) % COMMENTS.length],
+            authorId: cu.id,
+            projectId: created.id,
+          },
         });
       }
     }
@@ -231,15 +296,25 @@ async function main() {
       if (!ru) continue;
       const rd = REVIEWS[ri % REVIEWS.length];
       ratingSum += rd.rating;
-      await prisma.review.create({
-        data: { rating: rd.rating, title: rd.title, body: rd.body, userId: ru.id, projectId: created.id },
-      }).catch(() => {});
+      await prisma.review
+        .create({
+          data: {
+            rating: rd.rating,
+            title: rd.title,
+            body: rd.body,
+            userId: ru.id,
+            projectId: created.id,
+          },
+        })
+        .catch(() => {});
     }
     if (ratingSum > 0) {
-      await prisma.project.update({
-        where: { id: created.id },
-        data: { ratingAverage: +(ratingSum / reviewCount).toFixed(2), ratingCount: reviewCount },
-      }).catch(() => {});
+      await prisma.project
+        .update({
+          where: { id: created.id },
+          data: { ratingAverage: +(ratingSum / reviewCount).toFixed(2), ratingCount: reviewCount },
+        })
+        .catch(() => {});
     }
   }
 
@@ -252,8 +327,11 @@ async function main() {
       if (projects.length === 0) continue;
       await prisma.collection.create({
         data: {
-          name: c.name, description: c.description, iconUrl: c.iconUrl,
-          isPublic: true, userId: admin.id,
+          name: c.name,
+          description: c.description,
+          iconUrl: c.iconUrl,
+          isPublic: true,
+          userId: admin.id,
           projects: { create: projects.map((proj, i) => ({ projectId: proj.id, sortOrder: i })) },
         },
       });
@@ -265,8 +343,26 @@ async function main() {
   if (planCount === 0) {
     await prisma.subscriptionPlan.createMany({
       data: [
-        { name: 'Free', slug: 'free', tier: 'FREE' as any, price: 0, interval: 'month', description: 'Basic features', features: [], popular: false },
-        { name: 'Creator', slug: 'creator_monthly', tier: 'CREATOR' as any, price: 499, interval: 'month', description: 'For active creators', features: [], popular: true },
+        {
+          name: 'Free',
+          slug: 'free',
+          tier: 'FREE' as any,
+          price: 0,
+          interval: 'month',
+          description: 'Basic features',
+          features: [],
+          popular: false,
+        },
+        {
+          name: 'Creator',
+          slug: 'creator_monthly',
+          tier: 'CREATOR' as any,
+          price: 499,
+          interval: 'month',
+          description: 'For active creators',
+          features: [],
+          popular: true,
+        },
       ] as any,
     });
   }
@@ -283,5 +379,10 @@ async function main() {
 }
 
 main()
-  .catch((e) => { console.error('❌ Seed failed:', e); process.exit(1); })
-  .finally(async () => { await prisma.$disconnect(); });
+  .catch((e) => {
+    console.error('❌ Seed failed:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

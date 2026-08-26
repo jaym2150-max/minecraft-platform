@@ -1,6 +1,13 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { setupTestApp, teardownTestApp, cleanDatabase, seedTestData, getApp, getAuthToken } from './test-helpers';
+import {
+  setupTestApp,
+  teardownTestApp,
+  cleanDatabase,
+  seedTestData,
+  getApp,
+  getAuthToken,
+} from './test-helpers';
 
 describe('Auth E2E', () => {
   let app: INestApplication;
@@ -32,49 +39,41 @@ describe('Auth E2E', () => {
     });
 
     it('should reject duplicate email', async () => {
-      const res = await request(app.getHttpServer())
-        .post('/api/v1/auth/register')
-        .send({
-          username: 'another',
-          email: 'newuser@example.com',
-          password: 'AnotherP@ss123',
-        });
+      const res = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+        username: 'another',
+        email: 'newuser@example.com',
+        password: 'AnotherP@ss123',
+      });
 
       expect([400, 409]).toContain(res.status);
     });
 
     it('should reject weak password', async () => {
-      const res = await request(app.getHttpServer())
-        .post('/api/v1/auth/register')
-        .send({
-          username: 'weakpw',
-          email: 'weak@example.com',
-          password: 'weak',
-        });
+      const res = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+        username: 'weakpw',
+        email: 'weak@example.com',
+        password: 'weak',
+      });
 
       expect(res.status).toBe(400);
     });
 
     it('should reject invalid email', async () => {
-      const res = await request(app.getHttpServer())
-        .post('/api/v1/auth/register')
-        .send({
-          username: 'bademail',
-          email: 'not-an-email',
-          password: 'ValidP@ss123',
-        });
+      const res = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+        username: 'bademail',
+        email: 'not-an-email',
+        password: 'ValidP@ss123',
+      });
 
       expect(res.status).toBe(400);
     });
 
     it('should reject invalid username', async () => {
-      const res = await request(app.getHttpServer())
-        .post('/api/v1/auth/register')
-        .send({
-          username: 'ab',
-          email: 'short@example.com',
-          password: 'ValidP@ss123',
-        });
+      const res = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+        username: 'ab',
+        email: 'short@example.com',
+        password: 'ValidP@ss123',
+      });
 
       expect(res.status).toBe(400);
     });
@@ -153,10 +152,7 @@ describe('Auth E2E', () => {
     });
 
     it('should reject missing email', async () => {
-      await request(app.getHttpServer())
-        .post('/api/v1/auth/forgot-password')
-        .send({})
-        .expect(400);
+      await request(app.getHttpServer()).post('/api/v1/auth/forgot-password').send({}).expect(400);
     });
   });
 });

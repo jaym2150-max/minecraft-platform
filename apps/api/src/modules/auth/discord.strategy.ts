@@ -28,11 +28,7 @@ export class DiscordStrategy extends PassportStrategy(Strategy, 'discord') {
     this.configured = hasConfig;
   }
 
-  async validate(
-    accessToken: string,
-    refreshToken: string,
-    profile: any,
-  ): Promise<any> {
+  async validate(accessToken: string, refreshToken: string, profile: any): Promise<any> {
     if (!this.configured) {
       throw new UnauthorizedException('Discord OAuth is not configured');
     }

@@ -50,16 +50,16 @@ function StatCard({
   trend?: string;
 }) {
   return (
-    <div className="rounded-xl border bg-card p-4 hover:shadow-sm transition-all hover:-translate-y-0.5">
+    <div className="bg-card rounded-xl border p-4 transition-all hover:-translate-y-0.5 hover:shadow-sm">
       <div className="flex items-start gap-3">
-        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-          <Icon className="h-5 w-5 text-primary" />
+        <div className="bg-primary/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
+          <Icon className="text-primary h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <p className="text-xs text-muted-foreground">{label}</p>
+          <p className="text-muted-foreground text-xs">{label}</p>
           <p className="text-xl font-bold tracking-tight">{value}</p>
           {trend && (
-            <p className="flex items-center gap-0.5 text-xs text-emerald-500 font-medium mt-0.5">
+            <p className="mt-0.5 flex items-center gap-0.5 text-xs font-medium text-emerald-500">
               <TrendingUp className="h-3 w-3" />
               {trend}
             </p>
@@ -80,41 +80,55 @@ function ProjectCard({ mod }: { mod: UserProjectData }) {
   return (
     <Link
       href={`/mod/${mod.slug}`}
-      className="group rounded-xl border bg-card p-5 hover:shadow-lg transition-all hover:-translate-y-0.5 hover:border-primary/20"
+      className="bg-card hover:border-primary/20 group rounded-xl border p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg"
     >
       <div className="flex items-start gap-4">
-        <div className="relative h-14 w-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shrink-0 group-hover:from-primary/30 group-hover:to-primary/10 transition-all shadow-sm ring-1 ring-border overflow-hidden">
+        <div className="from-primary/20 to-primary/5 group-hover:from-primary/30 group-hover:to-primary/10 ring-border relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br shadow-sm ring-1 transition-all">
           {mod.iconUrl ? (
-            <Image src={mod.iconUrl} alt={mod.title} fill sizes="56px" className="h-full w-full object-cover" />
+            <Image
+              src={mod.iconUrl}
+              alt={mod.title}
+              fill
+              sizes="56px"
+              className="h-full w-full object-cover"
+            />
           ) : (
-            <span className="text-xl font-bold text-primary">{mod.title[0]}</span>
+            <span className="text-primary text-xl font-bold">{mod.title[0]}</span>
           )}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex items-center gap-2">
+            <h3 className="group-hover:text-primary truncate font-semibold transition-colors">
               {mod.title}
             </h3>
-            <Badge variant="secondary" className={`text-[10px] h-4 px-1.5 pointer-events-none ${statusColors[mod.status] ?? ''}`}>
+            <Badge
+              variant="secondary"
+              className={`pointer-events-none h-4 px-1.5 text-[10px] ${statusColors[mod.status] ?? ''}`}
+            >
               {mod.status === 'PUBLISHED' ? 'Published' : mod.status}
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{mod.description}</p>
-          <div className="flex flex-wrap items-center gap-2 mt-3">
+          <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+            {mod.description}
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {mod.categoryName && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">
+              <span className="bg-secondary text-secondary-foreground rounded-full px-2 py-0.5 text-xs font-medium">
                 {mod.categoryName}
               </span>
             )}
             {mod.loaders.slice(0, 2).map((loader, i) => (
-              <span key={`${loader}-${i}`} className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">
+              <span
+                key={`${loader}-${i}`}
+                className="bg-secondary text-secondary-foreground rounded-full px-2 py-0.5 text-xs font-medium"
+              >
                 {loader}
               </span>
             ))}
           </div>
         </div>
       </div>
-      <div className="mt-4 pt-3 border-t flex items-center justify-between text-xs text-muted-foreground">
+      <div className="text-muted-foreground mt-4 flex items-center justify-between border-t pt-3 text-xs">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
             <Download className="h-3.5 w-3.5" />
@@ -137,20 +151,20 @@ function ProjectCard({ mod }: { mod: UserProjectData }) {
 function LoadingSkeleton() {
   return (
     <main className="flex-1">
-      <div className="h-48 sm:h-64 bg-muted animate-pulse" />
-      <div className="container py-8 space-y-6 animate-pulse">
-        <div className="flex items-end gap-6 -mt-16">
-          <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-full bg-muted-foreground/20 shrink-0" />
-          <div className="space-y-3 flex-1">
-            <div className="h-8 w-48 bg-muted rounded-lg" />
-            <div className="h-4 w-72 bg-muted rounded" />
+      <div className="bg-muted h-48 animate-pulse sm:h-64" />
+      <div className="container animate-pulse space-y-6 py-8">
+        <div className="-mt-16 flex items-end gap-6">
+          <div className="bg-muted-foreground/20 h-24 w-24 shrink-0 rounded-full sm:h-32 sm:w-32" />
+          <div className="flex-1 space-y-3">
+            <div className="bg-muted h-8 w-48 rounded-lg" />
+            <div className="bg-muted h-4 w-72 rounded" />
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="rounded-xl border bg-card p-4 space-y-2">
-              <div className="h-3 bg-muted rounded w-16" />
-              <div className="h-6 bg-muted rounded w-12" />
+            <div key={i} className="bg-card space-y-2 rounded-xl border p-4">
+              <div className="bg-muted h-3 w-16 rounded" />
+              <div className="bg-muted h-6 w-12 rounded" />
             </div>
           ))}
         </div>
@@ -161,16 +175,16 @@ function LoadingSkeleton() {
 
 function NotFoundState({ username }: { username: string }) {
   return (
-    <main className="flex-1 flex items-center justify-center">
-      <div className="text-center max-w-md mx-auto px-4">
-        <div className="h-20 w-20 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-6">
-          <Users className="h-10 w-10 text-muted-foreground" />
+    <main className="flex flex-1 items-center justify-center">
+      <div className="mx-auto max-w-md px-4 text-center">
+        <div className="bg-muted mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl">
+          <Users className="text-muted-foreground h-10 w-10" />
         </div>
-        <h1 className="text-3xl font-bold mb-2">User Not Found</h1>
+        <h1 className="mb-2 text-3xl font-bold">User Not Found</h1>
         <p className="text-muted-foreground mb-6">
           We could not find a user with the username &quot;<strong>{username}</strong>&quot;.
         </p>
-        <div className="flex gap-3 justify-center">
+        <div className="flex justify-center gap-3">
           <Button asChild>
             <Link href="/mods">Browse Mods</Link>
           </Button>
@@ -185,13 +199,13 @@ function NotFoundState({ username }: { username: string }) {
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <main className="flex-1 flex items-center justify-center">
-      <div className="text-center max-w-md mx-auto px-4">
-        <div className="h-20 w-20 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-6">
-          <AlertCircle className="h-10 w-10 text-destructive" />
+    <main className="flex flex-1 items-center justify-center">
+      <div className="mx-auto max-w-md px-4 text-center">
+        <div className="bg-destructive/10 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl">
+          <AlertCircle className="text-destructive h-10 w-10" />
         </div>
-        <h1 className="text-3xl font-bold mb-2">Something Went Wrong</h1>
-        <p className="text-sm text-muted-foreground/70 mb-6 bg-muted rounded-lg p-3">{message}</p>
+        <h1 className="mb-2 text-3xl font-bold">Something Went Wrong</h1>
+        <p className="text-muted-foreground/70 bg-muted mb-6 rounded-lg p-3 text-sm">{message}</p>
         <Button onClick={onRetry} className="gap-2">
           <RefreshCw className="h-4 w-4" />
           Try Again
@@ -218,11 +232,11 @@ function CollectionsTab({ userId }: { userId: string }) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="rounded-xl border bg-card p-5 space-y-3 animate-pulse">
-            <div className="h-5 w-32 bg-muted rounded" />
-            <div className="h-4 w-full bg-muted rounded" />
+          <div key={i} className="bg-card animate-pulse space-y-3 rounded-xl border p-5">
+            <div className="bg-muted h-5 w-32 rounded" />
+            <div className="bg-muted h-4 w-full rounded" />
           </div>
         ))}
       </div>
@@ -231,36 +245,36 @@ function CollectionsTab({ userId }: { userId: string }) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="text-center py-16">
-        <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-          <Library className="h-8 w-8 text-muted-foreground/60" />
+      <div className="py-16 text-center">
+        <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+          <Library className="text-muted-foreground/60 h-8 w-8" />
         </div>
-        <h3 className="text-lg font-semibold mb-1">No collections yet</h3>
-        <p className="text-sm text-muted-foreground">This user has not created any collections.</p>
+        <h3 className="mb-1 text-lg font-semibold">No collections yet</h3>
+        <p className="text-muted-foreground text-sm">This user has not created any collections.</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {data.map((col) => (
         <Link
           key={col.id}
           href={`/collections/${col.id}`}
-          className="rounded-xl border bg-card p-5 hover:shadow-lg transition-all hover:-translate-y-0.5 hover:border-primary/20"
+          className="bg-card hover:border-primary/20 rounded-xl border p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg"
         >
           <div className="flex items-start gap-4">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shrink-0">
-              <Library className="h-6 w-6 text-primary" />
+            <div className="from-primary/20 to-primary/5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br">
+              <Library className="text-primary h-6 w-6" />
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold truncate">{col.name}</h3>
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate font-semibold">{col.name}</h3>
               {col.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{col.description}</p>
+                <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">{col.description}</p>
               )}
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t flex items-center justify-between text-xs text-muted-foreground">
+          <div className="text-muted-foreground mt-4 flex items-center justify-between border-t pt-3 text-xs">
             <span>{(col as any).projectCount ?? 0} projects</span>
             {!(col as any).isPublic && <Lock className="h-3 w-3" />}
           </div>
@@ -285,9 +299,20 @@ function ActivityIcon({ type }: { type: string }) {
   }
 }
 
-function ActivityTab({ userId, currentUserId }: { userId: string | null; currentUserId: string | null }) {
+function ActivityTab({
+  userId,
+  currentUserId,
+}: {
+  userId: string | null;
+  currentUserId: string | null;
+}) {
   const router = useRouter();
-  const { data: activities, isLoading, error, refetch } = useQuery({
+  const {
+    data: activities,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['followingActivity', currentUserId],
     queryFn: async () => {
       if (!currentUserId) throw new Error('User not logged in');
@@ -317,11 +342,11 @@ function ActivityTab({ userId, currentUserId }: { userId: string | null; current
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="flex gap-3 py-3 border-b">
-            <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0" />
+          <div key={i} className="flex gap-3 border-b py-3">
+            <div className="bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-full" />
             <div className="flex-1 space-y-1">
-              <div className="h-3 bg-gray-300 rounded w-1/2" />
-              <div className="h-3 bg-gray-300 rounded w-3/4" />
+              <div className="h-3 w-1/2 rounded bg-gray-300" />
+              <div className="h-3 w-3/4 rounded bg-gray-300" />
             </div>
           </div>
         ))}
@@ -331,14 +356,11 @@ function ActivityTab({ userId, currentUserId }: { userId: string | null; current
 
   if (error) {
     return (
-      <div className="text-center py-8">
+      <div className="py-8 text-center">
         <p className="text-destructive">Failed to load activity: {(error as Error).message}</p>
         <div className="mt-6 flex justify-center">
-          <button
-            onClick={() => refetch()}
-            className="btn btn-outline"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <button onClick={() => refetch()} className="btn btn-outline">
+            <RefreshCw className="mr-2 h-4 w-4" />
             Retry
           </button>
         </div>
@@ -348,18 +370,19 @@ function ActivityTab({ userId, currentUserId }: { userId: string | null; current
 
   if (!activities || activities.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-          <Activity className="h-8 w-8 text-muted-foreground/60" />
+      <div className="py-12 text-center">
+        <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+          <Activity className="text-muted-foreground/60 h-8 w-8" />
         </div>
-        <h3 className="text-lg font-semibold mb-2">No activity yet</h3>
-        <p className="text-sm text-muted-foreground">
+        <h3 className="mb-2 text-lg font-semibold">No activity yet</h3>
+        <p className="text-muted-foreground text-sm">
           You're not following anyone, or the users you follow haven't had any recent activity.
         </p>
         {currentUserId && userId && currentUserId !== userId && (
           <div className="mt-6">
-            <p className="text-sm text-muted-foreground mb-2">
-              To see activity, follow some users and they'll appear here when they upload mods, leave reviews, etc.
+            <p className="text-muted-foreground mb-2 text-sm">
+              To see activity, follow some users and they'll appear here when they upload mods,
+              leave reviews, etc.
             </p>
             <button
               onClick={() => {
@@ -377,37 +400,32 @@ function ActivityTab({ userId, currentUserId }: { userId: string | null; current
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-start mb-4">
+      <div className="mb-4 flex items-start justify-between">
         <h3 className="text-lg font-semibold">Activity Feed</h3>
-        <button
-          onClick={() => refetch()}
-          className="btn btn-outline px-4"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
+        <button onClick={() => refetch()} className="btn btn-outline px-4">
+          <RefreshCw className="mr-2 h-4 w-4" />
           Refresh
         </button>
       </div>
       {activities.map((activity: any) => (
-        <div key={activity.id} className="flex gap-3 py-3 border-b last:border-0">
+        <div key={activity.id} className="flex gap-3 border-b py-3 last:border-0">
           <div className="flex flex-col items-center">
             <ActivityIcon type={activity.type} />
-            {activity.type !== 'comment' && (
-              <div className="w-px h-4 bg-border hidden md:block" />
-            )}
+            {activity.type !== 'comment' && <div className="bg-border hidden h-4 w-px md:block" />}
           </div>
-          <div className="flex-1 min-w-0 space-y-1">
-            <div className="flex justify-between items-start">
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex items-start justify-between">
               <div className="flex flex-col">
                 <p className="text-sm font-medium">{activity.description}</p>
-                <p className="text-xs text-muted-foreground">{timeAgo(activity.createdAt)}</p>
+                <p className="text-muted-foreground text-xs">{timeAgo(activity.createdAt)}</p>
               </div>
               {activity.metadata && activity.metadata.project && (
-                <div className="text-xs text-muted-foreground">
+                <div className="text-muted-foreground text-xs">
                   <Link href={`/mod/${activity.metadata.project.slug}`}>
                     {activity.metadata.project.title}
                   </Link>
                   {activity.metadata.version && (
-                    <span className="ml-2 text-xs text-muted-foreground">
+                    <span className="text-muted-foreground ml-2 text-xs">
                       v{activity.metadata.version}
                     </span>
                   )}
@@ -507,23 +525,29 @@ export default function UserProfilePage() {
 
   return (
     <main className="flex-1">
-      <div className="h-48 sm:h-64 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+      <div className="from-primary/20 via-primary/10 to-primary/5 relative h-48 overflow-hidden bg-gradient-to-r sm:h-64">
+        <div className="from-primary/10 absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] via-transparent to-transparent" />
       </div>
       <div className="container">
-        <div className="relative -mt-16 sm:-mt-20 mb-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6">
-            <Avatar className="h-24 w-24 sm:h-32 sm:w-32 ring-4 ring-background shadow-xl">
+        <div className="relative -mt-16 mb-8 sm:-mt-20">
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:gap-6">
+            <Avatar className="ring-background h-24 w-24 shadow-xl ring-4 sm:h-32 sm:w-32">
               {user.avatarUrl ? (
-                <Image src={user.avatarUrl} alt={user.username} fill sizes="(min-width:640px) 128px, 96px" className="h-full w-full object-cover" />
+                <Image
+                  src={user.avatarUrl}
+                  alt={user.username}
+                  fill
+                  sizes="(min-width:640px) 128px, 96px"
+                  className="h-full w-full object-cover"
+                />
               ) : null}
-              <AvatarFallback className="text-4xl sm:text-5xl bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold">
+              <AvatarFallback className="from-primary/20 to-primary/10 text-primary bg-gradient-to-br text-4xl font-bold sm:text-5xl">
                 {user.username?.[0]?.toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0 pt-4 sm:pt-0 sm:pb-1">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight truncate">
+            <div className="min-w-0 flex-1 pt-4 sm:pb-1 sm:pt-0">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <h1 className="truncate text-3xl font-bold tracking-tight sm:text-4xl">
                   {user.displayName || user.username}
                 </h1>
                 <div className="flex items-center gap-2">
@@ -541,9 +565,9 @@ export default function UserProfilePage() {
               </div>
               <p className="text-muted-foreground mt-1">@{user.username}</p>
               {user.bio && (
-                <p className="text-sm text-muted-foreground mt-2 max-w-xl">{user.bio}</p>
+                <p className="text-muted-foreground mt-2 max-w-xl text-sm">{user.bio}</p>
               )}
-              <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-muted-foreground">
+              <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-4 text-sm">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="h-3.5 w-3.5" />
                   Joined{' '}
@@ -554,12 +578,19 @@ export default function UserProfilePage() {
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-2 sm:pb-1 w-full sm:w-auto">
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => {
-                if (typeof navigator !== 'undefined' && navigator.clipboard) {
-                  navigator.clipboard.writeText(window.location.href).then(() => toast.success('Profile link copied'));
-                }
-              }}>
+            <div className="flex w-full items-center gap-2 sm:w-auto sm:pb-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => {
+                  if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                    navigator.clipboard
+                      .writeText(window.location.href)
+                      .then(() => toast.success('Profile link copied'));
+                  }
+                }}
+              >
                 <Share2 className="h-4 w-4" />
                 Share
               </Button>
@@ -569,44 +600,38 @@ export default function UserProfilePage() {
             </div>
           </div>
         </div>
-            <div className="mt-4 sm:mt-0 sm:ml-4 flex items-center gap-3">
-              {!isFollowingLoading && !isFollowing && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleFollow}
-                  className="gap-2"
-                >
-                  <Users className="h-4 w-4" />
-                  Follow
-                </Button>
-              )}
-              {!isFollowingLoading && isFollowing && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleUnfollow}
-                  className="gap-2"
-                >
-                  <Users className="h-4 w-4" />
-                  Unfollow
-                </Button>
-              )}
-              {isFollowingLoading && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 pointer-events-opacity-50"
-                  disabled
-                >
-                  <Users className="h-4 w-4" />
-                  {isFollowing ? 'Unfollowing...' : 'Following...'}
-                </Button>
-              )}
-            </div>
+        <div className="mt-4 flex items-center gap-3 sm:ml-4 sm:mt-0">
+          {!isFollowingLoading && !isFollowing && (
+            <Button variant="outline" size="sm" onClick={handleFollow} className="gap-2">
+              <Users className="h-4 w-4" />
+              Follow
+            </Button>
+          )}
+          {!isFollowingLoading && isFollowing && (
+            <Button variant="destructive" size="sm" onClick={handleUnfollow} className="gap-2">
+              <Users className="h-4 w-4" />
+              Unfollow
+            </Button>
+          )}
+          {isFollowingLoading && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="pointer-events-opacity-50 gap-2"
+              disabled
+            >
+              <Users className="h-4 w-4" />
+              {isFollowing ? 'Unfollowing...' : 'Following...'}
+            </Button>
+          )}
+        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-          <StatCard icon={Download} label="Total Downloads" value={formatNumber(user.totalDownloads)} />
+        <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard
+            icon={Download}
+            label="Total Downloads"
+            value={formatNumber(user.totalDownloads)}
+          />
           <StatCard
             icon={Package}
             label="Projects"
@@ -616,28 +641,30 @@ export default function UserProfilePage() {
           <StatCard icon={Users} label="Followers" value={formatNumber(followers)} />
           <StatCard icon={Activity} label="Following" value={formatNumber(following)} />
         </div>
-            
-        <div className="border-b mb-8">
-          <nav className="flex items-center gap-6 -mb-px" aria-label="Profile sections">
+
+        <div className="mb-8 border-b">
+          <nav className="-mb-px flex items-center gap-6" aria-label="Profile sections">
             <button
               onClick={() => setActiveTab('projects')}
-              className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-2 border-b-2 pb-3 text-sm font-medium transition-colors ${
                 activeTab === 'projects'
                   ? 'border-primary text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                  : 'text-muted-foreground hover:text-foreground border-transparent'
               }`}
               aria-current={activeTab === 'projects' ? 'page' : undefined}
             >
               <Grid3X3 className="h-4 w-4" />
               Projects
-              <Badge variant="secondary" className="text-[10px] h-4 px-1.5 ml-1">{projects.length}</Badge>
+              <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
+                {projects.length}
+              </Badge>
             </button>
             <button
               onClick={() => setActiveTab('collections')}
-              className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-2 border-b-2 pb-3 text-sm font-medium transition-colors ${
                 activeTab === 'collections'
                   ? 'border-primary text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                  : 'text-muted-foreground hover:text-foreground border-transparent'
               }`}
               aria-current={activeTab === 'collections' ? 'page' : undefined}
             >
@@ -646,10 +673,10 @@ export default function UserProfilePage() {
             </button>
             <button
               onClick={() => setActiveTab('activity')}
-              className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-2 border-b-2 pb-3 text-sm font-medium transition-colors ${
                 activeTab === 'activity'
                   ? 'border-primary text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                  : 'text-muted-foreground hover:text-foreground border-transparent'
               }`}
               aria-current={activeTab === 'activity' ? 'page' : undefined}
             >
@@ -658,21 +685,21 @@ export default function UserProfilePage() {
             </button>
           </nav>
         </div>
-            <div className="mt-4 sm:mt-0 sm:ml-4 hidden">
-              {/* Follow/Unfollow buttons placeholder - moved to header */}
-            </div>
+        <div className="mt-4 hidden sm:ml-4 sm:mt-0">
+          {/* Follow/Unfollow buttons placeholder - moved to header */}
+        </div>
 
         {activeTab === 'projects' && (
           <div className="mb-12">
-            <div className="flex items-center justify-between mb-6">
-              <p className="text-sm text-muted-foreground">
+            <div className="mb-6 flex items-center justify-between">
+              <p className="text-muted-foreground text-sm">
                 Showing <strong className="text-foreground">{projects.length}</strong> projects
               </p>
               <div className="flex items-center gap-2">
-                <div className="flex items-center rounded-lg border bg-card p-0.5">
+                <div className="bg-card flex items-center rounded-lg border p-0.5">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-1.5 rounded-md transition-colors ${
+                    className={`rounded-md p-1.5 transition-colors ${
                       viewMode === 'grid'
                         ? 'bg-primary text-primary-foreground'
                         : 'text-muted-foreground hover:text-foreground'
@@ -683,7 +710,7 @@ export default function UserProfilePage() {
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-1.5 rounded-md transition-colors ${
+                    className={`rounded-md p-1.5 transition-colors ${
                       viewMode === 'list'
                         ? 'bg-primary text-primary-foreground'
                         : 'text-muted-foreground hover:text-foreground'
@@ -694,12 +721,12 @@ export default function UserProfilePage() {
                   </button>
                 </div>
               </div>
-                        </div>
+            </div>
             {projects.length > 0 ? (
               <div
                 className={
                   viewMode === 'grid'
-                    ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
+                    ? 'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'
                     : 'space-y-3'
                 }
               >
@@ -708,12 +735,12 @@ export default function UserProfilePage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16">
-                <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-                  <Package className="h-8 w-8 text-muted-foreground/60" />
+              <div className="py-16 text-center">
+                <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+                  <Package className="text-muted-foreground/60 h-8 w-8" />
                 </div>
-                            <h3 className="text-lg font-semibold mb-1">No projects yet</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+                <h3 className="mb-1 text-lg font-semibold">No projects yet</h3>
+                <p className="text-muted-foreground mb-4 text-sm">
                   This user has not published any projects yet.
                 </p>
                 <Button asChild>
@@ -736,6 +763,6 @@ export default function UserProfilePage() {
           </div>
         )}
       </div>
-                </main>
+    </main>
   );
 }

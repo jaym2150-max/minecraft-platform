@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  HttpCode,
-  HttpStatus,
-  Res,
-  Header,
-} from '@nestjs/common';
+import { Controller, Get, Param, HttpCode, HttpStatus, Res, Header } from '@nestjs/common';
 import { Response } from 'express';
 import { ModpacksService } from './modpacks.service';
 import { Public } from '../../common/decorators/public.decorator';
@@ -44,10 +36,7 @@ export class ModpacksController {
 
   @Get(':slug/versions/:versionId/modpack/manifest')
   @HttpCode(HttpStatus.OK)
-  async getManifestForVersion(
-    @Param('slug') slug: string,
-    @Param('versionId') versionId: string,
-  ) {
+  async getManifestForVersion(@Param('slug') slug: string, @Param('versionId') versionId: string) {
     const data = await this.modpacksService.buildManifest(slug, versionId);
     return {
       statusCode: HttpStatus.OK,
@@ -110,10 +99,7 @@ export class ModpacksController {
    * (launchers fetch each file from its CDN source at import time).
    */
   @Get(':slug/modpack/download')
-  async downloadMrpack(
-    @Param('slug') slug: string,
-    @Res() res: Response,
-  ) {
+  async downloadMrpack(@Param('slug') slug: string, @Res() res: Response) {
     await this.modpacksService.streamMrpack(slug, undefined, res);
   }
 

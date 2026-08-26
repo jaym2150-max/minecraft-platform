@@ -25,9 +25,7 @@ describe('Projects E2E', () => {
 
   describe('GET /projects', () => {
     it('should list all published projects', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/projects')
-        .expect(200);
+      const res = await request(app.getHttpServer()).get('/api/v1/projects').expect(200);
 
       expect(res.body).toHaveProperty('data');
       expect(Array.isArray(res.body.data)).toBe(true);
@@ -72,9 +70,7 @@ describe('Projects E2E', () => {
     });
 
     it('should return 404 for non-existent project', async () => {
-      await request(app.getHttpServer())
-        .get('/api/v1/projects/does-not-exist')
-        .expect(404);
+      await request(app.getHttpServer()).get('/api/v1/projects/does-not-exist').expect(404);
     });
   });
 

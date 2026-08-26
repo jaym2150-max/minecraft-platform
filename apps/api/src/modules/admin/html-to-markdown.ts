@@ -13,8 +13,10 @@ export function htmlToMarkdown(html: string): string {
   s = s.replace(/<summary[^>]*>([\s\S]*?)<\/summary>/gi, '**$1**\n');
 
   // Headings (# count matches original level)
-  s = s.replace(/<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/gi,
-    (_m, lvl: string, txt: string) => `\n${'#'.repeat(Number(lvl))} ${txt.trim()}\n\n`);
+  s = s.replace(
+    /<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/gi,
+    (_m, lvl: string, txt: string) => `\n${'#'.repeat(Number(lvl))} ${txt.trim()}\n\n`,
+  );
 
   // Inline styles
   s = s.replace(/<(strong|b)[^>]*>([\s\S]*?)<\/\1>/gi, '**$2**');
@@ -38,11 +40,24 @@ export function htmlToMarkdown(html: string): string {
   // Strip any remaining tags, then decode entities
   s = s.replace(/<[^>]+>/g, '');
   const entities: Record<string, string> = {
-    '&nbsp;': ' ', '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"',
-    '&#39;': "'", '&apos;': "'", '&hellip;': '…', '&mdash;': '—',
-    '&ndash;': '–', '&laquo;': '«', '&raquo;': '»', '&copy;': '©',
+    '&nbsp;': ' ',
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&apos;': "'",
+    '&hellip;': '…',
+    '&mdash;': '—',
+    '&ndash;': '–',
+    '&laquo;': '«',
+    '&raquo;': '»',
+    '&copy;': '©',
   };
-  s = s.replace(/&nbsp;|&amp;|&lt;|&gt;|&quot;|&#39;|&apos;|&hellip;|&mdash;|&ndash;|&laquo;|&raquo;|&copy;/g, (m) => entities[m] ?? m);
+  s = s.replace(
+    /&nbsp;|&amp;|&lt;|&gt;|&quot;|&#39;|&apos;|&hellip;|&mdash;|&ndash;|&laquo;|&raquo;|&copy;/g,
+    (m) => entities[m] ?? m,
+  );
 
   // Tidy whitespace
   s = s.replace(/[ \t]+\n/g, '\n');

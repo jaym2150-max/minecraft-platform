@@ -312,9 +312,7 @@ export class ApiClient {
     // `seedCsrfToken` is the recommended boot path to avoid that hiccup.
     const isMutating = method !== 'GET' && method !== 'HEAD';
     const csrfToken = isMutating ? readCsrfToken() : null;
-    const csrfHeaders: Record<string, string> = csrfToken
-      ? { 'x-csrf-token': csrfToken }
-      : {};
+    const csrfHeaders: Record<string, string> = csrfToken ? { 'x-csrf-token': csrfToken } : {};
 
     // SECURITY: normalize the outbound URL so an SDK caller cannot smuggle
     // a protocol-relative `//evil.com` or absolute `https://attacker.com/`
@@ -354,16 +352,19 @@ export class ApiClient {
         })()
       : { ...this.headers, ...csrfHeaders, ...options?.headers };
 
-    const resolvedBody: BodyInit | null | undefined =
-      isFormDataBody
-        ? ((callerSuppliedBodyType instanceof FormData ? callerSuppliedBodyType : (body as unknown as BodyInit)) as BodyInit)
-        : undefined;
+    const resolvedBody: BodyInit | null | undefined = isFormDataBody
+      ? ((callerSuppliedBodyType instanceof FormData
+          ? callerSuppliedBodyType
+          : (body as unknown as BodyInit)) as BodyInit)
+      : undefined;
 
     const doFetch = (attemptBody: BodyInit | null | undefined) =>
       fetch(safeUrl, {
         method,
         headers: effectiveHeaders,
-        body: isFormDataBody ? (resolvedBody as BodyInit) : (attemptBody ?? (body ? JSON.stringify(body) : undefined)),
+        body: isFormDataBody
+          ? (resolvedBody as BodyInit)
+          : (attemptBody ?? (body ? JSON.stringify(body) : undefined)),
         credentials: 'include',
         ...options,
         // Ensure FormData body is not overwritten by options spread body duplication
@@ -393,7 +394,7 @@ export class ApiClient {
       !(callerSuppliedBodyType instanceof FormData) &&
       !(callerSuppliedBodyType instanceof Blob) &&
       !(callerSuppliedBodyType instanceof ArrayBuffer) &&
-      !(ArrayBuffer.isView(callerSuppliedBodyType)) &&
+      !ArrayBuffer.isView(callerSuppliedBodyType) &&
       !(callerSuppliedBodyType instanceof URLSearchParams);
 
     let response = await doFetch(undefined);

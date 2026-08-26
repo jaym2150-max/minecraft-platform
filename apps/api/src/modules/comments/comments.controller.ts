@@ -72,11 +72,7 @@ export class CommentsController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateCommentDto,
-    @CurrentUser() user: any,
-  ) {
+  async update(@Param('id') id: string, @Body() dto: UpdateCommentDto, @CurrentUser() user: any) {
     const data = await this.commentsService.update(id, dto, user.id, user.role);
     return {
       statusCode: HttpStatus.OK,

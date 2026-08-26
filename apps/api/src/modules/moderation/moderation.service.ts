@@ -23,7 +23,9 @@ export class ModerationService {
       if (!comment) throw new NotFoundException('Reported comment not found');
       projectId = comment.projectId;
     } else if (dto.type === 'version') {
-      const version = await this.prisma.projectVersion.findUnique({ where: { id: dto.reportedId } });
+      const version = await this.prisma.projectVersion.findUnique({
+        where: { id: dto.reportedId },
+      });
       if (!version) throw new NotFoundException('Reported version not found');
       projectId = version.projectId;
     }
@@ -87,7 +89,9 @@ export class ModerationService {
       throw new NotFoundException(`Report with id "${id}" not found`);
     }
     if (report.status !== ReportStatus.PENDING) {
-      throw new NotFoundException(`Report with id "${id}" is already ${report.status.toLowerCase()}`);
+      throw new NotFoundException(
+        `Report with id "${id}" is already ${report.status.toLowerCase()}`,
+      );
     }
 
     const updated = await this.prisma.report.update({

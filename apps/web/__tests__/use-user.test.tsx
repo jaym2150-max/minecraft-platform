@@ -33,7 +33,9 @@ function makeUser(overrides?: Record<string, unknown>) {
   };
 }
 
-function makeProject(overrides?: Partial<Project> & Record<string, unknown>): Project & Record<string, unknown> {
+function makeProject(
+  overrides?: Partial<Project> & Record<string, unknown>,
+): Project & Record<string, unknown> {
   return {
     id: 'proj_1',
     title: 'Sodium',

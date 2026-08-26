@@ -4,9 +4,17 @@ const API_ORIGIN = process.env.API_URL || 'http://localhost:4000';
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
 const HOP_BY_HOP = new Set([
-  'host', 'connection', 'keep-alive', 'transfer-encoding',
-  'te', 'trailer', 'upgrade', 'proxy-authorization',
-  'proxy-authenticate', 'content-encoding', 'content-length',
+  'host',
+  'connection',
+  'keep-alive',
+  'transfer-encoding',
+  'te',
+  'trailer',
+  'upgrade',
+  'proxy-authorization',
+  'proxy-authenticate',
+  'content-encoding',
+  'content-length',
 ]);
 
 /**
@@ -95,7 +103,11 @@ async function proxy(request: NextRequest, path: string[]) {
       const contentLength = Number(contentLengthHeader);
       if (Number.isFinite(contentLength) && contentLength > MAX_UPLOAD_BYTES) {
         return NextResponse.json(
-          { statusCode: 413, message: 'Payload Too Large', error: 'Request body exceeds 50MB limit' },
+          {
+            statusCode: 413,
+            message: 'Payload Too Large',
+            error: 'Request body exceeds 50MB limit',
+          },
           { status: 413 },
         );
       }
@@ -163,14 +175,22 @@ async function proxy(request: NextRequest, path: string[]) {
           const apiHost = originUrl.host;
           if (parsed.host !== apiHost) {
             return NextResponse.json(
-              { statusCode: 502, message: 'Bad Gateway', error: 'Upstream redirect blocked for safety' },
+              {
+                statusCode: 502,
+                message: 'Bad Gateway',
+                error: 'Upstream redirect blocked for safety',
+              },
               { status: 502 },
             );
           }
           return NextResponse.redirect(parsed, response.status);
         } catch {
           return NextResponse.json(
-            { statusCode: 502, message: 'Bad Gateway', error: 'Upstream redirect blocked for safety' },
+            {
+              statusCode: 502,
+              message: 'Bad Gateway',
+              error: 'Upstream redirect blocked for safety',
+            },
             { status: 502 },
           );
         }

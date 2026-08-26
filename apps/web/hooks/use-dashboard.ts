@@ -107,7 +107,10 @@ export function useUserAnalytics(period: '7d' | '30d' | '90d' | '1y' | 'all' = '
   });
 }
 
-export function useProjectAnalytics(projectId: string, period: '7d' | '30d' | '90d' | '1y' | 'all' = '30d') {
+export function useProjectAnalytics(
+  projectId: string,
+  period: '7d' | '30d' | '90d' | '1y' | 'all' = '30d',
+) {
   return useQuery({
     queryKey: ['analytics', 'project', projectId, period],
     queryFn: async () => {

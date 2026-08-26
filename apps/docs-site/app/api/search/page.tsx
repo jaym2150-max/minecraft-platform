@@ -3,8 +3,8 @@ export default function ApiSearchPage() {
     <article>
       <h1>Search</h1>
       <p>
-        The search API is powered by Meilisearch and provides fast, typo-tolerant full-text
-        search across all published projects.
+        The search API is powered by Meilisearch and provides fast, typo-tolerant full-text search
+        across all published projects.
       </p>
 
       <h2>Search projects</h2>
@@ -13,17 +13,32 @@ export default function ApiSearchPage() {
       </p>
       <p>Query parameters:</p>
       <ul>
-        <li><code>q</code> - Search query (can be empty to list all)</li>
-        <li><code>page</code> - Page number (default: 1)</li>
-        <li><code>limit</code> - Items per page (default: 20)</li>
-        <li><code>category</code> - Filter by category ID</li>
-        <li><code>loader</code> - Filter by loader type</li>
-        <li><code>sort</code> - Sort field (downloads, views, createdAt)</li>
+        <li>
+          <code>q</code> - Search query (can be empty to list all)
+        </li>
+        <li>
+          <code>page</code> - Page number (default: 1)
+        </li>
+        <li>
+          <code>limit</code> - Items per page (default: 20)
+        </li>
+        <li>
+          <code>category</code> - Filter by category ID
+        </li>
+        <li>
+          <code>loader</code> - Filter by loader type
+        </li>
+        <li>
+          <code>sort</code> - Sort field (downloads, views, createdAt)
+        </li>
       </ul>
-      <pre><code>GET /search?q=performance&loader=FABRIC&sort=downloads</code></pre>
+      <pre>
+        <code>GET /search?q=performance&loader=FABRIC&sort=downloads</code>
+      </pre>
 
       <h2>Response</h2>
-      <pre><code>{`{
+      <pre>
+        <code>{`{
   "statusCode": 200,
   "data": [
     {
@@ -46,7 +61,8 @@ export default function ApiSearchPage() {
     "query": "performance",
     "processingTimeMs": 4
   }
-}`}</code></pre>
+}`}</code>
+      </pre>
 
       <h2>Reindex (admin only)</h2>
       <p>

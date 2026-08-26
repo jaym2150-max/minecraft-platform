@@ -24,19 +24,19 @@ We support several deployment strategies:
 
 All environment variables are documented in `.env.example`. Critical production values:
 
-| Variable | Description |
-|----------|-------------|
-| `NODE_ENV` | Must be `production` |
-| `JWT_SECRET` | Use a cryptographically random 64+ char string |
-| `DATABASE_URL` | Connection string for your production database |
-| `REDIS_URL` | Connection string for Redis |
-| `MEILISEARCH_URL` | URL of your Meilisearch instance |
-| `S3_ENDPOINT` | S3 endpoint (omit for AWS) |
-| `S3_BUCKET` | Bucket for private uploads |
-| `S3_PUBLIC_BUCKET` | Bucket for public assets |
-| `SMTP_*` | Email delivery credentials |
-| `WEB_URL` | Public URL of the web app |
-| `API_URL` | Public URL of the API |
+| Variable           | Description                                    |
+| ------------------ | ---------------------------------------------- |
+| `NODE_ENV`         | Must be `production`                           |
+| `JWT_SECRET`       | Use a cryptographically random 64+ char string |
+| `DATABASE_URL`     | Connection string for your production database |
+| `REDIS_URL`        | Connection string for Redis                    |
+| `MEILISEARCH_URL`  | URL of your Meilisearch instance               |
+| `S3_ENDPOINT`      | S3 endpoint (omit for AWS)                     |
+| `S3_BUCKET`        | Bucket for private uploads                     |
+| `S3_PUBLIC_BUCKET` | Bucket for public assets                       |
+| `SMTP_*`           | Email delivery credentials                     |
+| `WEB_URL`          | Public URL of the web app                      |
+| `API_URL`          | Public URL of the API                          |
 
 ## Docker Compose (Simple)
 

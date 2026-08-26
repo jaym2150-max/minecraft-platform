@@ -30,7 +30,13 @@ export class McpAdminSDK {
     this.client.clearAuthToken();
   }
 
-  async listUsers(params?: { page?: number; limit?: number; search?: string; role?: string; banned?: boolean }) {
+  async listUsers(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    banned?: boolean;
+  }) {
     const query = new URLSearchParams();
     if (params?.page) query.set('page', String(params.page));
     if (params?.limit) query.set('limit', String(params.limit));
@@ -57,11 +63,15 @@ export class McpAdminSDK {
   }
 
   async updateProjectStatus(projectId: string, status: string) {
-    return this.client.patch<ApiResponse<Project>>(`/admin/projects/${projectId}/status`, { status });
+    return this.client.patch<ApiResponse<Project>>(`/admin/projects/${projectId}/status`, {
+      status,
+    });
   }
 
   async updateProjectFeature(projectId: string, featured: boolean) {
-    return this.client.patch<ApiResponse<Project>>(`/admin/projects/${projectId}/feature`, { featured });
+    return this.client.patch<ApiResponse<Project>>(`/admin/projects/${projectId}/feature`, {
+      featured,
+    });
   }
 
   async getAdminAnalytics() {

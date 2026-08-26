@@ -28,7 +28,12 @@ export class CollectionsController {
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() dto: CreateCollectionDto, @CurrentUser('id') userId: string) {
     const data = await this.collectionsService.create(userId, dto);
-    return { statusCode: HttpStatus.CREATED, message: 'Collection created', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Collection created',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Get()
@@ -39,8 +44,18 @@ export class CollectionsController {
     @Query('limit') limit = 20,
     @Query('userId') userId?: string,
   ) {
-    const result = await this.collectionsService.findAll({ userId, isPublic: true, page: Number(page), limit: Number(limit) });
-    return { statusCode: HttpStatus.OK, message: 'Collections retrieved', ...result, timestamp: new Date().toISOString() };
+    const result = await this.collectionsService.findAll({
+      userId,
+      isPublic: true,
+      page: Number(page),
+      limit: Number(limit),
+    });
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Collections retrieved',
+      ...result,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Get('mine')
@@ -51,8 +66,17 @@ export class CollectionsController {
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ) {
-    const result = await this.collectionsService.findAll({ userId, page: Number(page), limit: Number(limit) });
-    return { statusCode: HttpStatus.OK, message: 'My collections retrieved', ...result, timestamp: new Date().toISOString() };
+    const result = await this.collectionsService.findAll({
+      userId,
+      page: Number(page),
+      limit: Number(limit),
+    });
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'My collections retrieved',
+      ...result,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Get(':id')
@@ -60,14 +84,28 @@ export class CollectionsController {
   @HttpCode(HttpStatus.OK)
   async findOne(@Param('id') id: string, @CurrentUser('id') userId?: string) {
     const data = await this.collectionsService.findOne(id, userId);
-    return { statusCode: HttpStatus.OK, message: 'Collection retrieved', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Collection retrieved',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  async update(@Param('id') id: string, @Body() dto: UpdateCollectionDto, @CurrentUser('id') userId: string) {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateCollectionDto,
+    @CurrentUser('id') userId: string,
+  ) {
     const data = await this.collectionsService.update(id, userId, dto);
-    return { statusCode: HttpStatus.OK, message: 'Collection updated', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Collection updated',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Delete(':id')
@@ -75,22 +113,45 @@ export class CollectionsController {
   @HttpCode(HttpStatus.OK)
   async remove(@Param('id') id: string, @CurrentUser('id') userId: string) {
     const data = await this.collectionsService.remove(id, userId);
-    return { statusCode: HttpStatus.OK, message: 'Collection deleted', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Collection deleted',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Post(':id/projects')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
-  async addProject(@Param('id') id: string, @Body() dto: AddProjectDto, @CurrentUser('id') userId: string) {
+  async addProject(
+    @Param('id') id: string,
+    @Body() dto: AddProjectDto,
+    @CurrentUser('id') userId: string,
+  ) {
     const data = await this.collectionsService.addProject(id, userId, dto.projectId, dto.notes);
-    return { statusCode: HttpStatus.CREATED, message: 'Project added to collection', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Project added to collection',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Delete(':id/projects/:projectId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async removeProject(@Param('id') id: string, @Param('projectId') projectId: string, @CurrentUser('id') userId: string) {
+  async removeProject(
+    @Param('id') id: string,
+    @Param('projectId') projectId: string,
+    @CurrentUser('id') userId: string,
+  ) {
     const data = await this.collectionsService.removeProject(id, userId, projectId);
-    return { statusCode: HttpStatus.OK, message: 'Project removed from collection', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Project removed from collection',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 }

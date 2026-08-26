@@ -45,7 +45,9 @@ vi.mock('@/components/stat-card', () => ({
 // ── Mock Recharts (avoids SVG rendering issues in jsdom) ──
 
 vi.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: any) => <div data-testid="recharts-responsive">{children}</div>,
+  ResponsiveContainer: ({ children }: any) => (
+    <div data-testid="recharts-responsive">{children}</div>
+  ),
   AreaChart: ({ children }: any) => <div data-testid="recharts-areachart">{children}</div>,
   Area: () => <div data-testid="recharts-area" />,
   XAxis: () => <div data-testid="recharts-xaxis" />,
@@ -64,10 +66,7 @@ const defaultStats: DashboardStats = {
   draftCount: 1,
 };
 
-function makeProject(
-  id: string,
-  overrides?: Partial<DashboardProject>,
-): DashboardProject {
+function makeProject(id: string, overrides?: Partial<DashboardProject>): DashboardProject {
   return {
     id,
     name: `Project ${id}`,
@@ -87,7 +86,13 @@ function makeProject(
 let mockLoading = false;
 let mockError: string | null = null;
 let mockProjects: DashboardProject[] = [];
-let mockStats: DashboardStats = { totalProjects: 0, totalDownloads: 0, totalViews: 0, publishedCount: 0, draftCount: 0 };
+let mockStats: DashboardStats = {
+  totalProjects: 0,
+  totalDownloads: 0,
+  totalViews: 0,
+  publishedCount: 0,
+  draftCount: 0,
+};
 const mockRefetch = vi.fn();
 
 vi.mock('@/hooks/use-dashboard', () => ({
@@ -144,7 +149,13 @@ describe('DashboardPage', () => {
 
   it('shows an empty state when there are no projects', () => {
     mockProjects = [];
-    mockStats = { totalProjects: 0, totalDownloads: 0, totalViews: 0, publishedCount: 0, draftCount: 0 };
+    mockStats = {
+      totalProjects: 0,
+      totalDownloads: 0,
+      totalViews: 0,
+      publishedCount: 0,
+      draftCount: 0,
+    };
     render(<DashboardPage />);
     expect(screen.getByText('No projects yet')).toBeInTheDocument();
     expect(screen.getByText('Create your first mod project to get started')).toBeInTheDocument();
@@ -162,7 +173,13 @@ describe('DashboardPage', () => {
   });
 
   it('formats small download/view counts without K suffix', () => {
-    mockStats = { totalProjects: 1, totalDownloads: 500, totalViews: 800, publishedCount: 1, draftCount: 0 };
+    mockStats = {
+      totalProjects: 1,
+      totalDownloads: 500,
+      totalViews: 800,
+      publishedCount: 1,
+      draftCount: 0,
+    };
     render(<DashboardPage />);
     expect(screen.getByText('Total Downloads: 500')).toBeInTheDocument();
     expect(screen.getByText('Total Views: 800')).toBeInTheDocument();

@@ -1,4 +1,11 @@
-import { Injectable, UnauthorizedException, BadRequestException, ConflictException, ForbiddenException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -65,7 +72,10 @@ export class AuthService {
     return decrypted;
   }
 
-  async validateUser(email: string, password: string): Promise<{ id: string; username: string; email: string; role: string } | null> {
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<{ id: string; username: string; email: string; role: string } | null> {
     const user = await this.usersService.findByEmailInternal(email);
     if (user && user.passwordHash && (await bcrypt.compare(password, user.passwordHash))) {
       if (user.banned) {
@@ -367,11 +377,16 @@ export class AuthService {
     if (!m) return defaultSeconds;
     const n = parseInt(m[1], 10);
     switch (m[2] ?? 's') {
-      case 's': return n;
-      case 'm': return n * 60;
-      case 'h': return n * 3600;
-      case 'd': return n * 86400;
-      default: return defaultSeconds;
+      case 's':
+        return n;
+      case 'm':
+        return n * 60;
+      case 'h':
+        return n * 3600;
+      case 'd':
+        return n * 86400;
+      default:
+        return defaultSeconds;
     }
   }
 
@@ -422,13 +437,18 @@ export class AuthService {
     await this.invalidateAllSessions(userId);
   }
 
-  async createPasswordResetToken(email: string): Promise<{ rawToken: string; userId: string } | null> {
+  async createPasswordResetToken(
+    email: string,
+  ): Promise<{ rawToken: string; userId: string } | null> {
     const user = await this.usersService.findByEmail(email);
     if (!user) return null;
 
     const rawToken = crypto.randomBytes(32).toString('hex');
     const tokenHash = await bcrypt.hash(rawToken, 10);
-    const tokenPrefixHash = crypto.createHash('sha256').update(rawToken.slice(0, TOKEN_PREFIX_LENGTH)).digest('hex');
+    const tokenPrefixHash = crypto
+      .createHash('sha256')
+      .update(rawToken.slice(0, TOKEN_PREFIX_LENGTH))
+      .digest('hex');
     const expiresAt = new Date(Date.now() + 3600000);
 
     await this.prisma.passwordResetToken.create({
@@ -467,14 +487,19 @@ export class AuthService {
         },
       );
     } catch (err) {
-      this.logger.warn(`Failed to enqueue password-reset email for user ${user.id}: ${(err as Error).message}`);
+      this.logger.warn(
+        `Failed to enqueue password-reset email for user ${user.id}: ${(err as Error).message}`,
+      );
     }
 
     return { rawToken, userId: user.id };
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    const tokenPrefixHash = crypto.createHash('sha256').update(token.slice(0, TOKEN_PREFIX_LENGTH)).digest('hex');
+    const tokenPrefixHash = crypto
+      .createHash('sha256')
+      .update(token.slice(0, TOKEN_PREFIX_LENGTH))
+      .digest('hex');
 
     const resetToken = await this.prisma.passwordResetToken.findUnique({
       where: { tokenPrefixHash },
@@ -501,14 +526,12 @@ export class AuthService {
     });
   }
 
-  async enable2FA(userId: string): Promise<{ secret: string; qrCodeUrl: string; backupCodes: string[] }> {
+  async enable2FA(
+    userId: string,
+  ): Promise<{ secret: string; qrCodeUrl: string; backupCodes: string[] }> {
     const secret = authenticator.generateSecret();
-    const backupCodes = Array.from({ length: 8 }, () =>
-      crypto.randomBytes(4).toString('hex'),
-    );
-    const hashedBackupCodes = await Promise.all(
-      backupCodes.map((code) => bcrypt.hash(code, 10)),
-    );
+    const backupCodes = Array.from({ length: 8 }, () => crypto.randomBytes(4).toString('hex'));
+    const hashedBackupCodes = await Promise.all(backupCodes.map((code) => bcrypt.hash(code, 10)));
 
     const encryptedSecret = this.encrypt(secret);
 
@@ -528,7 +551,8 @@ export class AuthService {
     if (!twoFA) return false;
 
     const secret = this.decrypt(twoFA.secret);
-    const isValid = authenticator.verify({ token: code, secret }) || await this.verifyBackupCode(twoFA, code);
+    const isValid =
+      authenticator.verify({ token: code, secret }) || (await this.verifyBackupCode(twoFA, code));
     if (isValid) {
       await this.prisma.twoFactorSecret.update({
         where: { userId },
@@ -543,7 +567,8 @@ export class AuthService {
     if (!twoFA) return false;
 
     const secret = this.decrypt(twoFA.secret);
-    const isValid = authenticator.verify({ token: code, secret }) || await this.verifyBackupCode(twoFA, code);
+    const isValid =
+      authenticator.verify({ token: code, secret }) || (await this.verifyBackupCode(twoFA, code));
     if (isValid) {
       await this.prisma.twoFactorSecret.delete({ where: { userId } });
     }
@@ -580,7 +605,9 @@ export class AuthService {
     }
   }
 
-  async sendVerificationEmail(email: string): Promise<{ sent: boolean; alreadyVerified?: boolean }> {
+  async sendVerificationEmail(
+    email: string,
+  ): Promise<{ sent: boolean; alreadyVerified?: boolean }> {
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) return { sent: false };
     if (user.emailVerified) return { sent: false, alreadyVerified: true };
@@ -607,7 +634,10 @@ export class AuthService {
 
     const rawToken = crypto.randomBytes(32).toString('hex');
     const tokenHash = await bcrypt.hash(rawToken, 10);
-    const tokenPrefixHash = crypto.createHash('sha256').update(rawToken.slice(0, TOKEN_PREFIX_LENGTH)).digest('hex');
+    const tokenPrefixHash = crypto
+      .createHash('sha256')
+      .update(rawToken.slice(0, TOKEN_PREFIX_LENGTH))
+      .digest('hex');
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     await this.prisma.emailVerificationToken.create({
@@ -663,14 +693,19 @@ export class AuthService {
         },
       );
     } catch (err) {
-      this.logger.warn(`Failed to enqueue verification email for user ${userId}: ${(err as Error).message}`);
+      this.logger.warn(
+        `Failed to enqueue verification email for user ${userId}: ${(err as Error).message}`,
+      );
     }
 
     return { rawToken };
   }
 
   async verifyEmail(token: string): Promise<void> {
-    const tokenPrefixHash = crypto.createHash('sha256').update(token.slice(0, TOKEN_PREFIX_LENGTH)).digest('hex');
+    const tokenPrefixHash = crypto
+      .createHash('sha256')
+      .update(token.slice(0, TOKEN_PREFIX_LENGTH))
+      .digest('hex');
 
     const verificationToken = await this.prisma.emailVerificationToken.findUnique({
       where: { tokenPrefixHash },

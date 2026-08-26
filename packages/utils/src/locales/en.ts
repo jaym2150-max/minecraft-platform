@@ -1,7 +1,8 @@
 export default {
   'home.hero.title1': 'FIND YOUR',
   'home.hero.title2': 'NEXT MOD',
-  'home.hero.subtitle': 'The home for Minecraft mods, modpacks and plugins. One search, every loader, every version — built for players who craft their own game.',
+  'home.hero.subtitle':
+    'The home for Minecraft mods, modpacks and plugins. One search, every loader, every version — built for players who craft their own game.',
   'home.search.placeholder': 'Search mods, modpacks, plugins...',
   'home.search.cta': 'SEARCH',
   'home.ticker.label': 'LIVE',

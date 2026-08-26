@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { PrismaService } from '../../common/prisma/prisma.service';
@@ -75,7 +70,10 @@ export class CreatorEarningsService {
     const account = await this.prisma.payoutAccount.findUnique({ where: { userId } });
 
     return {
-      pointsBalance: Math.max(0, lifetimePoints - Math.floor((withdrawnCents + pendingCents) / 100) * POINTS_PER_USD),
+      pointsBalance: Math.max(
+        0,
+        lifetimePoints - Math.floor((withdrawnCents + pendingCents) / 100) * POINTS_PER_USD,
+      ),
       lifetimeCents,
       availableCents,
       pendingCents,
@@ -118,7 +116,8 @@ export class CreatorEarningsService {
       });
     }
 
-    const returnUrl = this.config.get<string>('app.webUrl') || process.env.WEB_URL || 'http://localhost:3003';
+    const returnUrl =
+      this.config.get<string>('app.webUrl') || process.env.WEB_URL || 'http://localhost:3003';
     const link = await this.stripe.accountLinks.create({
       account: account.stripeAccountId,
       refresh_url: `${returnUrl}/dashboard/billing?payout=refresh`,

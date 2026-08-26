@@ -62,13 +62,13 @@ function CommentActionButtons({
         <>
           <button
             onClick={onEdit}
-            className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            className="hover:bg-muted text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
           >
             <Edit2 className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={onDelete}
-            className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-destructive"
+            className="hover:bg-muted text-muted-foreground hover:text-destructive rounded p-1 transition-colors"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </button>
@@ -76,7 +76,7 @@ function CommentActionButtons({
       )}
       <button
         onClick={onReply}
-        className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+        className="hover:bg-muted text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
       >
         <MessageSquare className="h-3.5 w-3.5" />
         Reply
@@ -87,20 +87,24 @@ function CommentActionButtons({
 
 function CommentHeader({ comment }: { comment: Comment }) {
   return (
-    <div className="flex items-start justify-between gap-3 mb-2">
-      <div className="flex items-center gap-2 min-w-0">
-        <div className="relative h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0 overflow-hidden">
+    <div className="mb-2 flex items-start justify-between gap-3">
+      <div className="flex min-w-0 items-center gap-2">
+        <div className="bg-primary/10 text-primary relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold">
           {comment.author?.avatarUrl ? (
-            <Image src={comment.author.avatarUrl} alt="" fill sizes="32px" className="h-full w-full object-cover" />
+            <Image
+              src={comment.author.avatarUrl}
+              alt=""
+              fill
+              sizes="32px"
+              className="h-full w-full object-cover"
+            />
           ) : (
             <User className="h-4 w-4" />
           )}
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-medium truncate">{comment.author?.username || 'Unknown'}</p>
-          <p className="text-[10px] text-muted-foreground">
-            {timeAgo(comment.createdAt)}
-          </p>
+          <p className="truncate text-sm font-medium">{comment.author?.username || 'Unknown'}</p>
+          <p className="text-muted-foreground text-[10px]">{timeAgo(comment.createdAt)}</p>
         </div>
       </div>
     </div>
@@ -159,10 +163,10 @@ function CommentReplyForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 pt-4 border-t">
+    <form onSubmit={handleSubmit} className="space-y-3 border-t pt-4">
       {error && (
-        <div className="flex items-start gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+        <div className="border-destructive/50 bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg border p-3 text-sm">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -175,21 +179,10 @@ function CommentReplyForm({
         rows={3}
       />
       <div className="flex justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onCancel}
-          disabled={submitting}
-        >
+        <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={submitting}>
           Cancel
         </Button>
-        <Button
-          type="submit"
-          size="sm"
-          disabled={submitting || !content.trim()}
-          className="gap-2"
-        >
+        <Button type="submit" size="sm" disabled={submitting || !content.trim()} className="gap-2">
           {submitting ? 'Posting...' : 'Reply'}
         </Button>
       </div>
@@ -246,49 +239,49 @@ function CommentCard({
   };
 
   return (
-    <div className={`border-b last:border-b-0 pb-4 last:pb-0 ${depth > 0 ? 'pl-4 border-l-2 border-muted ml-2' : ''}`}>
+    <div
+      className={`border-b pb-4 last:border-b-0 last:pb-0 ${depth > 0 ? 'border-muted ml-2 border-l-2 pl-4' : ''}`}
+    >
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-3">
           <CommentHeader comment={comment} />
-            <div className="flex items-center gap-2 text-xs">
-              <CommentActionButtons
-                comment={comment}
-                isOwn={isOwn}
+          <div className="flex items-center gap-2 text-xs">
+            <CommentActionButtons
+              comment={comment}
+              isOwn={isOwn}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onReply={handleReply}
+            />
+          </div>
+        </div>
+        <CommentContent comment={comment} />
+        {replyFormVisible && (
+          <CommentReplyForm
+            projectId={comment.projectId}
+            parentId={comment.id}
+            onDone={handleReplyDone}
+            onCancel={handleCancelReply}
+          />
+        )}
+        {comment.replies.length > 0 && (
+          <div className="border-muted/20 mt-4 border-l-2 pl-4">
+            <p className="mb-2 text-sm font-semibold">Replies ({comment.replies.length})</p>
+            {comment.replies.map((reply) => (
+              <CommentCard
+                key={reply.id}
+                comment={reply}
+                isOwn={reply.authorId === (authUser?.id || '')}
+                depth={depth + 1}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onReply={handleReply}
+                onCancelReply={handleCancelReply}
               />
-            </div>
+            ))}
           </div>
-          <CommentContent comment={comment} />
-          {replyFormVisible && (
-            <CommentReplyForm
-              projectId={comment.projectId}
-              parentId={comment.id}
-              onDone={handleReplyDone}
-              onCancel={handleCancelReply}
-            />
-          )}
-          {comment.replies.length > 0 && (
-            <div className="mt-4 pl-4 border-l-2 border-muted/20">
-              <p className="text-sm font-semibold mb-2">
-                Replies ({comment.replies.length})
-              </p>
-              {comment.replies.map((reply) => (
-                <CommentCard
-                  key={reply.id}
-                  comment={reply}
-                  isOwn={reply.authorId === (authUser?.id || '')}
-                  depth={depth + 1}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onReply={handleReply}
-                  onCancelReply={handleCancelReply}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -357,10 +350,8 @@ export function CommentsSection({ projectId }: CommentsSectionProps) {
       // Update the comment in our state
       setComments((prev) =>
         prev.map((c) =>
-          c.id === editingComment.id
-            ? { ...c, content: newCommentContent.trim() }
-            : c
-        )
+          c.id === editingComment.id ? { ...c, content: newCommentContent.trim() } : c,
+        ),
       );
       setEditingComment(null);
       setNewCommentContent('');
@@ -407,24 +398,19 @@ export function CommentsSection({ projectId }: CommentsSectionProps) {
   if (loading && comments.length === 0) {
     return (
       <div className="py-8 text-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mb-4" />
-        <p className="text-sm text-muted-foreground">Loading comments...</p>
+        <Loader2 className="text-muted-foreground mx-auto mb-4 h-6 w-6 animate-spin" />
+        <p className="text-muted-foreground text-sm">Loading comments...</p>
       </div>
     );
   }
 
   if (error && comments.length === 0) {
     return (
-      <div className="text-center py-8">
-        <AlertCircle className="h-6 w-6 text-destructive mx-auto mb-4" />
-        <p className="text-sm text-destructive">{error}</p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={fetchComments}
-          className="gap-2 mt-4"
-        >
-          <Loader2 className="h-4 w-4 mr-2" />
+      <div className="py-8 text-center">
+        <AlertCircle className="text-destructive mx-auto mb-4 h-6 w-6" />
+        <p className="text-destructive text-sm">{error}</p>
+        <Button variant="outline" size="sm" onClick={fetchComments} className="mt-4 gap-2">
+          <Loader2 className="mr-2 h-4 w-4" />
           Try Again
         </Button>
       </div>
@@ -433,23 +419,29 @@ export function CommentsSection({ projectId }: CommentsSectionProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
+      <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+        <h2 className="flex items-center gap-2 text-xl font-semibold">
           <MessageSquare className="h-5 w-5 text-blue-400" />
-          Comments <span className="text-sm font-normal text-muted-foreground">({comments.length})</span>
+          Comments{' '}
+          <span className="text-muted-foreground text-sm font-normal">({comments.length})</span>
         </h2>
         <div className="flex items-center gap-2">
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-            className="h-8 rounded-lg border border-input bg-background px-2 text-xs"
+            className="border-input bg-background h-8 rounded-lg border px-2 text-xs"
             aria-label="Sort comments"
           >
             <option value="newest">Newest</option>
             <option value="oldest">Oldest</option>
           </select>
           {isAuthenticated && (
-            <Button variant="outline" size="sm" onClick={() => setShowReplyForm(true)} className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowReplyForm(true)}
+              className="gap-2"
+            >
               {replyingTo ? 'Replying...' : 'Add Comment'}
             </Button>
           )}
@@ -457,15 +449,18 @@ export function CommentsSection({ projectId }: CommentsSectionProps) {
       </div>
 
       {showReplyForm && !replyingTo && (
-        <div className="mb-4 p-4 rounded-lg border bg-muted/20">
-          <p className="text-sm font-medium mb-3">Add a comment</p>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            handleNewCommentSubmit();
-          }} className="space-y-3">
+        <div className="bg-muted/20 mb-4 rounded-lg border p-4">
+          <p className="mb-3 text-sm font-medium">Add a comment</p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleNewCommentSubmit();
+            }}
+            className="space-y-3"
+          >
             {error && (
-              <div className="flex items-start gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div className="border-destructive/50 bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg border p-3 text-sm">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -520,9 +515,9 @@ export function CommentsSection({ projectId }: CommentsSectionProps) {
           ))}
         </div>
       ) : (
-        <div className="text-center py-8">
-          <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-40" />
-          <p className="text-sm text-muted-foreground">
+        <div className="py-8 text-center">
+          <MessageSquare className="mx-auto mb-2 h-10 w-10 opacity-40" />
+          <p className="text-muted-foreground text-sm">
             No comments yet. Be the first to share your thoughts!
           </p>
           {isAuthenticated && (

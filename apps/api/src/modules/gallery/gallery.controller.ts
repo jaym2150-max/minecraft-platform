@@ -30,7 +30,12 @@ export class GalleryController {
   @HttpCode(HttpStatus.OK)
   async findByProject(@Param('slug') slug: string) {
     const data = await this.galleryService.findByProject(slug);
-    return { statusCode: HttpStatus.OK, message: 'Gallery items retrieved', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Gallery items retrieved',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Post('projects/:slug/gallery')
@@ -59,14 +64,28 @@ export class GalleryController {
     @CurrentUser('id') userId: string,
   ) {
     const data = await this.galleryService.upload(slug, userId, file, dto);
-    return { statusCode: HttpStatus.CREATED, message: 'Gallery item uploaded', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Gallery item uploaded',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Patch('gallery/:id')
   @UseGuards(JwtAuthGuard)
-  async update(@Param('id') id: string, @Body() dto: UpdateGalleryItemDto, @CurrentUser('id') userId: string) {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateGalleryItemDto,
+    @CurrentUser('id') userId: string,
+  ) {
     const data = await this.galleryService.update(id, userId, dto);
-    return { statusCode: HttpStatus.OK, message: 'Gallery item updated', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Gallery item updated',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Delete('gallery/:id')
@@ -74,13 +93,27 @@ export class GalleryController {
   @HttpCode(HttpStatus.OK)
   async remove(@Param('id') id: string, @CurrentUser('id') userId: string) {
     const data = await this.galleryService.remove(id, userId);
-    return { statusCode: HttpStatus.OK, message: 'Gallery item deleted', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Gallery item deleted',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Put('projects/:slug/gallery/reorder')
   @UseGuards(JwtAuthGuard)
-  async reorder(@Param('slug') slug: string, @Body() dto: ReorderGalleryDto, @CurrentUser('id') userId: string) {
+  async reorder(
+    @Param('slug') slug: string,
+    @Body() dto: ReorderGalleryDto,
+    @CurrentUser('id') userId: string,
+  ) {
     const data = await this.galleryService.reorder(slug, userId, dto);
-    return { statusCode: HttpStatus.OK, message: 'Gallery reordered', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Gallery reordered',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 }

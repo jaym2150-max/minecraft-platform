@@ -3,12 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { sdk } from '@/services/api';
 import { formatNumber, timeAgo } from '@mcp/utils/helpers';
-import type {
-  Project,
-  ProjectVersion,
-  DependencyInfo,
-  TeamMemberInfo,
-} from '@mcp/types';
+import type { Project, ProjectVersion, DependencyInfo, TeamMemberInfo } from '@mcp/types';
 import { VersionStatus } from '@mcp/types';
 
 // ── Types exported for the page ──
@@ -169,29 +164,27 @@ export function useProject(slug: string): UseProjectResult {
 
       // Determine loaders from latest version or fallback
       const loaders = (p as any).loaders?.length
-        ? (p as any).loaders.map((l: any) =>
-            typeof l === 'string' ? l : l.type || '',
-          )
+        ? (p as any).loaders.map((l: any) => (typeof l === 'string' ? l : l.type || ''))
         : [];
 
-  setProject({
-    id: p.id,
-    title: p.title,
-    slug: p.slug,
-    description: p.description,
-    body: p.body,
-    iconUrl: p.iconUrl,
-    coverUrl: p.coverUrl,
-    sourceUrl: p.sourceUrl,
-    downloads: p.downloads,
-    views: p.views,
-    author: p.author ?? { username: 'Unknown' },
-    categoryName: (p as any).category?.name,
-    createdAt: p.createdAt,
-    updatedAt: p.updatedAt,
-    loaders,
-    galleryImages: (p as any).galleryImages ?? [],
-  });
+      setProject({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        description: p.description,
+        body: p.body,
+        iconUrl: p.iconUrl,
+        coverUrl: p.coverUrl,
+        sourceUrl: p.sourceUrl,
+        downloads: p.downloads,
+        views: p.views,
+        author: p.author ?? { username: 'Unknown' },
+        categoryName: (p as any).category?.name,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+        loaders,
+        galleryImages: (p as any).galleryImages ?? [],
+      });
 
       // Fetch versions, dependencies, team, and related mods in parallel
       const [versionsRes, depsRes, teamRes, relatedRes] = await Promise.allSettled([
@@ -211,7 +204,9 @@ export function useProject(slug: string): UseProjectResult {
             id: v.id,
             version: v.version,
             loader: v.loaders?.length ? getLoaderDisplay(v.loaders[0] as string) : 'Fabric',
-            loaderColor: v.loaders?.length ? getLoaderColor(v.loaders[0] as string) : getLoaderColor('FABRIC'),
+            loaderColor: v.loaders?.length
+              ? getLoaderColor(v.loaders[0] as string)
+              : getLoaderColor('FABRIC'),
             minecraft: (v as any).minecraftVersion ?? '',
             updated: timeAgo(v.updatedAt),
             updatedAt: v.updatedAt,

@@ -175,49 +175,49 @@ export default function LookupPage() {
   return (
     <main className="flex-1">
       {/* Hero */}
-      <section className="border-b bg-gradient-to-b from-primary/5 via-primary/[0.02] to-background">
+      <section className="from-primary/5 via-primary/[0.02] to-background border-b bg-gradient-to-b">
         <div className="container py-10">
           <div className="max-w-2xl">
-            <h1 className="text-4xl font-bold tracking-tight mb-2">Hash Lookup</h1>
+            <h1 className="mb-2 text-4xl font-bold tracking-tight">Hash Lookup</h1>
             <p className="text-muted-foreground mb-4">
-              Paste a file&rsquo;s checksum to resolve it back to its project, version, and
-              download link — the same hash resolver launchers use to keep mods up to date.
+              Paste a file&rsquo;s checksum to resolve it back to its project, version, and download
+              link — the same hash resolver launchers use to keep mods up to date.
             </p>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="mb-4 flex items-center gap-2">
               <button
                 onClick={() => setMode('single')}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${mode === 'single' ? 'bg-primary text-primary-foreground border-primary' : 'bg-card hover:bg-muted'}`}
+                className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${mode === 'single' ? 'bg-primary text-primary-foreground border-primary' : 'bg-card hover:bg-muted'}`}
               >
                 Single
               </button>
               <button
                 onClick={() => setMode('bulk')}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${mode === 'bulk' ? 'bg-primary text-primary-foreground border-primary' : 'bg-card hover:bg-muted'}`}
+                className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${mode === 'bulk' ? 'bg-primary text-primary-foreground border-primary' : 'bg-card hover:bg-muted'}`}
               >
                 Bulk (up to 50)
               </button>
-              <span className="text-xs text-muted-foreground ml-2">
+              <span className="text-muted-foreground ml-2 text-xs">
                 {mode === 'bulk' ? 'One hash per line' : 'SHA-256 default'}
               </span>
             </div>
             {mode === 'single' ? (
-              <form onSubmit={handleLookup} className="flex flex-col sm:flex-row gap-3 max-w-2xl">
+              <form onSubmit={handleLookup} className="flex max-w-2xl flex-col gap-3 sm:flex-row">
                 <div className="relative flex-1">
-                  <HashIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <HashIcon className="text-muted-foreground pointer-events-none absolute left-3 top-3 h-4 w-4" />
                   <textarea
                     value={hashInput}
                     onChange={(e) => setHashInput(e.target.value)}
                     placeholder="e.g. 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
                     rows={1}
                     spellCheck={false}
-                    className="w-full min-h-12 resize-none rounded-lg border border-input bg-background pl-10 pr-3 py-3 text-sm font-mono shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="border-input bg-background focus-visible:ring-ring min-h-12 w-full resize-none rounded-lg border py-3 pl-10 pr-3 font-mono text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1"
                     aria-label="File hash"
                   />
                 </div>
                 <select
                   value={algorithm}
                   onChange={(e) => setAlgorithm(e.target.value as HashAlgorithm)}
-                  className="h-12 sm:w-36 rounded-lg border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="border-input bg-background focus-visible:ring-ring h-12 rounded-lg border px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 sm:w-36"
                   aria-label="Hash algorithm"
                 >
                   {ALGORITHMS.map((a) => (
@@ -227,21 +227,27 @@ export default function LookupPage() {
                   ))}
                 </select>
                 <Button type="submit" disabled={loading} className="h-12 gap-2">
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
                   Look up
                 </Button>
               </form>
             ) : (
-              <form onSubmit={handleBulkLookup} className="space-y-3 max-w-2xl">
+              <form onSubmit={handleBulkLookup} className="max-w-2xl space-y-3">
                 <div className="relative">
-                  <HashIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <HashIcon className="text-muted-foreground pointer-events-none absolute left-3 top-3 h-4 w-4" />
                   <textarea
                     value={bulkInput}
                     onChange={(e) => setBulkInput(e.target.value)}
-                    placeholder={"Paste hashes, one per line or comma separated\n9f86d081884c... (sha256)\nda4b003... (sha1)\n..."}
+                    placeholder={
+                      'Paste hashes, one per line or comma separated\n9f86d081884c... (sha256)\nda4b003... (sha1)\n...'
+                    }
                     rows={5}
                     spellCheck={false}
-                    className="w-full min-h-28 rounded-lg border border-input bg-background pl-10 pr-3 py-3 text-sm font-mono shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="border-input bg-background focus-visible:ring-ring min-h-28 w-full rounded-lg border py-3 pl-10 pr-3 font-mono text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1"
                     aria-label="Bulk hashes"
                   />
                 </div>
@@ -249,7 +255,7 @@ export default function LookupPage() {
                   <select
                     value={algorithm}
                     onChange={(e) => setAlgorithm(e.target.value as HashAlgorithm)}
-                    className="h-10 rounded-lg border border-input bg-background px-3 text-sm"
+                    className="border-input bg-background h-10 rounded-lg border px-3 text-sm"
                     aria-label="Hash algorithm"
                   >
                     {ALGORITHMS.map((a) => (
@@ -259,7 +265,11 @@ export default function LookupPage() {
                     ))}
                   </select>
                   <Button type="submit" disabled={bulkLoading} className="gap-2">
-                    {bulkLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                    {bulkLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Search className="h-4 w-4" />
+                    )}
                     Bulk look up
                   </Button>
                 </div>
@@ -269,14 +279,14 @@ export default function LookupPage() {
         </div>
       </section>
 
-      <section className="container py-10 max-w-3xl">
+      <section className="container max-w-3xl py-10">
         {/* Idle - single */}
         {mode === 'single' && !loading && !result && !notFound && (
-          <div className="text-center py-16 border rounded-xl bg-card">
-            <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-              <HashIcon className="h-8 w-8 text-muted-foreground" />
+          <div className="bg-card rounded-xl border py-16 text-center">
+            <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+              <HashIcon className="text-muted-foreground h-8 w-8" />
             </div>
-            <h2 className="text-xl font-semibold mb-1">Enter a hash to begin</h2>
+            <h2 className="mb-1 text-xl font-semibold">Enter a hash to begin</h2>
             <p className="text-muted-foreground text-sm">
               We&rsquo;ll match it against every version file and return the project it belongs to.
             </p>
@@ -284,38 +294,48 @@ export default function LookupPage() {
         )}
         {/* Idle - bulk */}
         {mode === 'bulk' && !bulkLoading && !bulkResults && (
-          <div className="text-center py-16 border rounded-xl bg-card">
-            <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-              <HashIcon className="h-8 w-8 text-muted-foreground" />
+          <div className="bg-card rounded-xl border py-16 text-center">
+            <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+              <HashIcon className="text-muted-foreground h-8 w-8" />
             </div>
-            <h2 className="text-xl font-semibold mb-1">Bulk lookup</h2>
-            <p className="text-muted-foreground text-sm">Paste up to 50 hashes, one per line, to resolve them all at once.</p>
+            <h2 className="mb-1 text-xl font-semibold">Bulk lookup</h2>
+            <p className="text-muted-foreground text-sm">
+              Paste up to 50 hashes, one per line, to resolve them all at once.
+            </p>
           </div>
         )}
 
         {/* Loading */}
         {mode === 'single' && loading && (
-          <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
+          <div className="text-muted-foreground flex items-center justify-center gap-2 py-16">
             <Loader2 className="h-5 w-5 animate-spin" /> Resolving hash…
           </div>
         )}
         {mode === 'bulk' && bulkLoading && (
-          <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" /> Resolving {bulkInput.split(/[\s,]+/).filter(Boolean).length} hashes…
+          <div className="text-muted-foreground flex items-center justify-center gap-2 py-16">
+            <Loader2 className="h-5 w-5 animate-spin" /> Resolving{' '}
+            {bulkInput.split(/[\s,]+/).filter(Boolean).length} hashes…
           </div>
         )}
 
         {/* Not found */}
         {mode === 'single' && notFound && !loading && (
-          <div className="text-center py-16 border rounded-xl bg-card">
-            <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-              <PackageX className="h-8 w-8 text-muted-foreground" />
+          <div className="bg-card rounded-xl border py-16 text-center">
+            <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+              <PackageX className="text-muted-foreground h-8 w-8" />
             </div>
-            <h2 className="text-xl font-semibold mb-1">No matching file</h2>
-            <p className="text-muted-foreground text-sm mb-4">
-              No version file shares that {algorithm.toUpperCase()} hash. Double-check the checksum and algorithm.
+            <h2 className="mb-1 text-xl font-semibold">No matching file</h2>
+            <p className="text-muted-foreground mb-4 text-sm">
+              No version file shares that {algorithm.toUpperCase()} hash. Double-check the checksum
+              and algorithm.
             </p>
-            <Button variant="outline" onClick={() => { setNotFound(false); setHashInput(''); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setNotFound(false);
+                setHashInput('');
+              }}
+            >
               Try another hash
             </Button>
           </div>
@@ -324,34 +344,42 @@ export default function LookupPage() {
         {/* Result */}
         {result && !loading && (
           <div className="space-y-4">
-            <div className="flex items-start justify-between gap-3 border rounded-xl bg-card p-6">
-              <div className="space-y-3 min-w-0">
+            <div className="bg-card flex items-start justify-between gap-3 rounded-xl border p-6">
+              <div className="min-w-0 space-y-3">
                 <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-500">
                   <PackageCheck className="h-5 w-5 shrink-0" />
                   <span className="font-semibold">Match found</span>
                 </div>
                 <div className="space-y-1">
-                  <h2 className="text-2xl font-bold truncate">
+                  <h2 className="truncate text-2xl font-bold">
                     {result.project ? (
                       <Link
                         href={`/mod/${result.project.slug ?? ''}`}
-                        className="hover:underline inline-flex items-center gap-1"
+                        className="inline-flex items-center gap-1 hover:underline"
                       >
                         {result.project.title ?? result.project.slug}
-                        <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                        <ArrowUpRight className="text-muted-foreground h-4 w-4" />
                       </Link>
                     ) : (
                       `Project ${result.projectId ?? ''}`
                     )}
                   </h2>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     Version <span className="font-mono">{result.version}</span>
-                    {result.status ? <Badge variant="secondary" className="ml-2">{result.status}</Badge> : null}
-                    {result.scanStatus ? <Badge variant="outline" className="ml-2">scan: {result.scanStatus}</Badge> : null}
+                    {result.status ? (
+                      <Badge variant="secondary" className="ml-2">
+                        {result.status}
+                      </Badge>
+                    ) : null}
+                    {result.scanStatus ? (
+                      <Badge variant="outline" className="ml-2">
+                        scan: {result.scanStatus}
+                      </Badge>
+                    ) : null}
                   </p>
                 </div>
               </div>
-              <div className="text-right text-sm text-muted-foreground shrink-0">
+              <div className="text-muted-foreground shrink-0 text-right text-sm">
                 {result.createdAt ? (
                   <div>Uploaded {formatDate(result.createdAt, { dateStyle: 'medium' })}</div>
                 ) : null}
@@ -376,30 +404,38 @@ export default function LookupPage() {
                 disabled={checkingUpdate}
                 className="gap-2"
               >
-                {checkingUpdate ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUpRight className="h-4 w-4" />}
+                {checkingUpdate ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowUpRight className="h-4 w-4" />
+                )}
                 Check for update
               </Button>
               {latestVersion && latestVersion !== result.version ? (
-                <Badge className="self-center gap-1">
-                  Newer: {latestVersion}
-                </Badge>
+                <Badge className="gap-1 self-center">Newer: {latestVersion}</Badge>
               ) : null}
             </div>
 
             {/* Details grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border rounded-xl bg-card p-6 text-sm">
+            <div className="bg-card grid grid-cols-1 gap-3 rounded-xl border p-6 text-sm sm:grid-cols-2">
               <Detail label="File size">
                 {typeof result.fileSize === 'number' ? formatBytes(result.fileSize) : '—'}
               </Detail>
               <Detail label="Minecraft version">
                 {result.minecraftVersion ? (
                   <Badge variant="secondary">MC {result.minecraftVersion}</Badge>
-                ) : '—'}
+                ) : (
+                  '—'
+                )}
               </Detail>
               <Detail label="Loaders">
                 <div className="flex flex-wrap gap-1">
                   {result.loaders?.length
-                    ? result.loaders.map((l) => <Badge key={l} variant="outline">{l}</Badge>)
+                    ? result.loaders.map((l) => (
+                        <Badge key={l} variant="outline">
+                          {l}
+                        </Badge>
+                      ))
                     : '—'}
                 </div>
               </Detail>
@@ -409,26 +445,32 @@ export default function LookupPage() {
             </div>
 
             {/* Hashes */}
-            <div className="border rounded-xl bg-card p-6 space-y-3">
+            <div className="bg-card space-y-3 rounded-xl border p-6">
               <h3 className="font-semibold">Checksums</h3>
               {hashRows.map((row) => {
                 const value = (result[row.key] as string) || '';
                 return (
                   <div key={row.key} className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">{row.label}</span>
+                      <span className="text-muted-foreground text-xs">{row.label}</span>
                       {value ? (
                         <button
                           onClick={() => copy(row.label, value)}
-                          className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs"
                           aria-label={`Copy ${row.label}`}
                         >
-                          {copied === row.label ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                          {copied === row.label ? (
+                            <Check className="h-3 w-3" />
+                          ) : (
+                            <Copy className="h-3 w-3" />
+                          )}
                           {copied === row.label ? 'Copied' : 'Copy'}
                         </button>
                       ) : null}
                     </div>
-                    <code className={`block text-xs break-all font-mono ${value ? '' : 'text-muted-foreground'}`}>
+                    <code
+                      className={`block break-all font-mono text-xs ${value ? '' : 'text-muted-foreground'}`}
+                    >
                       {value || '— not provided —'}
                     </code>
                   </div>
@@ -442,31 +484,44 @@ export default function LookupPage() {
         {mode === 'bulk' && bulkResults && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Bulk results ({Object.keys(bulkResults).length} hashes)</h3>
-              <Badge variant="secondary">{Object.values(bulkResults).filter(Boolean).length} found</Badge>
+              <h3 className="font-semibold">
+                Bulk results ({Object.keys(bulkResults).length} hashes)
+              </h3>
+              <Badge variant="secondary">
+                {Object.values(bulkResults).filter(Boolean).length} found
+              </Badge>
             </div>
-            <div className="border rounded-xl bg-card divide-y max-h-[60vh] overflow-y-auto">
+            <div className="bg-card max-h-[60vh] divide-y overflow-y-auto rounded-xl border">
               {Object.entries(bulkResults).map(([hash, data]) => (
-                <div key={hash} className="p-4 flex items-start justify-between gap-3">
+                <div key={hash} className="flex items-start justify-between gap-3 p-4">
                   <div className="min-w-0">
-                    <code className="text-xs font-mono break-all block">{hash.slice(0, 32)}…{hash.slice(-8)}</code>
-                    <code className="text-[10px] font-mono text-muted-foreground break-all">{hash}</code>
+                    <code className="block break-all font-mono text-xs">
+                      {hash.slice(0, 32)}…{hash.slice(-8)}
+                    </code>
+                    <code className="text-muted-foreground break-all font-mono text-[10px]">
+                      {hash}
+                    </code>
                     {data ? (
                       <div className="mt-1">
                         <Link
                           href={`/mod/${(data as any).project?.slug ?? ''}`}
-                          className="text-sm font-medium hover:underline inline-flex items-center gap-1"
+                          className="inline-flex items-center gap-1 text-sm font-medium hover:underline"
                         >
                           {(data as any).project?.title ?? (data as any).projectId ?? 'Project'}
                           <ArrowUpRight className="h-3 w-3" />
                         </Link>
-                        <div className="text-xs text-muted-foreground">
-                          v{(data as any).version} • {((data as any).loaders as string[])?.join(', ') || '—'} •{' '}
-                          {typeof (data as any).fileSize === 'number' ? formatBytes((data as any).fileSize) : '—'}
+                        <div className="text-muted-foreground text-xs">
+                          v{(data as any).version} •{' '}
+                          {((data as any).loaders as string[])?.join(', ') || '—'} •{' '}
+                          {typeof (data as any).fileSize === 'number'
+                            ? formatBytes((data as any).fileSize)
+                            : '—'}
                         </div>
                       </div>
                     ) : (
-                      <div className="text-sm text-muted-foreground mt-1">No match for this hash</div>
+                      <div className="text-muted-foreground mt-1 text-sm">
+                        No match for this hash
+                      </div>
                     )}
                   </div>
                   <div className="shrink-0">
@@ -493,7 +548,7 @@ export default function LookupPage() {
 function Detail({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-xs text-muted-foreground mb-1">{label}</div>
+      <div className="text-muted-foreground mb-1 text-xs">{label}</div>
       <div className="font-medium">{children}</div>
     </div>
   );

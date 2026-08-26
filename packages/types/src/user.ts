@@ -30,5 +30,4 @@ export interface UserProfile extends Omit<User, 'email' | 'emailVerified'> {
   totalDownloads: number;
 }
 
-export interface AuthUser extends Pick<User, 'id' | 'username' | 'email' | 'role'> {
-}
+export interface AuthUser extends Pick<User, 'id' | 'username' | 'email' | 'role'> {}

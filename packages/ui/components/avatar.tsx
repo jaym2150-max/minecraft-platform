@@ -5,15 +5,13 @@ interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
 }
 
-const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full', className)}
-      {...props}
-    />
-  ),
-);
+const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full', className)}
+    {...props}
+  />
+));
 Avatar.displayName = 'Avatar';
 
 interface AvatarFallbackProps extends React.HTMLAttributes<HTMLDivElement> {}
@@ -22,7 +20,10 @@ const AvatarFallback = React.forwardRef<HTMLDivElement, AvatarFallbackProps>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('flex h-full w-full items-center justify-center rounded-full bg-muted', className)}
+      className={cn(
+        'bg-muted flex h-full w-full items-center justify-center rounded-full',
+        className,
+      )}
       {...props}
     />
   ),

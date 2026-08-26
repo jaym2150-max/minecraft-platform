@@ -24,10 +24,7 @@ export class FilesController {
   @Get(':versionId/download')
   @Public()
   @HttpCode(HttpStatus.OK)
-  async download(
-    @Param('versionId') versionId: string,
-    @Req() req: Request,
-  ) {
+  async download(@Param('versionId') versionId: string, @Req() req: Request) {
     const version = await this.prisma.projectVersion.findUnique({
       where: { id: versionId },
       select: { id: true, fileUrl: true, hash: true },
@@ -41,12 +38,7 @@ export class FilesController {
     const userAgent = req.headers['user-agent'];
     const userId = (req as any).user?.id;
 
-    await this.versionsService.incrementDownloads(
-      versionId,
-      ip,
-      userAgent,
-      userId,
-    );
+    await this.versionsService.incrementDownloads(versionId, ip, userAgent, userId);
 
     const objectKey = this.filesService.getObjectKeyFromUrl(version.fileUrl);
     const downloadUrl = await this.filesService.getDownloadUrl(objectKey);

@@ -1,11 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import {
-  setupTestApp,
-  teardownTestApp,
-  cleanDatabase,
-  seedTestData,
-} from './test-helpers';
+import { setupTestApp, teardownTestApp, cleanDatabase, seedTestData } from './test-helpers';
 
 describe('Statistics E2E', () => {
   let app: INestApplication;
@@ -22,9 +17,7 @@ describe('Statistics E2E', () => {
 
   describe('GET /statistics', () => {
     it.skip('should return instance-wide statistics (requires controller)', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/statistics')
-        .expect(200);
+      const res = await request(app.getHttpServer()).get('/api/v1/statistics').expect(200);
 
       expect(res.body.data).toHaveProperty('projects');
       expect(res.body.data).toHaveProperty('versions');

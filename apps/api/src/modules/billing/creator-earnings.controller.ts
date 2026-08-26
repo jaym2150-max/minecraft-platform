@@ -18,7 +18,12 @@ export class CreatorEarningsController {
   @Get()
   async getSummary(@Req() req: any) {
     const data = await this.earningsService.getSummary(req.user.id);
-    return { statusCode: 200, message: 'Earnings summary', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: 200,
+      message: 'Earnings summary',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   /**
@@ -28,20 +33,35 @@ export class CreatorEarningsController {
   @Post('payout-account')
   async connectPayoutAccount(@Req() req: any) {
     const data = await this.earningsService.createOrGetPayoutLink(req.user.id);
-    return { statusCode: 200, message: 'Payout account link', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: 200,
+      message: 'Payout account link',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   /** Request a payout of the available balance to the connected account. */
   @Post('withdraw')
   async withdraw(@Req() req: any) {
     const data = await this.earningsService.requestWithdrawal(req.user.id);
-    return { statusCode: 200, message: 'Payout requested', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: 200,
+      message: 'Payout requested',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   /** Payout history for the current user. */
   @Get('payouts')
   async listPayouts(@Req() req: any) {
     const data = await this.earningsService.listPayouts(req.user.id);
-    return { statusCode: 200, message: 'Payout history', data, timestamp: new Date().toISOString() };
+    return {
+      statusCode: 200,
+      message: 'Payout history',
+      data,
+      timestamp: new Date().toISOString(),
+    };
   }
 }

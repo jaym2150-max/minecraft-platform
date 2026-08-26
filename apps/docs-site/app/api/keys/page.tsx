@@ -5,11 +5,19 @@ export default function ApiKeysPage() {
       <p>
         Automate uploads, sync with CI, or build a launcher integration. API keys are long-lived
         bearer tokens scoped to specific permissions - separate from your JWT session. Like
-        CurseForge&apos;s <em>Apply for an API Key</em>, our keys are self-serve: create one instantly in your
-        dashboard, no manual approval.
+        CurseForge&apos;s <em>Apply for an API Key</em>, our keys are self-serve: create one
+        instantly in your dashboard, no manual approval.
       </p>
 
-      <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px 16px', borderRadius: '8px', margin: '16px 0' }}>
+      <div
+        style={{
+          background: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          padding: '12px 16px',
+          borderRadius: '8px',
+          margin: '16px 0',
+        }}
+      >
         <strong>Self-serve:</strong> No application form. Go to <code>Settings → API Keys</code> or{' '}
         <code>POST /api-keys</code> to create one now. Keys are free for all authenticated users.
       </div>
@@ -17,9 +25,18 @@ export default function ApiKeysPage() {
       <h2>How to create a key</h2>
       <h3>Dashboard (recommended)</h3>
       <ol>
-        <li>Sign in and open <code>/settings</code> → <strong>API Keys</strong> (or <code>/dashboard/api-keys</code> if enabled).</li>
-        <li>Click <strong>New API Key</strong>, enter a name (e.g. <code>my-launcher</code>), select scopes, optionally set IP allowlist and expiry.</li>
-        <li>Copy the secret once - it is shown only at creation (<code>mcp_...</code>). Store it in <code>.env</code> as <code>MCP_API_KEY</code>.</li>
+        <li>
+          Sign in and open <code>/settings</code> → <strong>API Keys</strong> (or{' '}
+          <code>/dashboard/api-keys</code> if enabled).
+        </li>
+        <li>
+          Click <strong>New API Key</strong>, enter a name (e.g. <code>my-launcher</code>), select
+          scopes, optionally set IP allowlist and expiry.
+        </li>
+        <li>
+          Copy the secret once - it is shown only at creation (<code>mcp_...</code>). Store it in{' '}
+          <code>.env</code> as <code>MCP_API_KEY</code>.
+        </li>
       </ol>
 
       <h3>Via API (authenticated JWT required)</h3>
@@ -104,10 +121,12 @@ export default function ApiKeysPage() {
           <strong>BASIC</strong>: ~60 req/min (default, free)
         </li>
         <li>
-          <strong>PRO</strong>: higher burst for CI/launcher sync (contact via Discord or raise tier in dashboard when enabled)
+          <strong>PRO</strong>: higher burst for CI/launcher sync (contact via Discord or raise tier
+          in dashboard when enabled)
         </li>
         <li>
-          <strong>IP allowlist</strong>: restrict key to one IP/CIDR - requests from other IPs get 403 even with valid key.
+          <strong>IP allowlist</strong>: restrict key to one IP/CIDR - requests from other IPs get
+          403 even with valid key.
         </li>
       </ul>
 
@@ -133,8 +152,9 @@ await sdk.createVersion(projectId, { version: '1.0.0', uploadId: upload.data.upl
 `}</code>
       </pre>
       <p>
-        Keys are <strong>not</strong> cookies - they work in headless/CI where <code>credentials: include</code>{' '}
-        is unavailable. Browser sessions should still use the httpOnly JWT cookie (auto-sent).
+        Keys are <strong>not</strong> cookies - they work in headless/CI where{' '}
+        <code>credentials: include</code> is unavailable. Browser sessions should still use the
+        httpOnly JWT cookie (auto-sent).
       </p>
 
       <h2>Revoking &amp; rotation</h2>
@@ -154,13 +174,16 @@ DELETE /api-keys/:id
       <ul>
         <li>Keys are per-user, not per-organization. Do not share.</li>
         <li>Do not commit keys to git - use env vars or secret store.</li>
-        <li>Abuse (scraping, high-rate polling) may be rate-limited or revoked per 3rd-party T&C.</li>
+        <li>
+          Abuse (scraping, high-rate polling) may be rate-limited or revoked per 3rd-party T&C.
+        </li>
       </ul>
 
       <blockquote>
         <strong>Need help?</strong> Join Discord or open a GitHub issue. We mirror CurseForge&apos;s
-        docs structure so existing integrations port easily - see <a href="/api/projects">Projects</a>,{' '}
-        <a href="/api/versions">Versions</a>, <a href="/api/search">Search</a>.
+        docs structure so existing integrations port easily - see{' '}
+        <a href="/api/projects">Projects</a>, <a href="/api/versions">Versions</a>,{' '}
+        <a href="/api/search">Search</a>.
       </blockquote>
     </article>
   );
