@@ -118,36 +118,38 @@ export class AnalyticsService {
     });
     const userProjectIds = userProjects.map((p) => p.id);
 
-    const [projects, totalDownloads, totalViews, projectsByStatus] = await Promise.all([
-      this.prisma.project.findMany({
-        where: { authorId: userId },
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          downloads: true,
-          views: true,
-          status: true,
-          createdAt: true,
-        },
-        orderBy: { downloads: 'desc' },
-      }),
-      this.prisma.download.count({
-        where: {
-          projectId: { in: userProjectIds },
-          ...(startDate ? { createdAt: { gte: startDate } } : {}),
-        },
-      }),
-      this.prisma.project.aggregate({
-        where: { authorId: userId },
-        _sum: { views: true },
-      }),
-      this.prisma.project.groupBy({
-        by: ['status'],
-        where: { authorId: userId },
-        _count: { id: true },
-      }),
-    ]);
+    const [projects, totalDownloads, totalViews, projectsByStatus, downloadsTrend] =
+      await Promise.all([
+        this.prisma.project.findMany({
+          where: { authorId: userId },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            downloads: true,
+            views: true,
+            status: true,
+            createdAt: true,
+          },
+          orderBy: { downloads: 'desc' },
+        }),
+        this.prisma.download.count({
+          where: {
+            projectId: { in: userProjectIds },
+            ...(startDate ? { createdAt: { gte: startDate } } : {}),
+          },
+        }),
+        this.prisma.project.aggregate({
+          where: { authorId: userId },
+          _sum: { views: true },
+        }),
+        this.prisma.project.groupBy({
+          by: ['status'],
+          where: { authorId: userId },
+          _count: { id: true },
+        }),
+        this.getUserDownloadsTrend(userProjectIds, startDate, period),
+      ]);
 
     return {
       userId,
@@ -171,6 +173,7 @@ export class AnalyticsService {
         status: s.status,
         count: s._count.id,
       })),
+      downloadsTrend,
     };
   }
 
@@ -308,11 +311,86 @@ export class AnalyticsService {
       GROUP BY DATE("createdAt")
       ORDER BY date ASC
     `;
-
     return result.map((r) => ({
       date: r.date instanceof Date ? r.date.toISOString().split('T')[0] : String(r.date),
       count: Number(r.count),
     }));
+  }
+
+  /**
+   * Personal activity feed for the dashboard: recent versions released and
+   * reviews written across this user's own projects. Ordered newest first.
+   */
+  async getUserActivity(userId: string, limit: number): Promise<any[]> {
+    const userProjects = await this.prisma.project.findMany({
+      where: { authorId: userId },
+      select: { id: true, title: true, slug: true },
+    });
+    if (userProjects.length === 0) return [];
+    const projectIds = userProjects.map((p) => p.id);
+    const projectMap = new Map(userProjects.map((p) => [p.id, p]));
+    const [versions, reviews] = await Promise.all([
+      this.prisma.projectVersion.findMany({
+        where: { projectId: { in: projectIds } },
+        include: { project: { select: { title: true, slug: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      }),
+      this.prisma.review.findMany({
+        where: { projectId: { in: projectIds } },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      }),
+    ]);
+    const items: any[] = [];
+    for (const v of versions) {
+      items.push({
+        id: `release-${v.id}`,
+        type: 'release',
+        projectId: v.projectId,
+        projectTitle: v.project?.title ?? projectMap.get(v.projectId)?.title ?? 'Project',
+        projectSlug: v.project?.slug ?? projectMap.get(v.projectId)?.slug ?? '',
+        version: v.version,
+        description: `Released v${v.version}`,
+        createdAt: v.createdAt,
+      });
+    }
+    for (const r of reviews) {
+      const p = projectMap.get(r.projectId);
+      items.push({
+        id: `review-${r.id}`,
+        type: 'review',
+        projectId: r.projectId,
+        projectTitle: p?.title ?? 'Project',
+        projectSlug: p?.slug ?? '',
+        rating: r.rating,
+        description: `Left a ${r.rating}/5 review`,
+        createdAt: r.createdAt,
+      });
+    }
+    items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return items.slice(0, limit).map((i) => ({
+      ...i,
+      createdAt: i.createdAt instanceof Date ? i.createdAt.toISOString() : i.createdAt,
+    }));
+  }
+
+  private async getUserDownloadsTrend(
+    projectIds: string[],
+    startDate: Date | null,
+    period: Period,
+  ): Promise<any[]> {
+    if (projectIds.length === 0) return [];
+    const days = this.getPeriodDays(period);
+    const result = await this.prisma.$queryRaw<Array<{ date: Date; count: bigint }>>`
+      SELECT DATE("createdAt") AS date, COUNT(*) AS count
+      FROM "Download"
+      WHERE "projectId" IN (${Prisma.join(projectIds)})
+        ${startDate ? Prisma.sql`AND "createdAt" >= ${startDate}` : Prisma.empty}
+      GROUP BY DATE("createdAt")
+      ORDER BY date ASC
+    `;
+    return this.fillDayGaps(result, days);
   }
 
   private fillDayGaps(data: Array<{ date: Date; count: bigint }>, days: number): any[] {

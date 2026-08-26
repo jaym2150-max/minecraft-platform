@@ -19,7 +19,15 @@ import { Button } from '@mcp/ui/components/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@mcp/ui/components/card';
 import { Badge } from '@mcp/ui/components/badge';
 import { StatCard } from '@/components/stat-card';
-import { useDashboardProjects, DashboardProject } from '@/hooks/use-dashboard';
+import {
+  useDashboardProjects,
+  useUserAnalytics,
+  useProjectAnalytics,
+  DashboardProject,
+} from '@/hooks/use-dashboard';
+import { sdk } from '@/services/api';
+import { useQuery } from '@tanstack/react-query';
+import { timeAgo } from '@mcp/utils/helpers';
 import {
   AreaChart,
   Area,
@@ -40,63 +48,6 @@ interface ActivityItem {
   description: string;
   time: string;
 }
-
-// ── Chart Mock Data (illustrative until analytics API is available) ──
-
-const chartData = Array.from({ length: 14 }, (_, i) => {
-  const date = new Date();
-  date.setDate(date.getDate() - (13 - i));
-  return {
-    date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    downloads: Math.floor(Math.random() * 800 + 200),
-    views: Math.floor(Math.random() * 1500 + 500),
-  };
-});
-
-// ── Mock Activity (until activity endpoint is implemented) ──
-
-const recentActivity: ActivityItem[] = [
-  {
-    id: '1',
-    type: 'release',
-    project: 'Sodium',
-    projectSlug: 'sodium',
-    description: 'Released v0.12.1 for MC 1.21.1',
-    time: '2h ago',
-  },
-  {
-    id: '2',
-    type: 'review',
-    project: 'Iris Shaders',
-    projectSlug: 'iris-shaders',
-    description: 'Left a 5-star review',
-    time: '1d ago',
-  },
-  {
-    id: '3',
-    type: 'update',
-    project: 'Lithium',
-    projectSlug: 'lithium',
-    description: 'Updated description and gallery',
-    time: '2d ago',
-  },
-  {
-    id: '4',
-    type: 'release',
-    project: 'Sodium',
-    projectSlug: 'sodium',
-    description: 'Released v0.12.0 for MC 1.21',
-    time: '5d ago',
-  },
-  {
-    id: '5',
-    type: 'create',
-    project: 'DashLoader',
-    projectSlug: 'dashloader',
-    description: 'Created new project',
-    time: '2w ago',
-  },
-];
 
 const activityIcons: Record<ActivityItem['type'], React.ElementType> = {
   release: Upload,
@@ -176,48 +127,72 @@ function LoadingSkeleton() {
 
 export default function DashboardPage() {
   const { projects, stats, loading, error, refetch } = useDashboardProjects();
+  const { data: userAnalytics } = useUserAnalytics('30d');
+  const { data: activity, isLoading: activityLoading } = useQuery({
+    queryKey: ['analytics', 'activity', 'me'],
+    queryFn: async () => {
+      const res: any = await (sdk as any).getUserActivity?.(8);
+      return Array.isArray(res?.data) ? res.data : [];
+    },
+  });
   const [showAllActivity, setShowAllActivity] = useState(false);
-  const displayedActivity = showAllActivity ? recentActivity : recentActivity.slice(0, 3);
+  const displayedActivity = showAllActivity ? (activity ?? []) : (activity ?? []).slice(0, 3);
+
+  // Build the downloads chart from real analytics (last 14 days).
+  const trend = (userAnalytics as any)?.downloadsTrend as
+    Array<{ date: string; count: number }> | undefined;
+  const chartData = (
+    trend && trend.length
+      ? trend.slice(-14)
+      : Array.from({ length: 14 }, (_, i) => ({
+          date: new Date(Date.now() - (13 - i) * 86400000).toISOString().split('T')[0],
+          count: 0,
+        }))
+  ).map((p) => ({ date: p.date, downloads: p.count, views: p.count }));
+
   const weeklyDownloads = chartData.slice(-7).reduce((s, d) => s + d.downloads, 0);
   const prevWeekDownloads = chartData.slice(0, 7).reduce((s, d) => s + d.downloads, 0);
-  const downloadChange = (
-    ((weeklyDownloads - prevWeekDownloads) / prevWeekDownloads) *
-    100
-  ).toFixed(1);
+  const downloadChange =
+    prevWeekDownloads > 0
+      ? (((weeklyDownloads - prevWeekDownloads) / prevWeekDownloads) * 100).toFixed(1)
+      : '0.0';
+
+  // Pull per-project totals off the user analytics response.
+  const summary = (userAnalytics as any)?.summary ?? {};
+  const totalProjects = summary.totalProjects ?? stats.totalProjects;
+  const totalDownloads = summary.totalDownloads ?? stats.totalDownloads;
+  const totalViews = summary.totalViews ?? stats.totalViews;
+  const publishedCount = summary.publishedProjects ?? stats.publishedCount;
+  const draftCount = summary.draftProjects ?? stats.draftCount;
 
   const statCards = [
     {
       label: 'Total Projects',
-      value: String(stats.totalProjects),
+      value: String(totalProjects),
       icon: Package,
-      change: `${stats.publishedCount} published`,
+      change: `${publishedCount} published`,
       changeType: 'neutral' as const,
     },
     {
       label: 'Total Downloads',
       value:
-        stats.totalDownloads >= 1000
-          ? `${(stats.totalDownloads / 1000).toFixed(1)}K`
-          : String(stats.totalDownloads),
+        totalDownloads >= 1000 ? `${(totalDownloads / 1000).toFixed(1)}K` : String(totalDownloads),
       icon: Download,
       change: 'Across all projects',
       changeType: 'neutral' as const,
     },
     {
       label: 'Total Views',
-      value:
-        stats.totalViews >= 1000
-          ? `${(stats.totalViews / 1000).toFixed(1)}K`
-          : String(stats.totalViews),
+      value: totalViews >= 1000 ? `${(totalViews / 1000).toFixed(1)}K` : String(totalViews),
       icon: Eye,
       change: 'Across all projects',
       changeType: 'neutral' as const,
     },
     {
       label: 'Active Projects',
-      value: String(stats.publishedCount),
+      value: String(publishedCount),
       icon: Star,
-      change: `${stats.draftCount} still in draft`,
+      change: `${draftCount} still in draft`,
       changeType: 'neutral' as const,
     },
   ];
@@ -276,7 +251,7 @@ export default function DashboardPage() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                   <CardTitle>Downloads Overview</CardTitle>
-                  <CardDescription>Last 14 days (illustrative)</CardDescription>
+                  <CardDescription>Last 14 days (your projects)</CardDescription>
                 </div>
                 <Badge variant="outline" className="gap-1 text-xs">
                   <TrendingUp className="h-3 w-3 text-emerald-500" />
@@ -352,40 +327,60 @@ export default function DashboardPage() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="space-y-0">
-                  {displayedActivity.map((item, i) => (
-                    <div key={item.id} className="flex gap-3 pb-4 last:pb-0">
-                      <div className="flex flex-col items-center">
-                        <ActivityIcon type={item.type} />
-                        {i < displayedActivity.length - 1 && (
-                          <div className="bg-border mt-1 w-px flex-1" />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1 pt-1">
-                        <Link
-                          href={`/mod/${item.projectSlug}`}
-                          className="hover:text-primary text-sm font-medium transition-colors"
-                        >
-                          {item.project}
-                        </Link>
-                        <p className="text-muted-foreground mt-0.5 text-xs">{item.description}</p>
-                        <p className="text-muted-foreground/60 mt-0.5 text-[11px]">{item.time}</p>
-                      </div>
+                {activityLoading ? (
+                  <div className="text-muted-foreground py-6 text-center text-sm">
+                    Loading activity…
+                  </div>
+                ) : (activity ?? []).length === 0 ? (
+                  <div className="text-muted-foreground py-6 text-center text-sm">
+                    No recent activity yet.
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-0">
+                      {displayedActivity.map((item: any, i: number) => (
+                        <div key={item.id} className="flex gap-3 pb-4 last:pb-0">
+                          <div className="flex flex-col items-center">
+                            <ActivityIcon
+                              type={(item.type === 'comment' ? 'update' : item.type) as any}
+                            />
+                            {i < displayedActivity.length - 1 && (
+                              <div className="bg-border mt-1 w-px flex-1" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1 pt-1">
+                            <Link
+                              href={`/mod/${item.projectSlug}`}
+                              className="hover:text-primary text-sm font-medium transition-colors"
+                            >
+                              {item.projectTitle ?? item.project ?? 'Project'}
+                            </Link>
+                            <p className="text-muted-foreground mt-0.5 text-xs">
+                              {item.description}
+                            </p>
+                            <p className="text-muted-foreground/60 mt-0.5 text-[11px]">
+                              {item.createdAt ? timeAgo(item.createdAt) : ''}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                {recentActivity.length > 3 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-3 w-full gap-1"
-                    onClick={() => setShowAllActivity(!showAllActivity)}
-                  >
-                    {showAllActivity ? 'Show Less' : `View All Activity (${recentActivity.length})`}
-                    <ChevronRight
-                      className={`h-3.5 w-3.5 transition-transform ${showAllActivity ? 'rotate-90' : ''}`}
-                    />
-                  </Button>
+                    {(activity ?? []).length > 3 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-3 w-full gap-1"
+                        onClick={() => setShowAllActivity(!showAllActivity)}
+                      >
+                        {showAllActivity
+                          ? 'Show Less'
+                          : `View All Activity (${(activity ?? []).length})`}
+                        <ChevronRight
+                          className={`h-3.5 w-3.5 transition-transform ${showAllActivity ? 'rotate-90' : ''}`}
+                        />
+                      </Button>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>

@@ -1,8 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import DashboardPage from '../app/(dashboard)/dashboard/page';
 import type { DashboardStats, DashboardProject } from '@/hooks/use-dashboard';
+
+function renderWithQueryClient(ui: React.ReactNode) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
+}
 
 // ── Mock next/navigation (used by DashboardLayout) ──
 
@@ -103,6 +109,8 @@ vi.mock('@/hooks/use-dashboard', () => ({
     error: mockError,
     refetch: mockRefetch,
   }),
+  useUserAnalytics: () => ({ data: null, isLoading: false }),
+  useProjectAnalytics: () => ({ data: null, isLoading: false }),
 }));
 
 describe('DashboardPage', () => {
@@ -119,7 +127,7 @@ describe('DashboardPage', () => {
 
   it('renders a loading skeleton while data is being fetched', () => {
     mockLoading = true;
-    const { container } = render(<DashboardPage />);
+    const { container } = renderWithQueryClient(<DashboardPage />);
     // The skeleton uses animate-pulse
     const skeleton = container.querySelector('.animate-pulse');
     expect(skeleton).toBeInTheDocument();
@@ -133,14 +141,14 @@ describe('DashboardPage', () => {
 
   it('renders an error card with the error message and a retry button', () => {
     mockError = 'Failed to load projects';
-    render(<DashboardPage />);
+    renderWithQueryClient(<DashboardPage />);
     expect(screen.getByText('Failed to load projects')).toBeInTheDocument();
     expect(screen.getByText('Retry')).toBeInTheDocument();
   });
 
   it('calls refetch when the retry button is clicked', async () => {
     mockError = 'Something went wrong';
-    render(<DashboardPage />);
+    renderWithQueryClient(<DashboardPage />);
     await userEvent.click(screen.getByText('Retry'));
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
@@ -156,7 +164,7 @@ describe('DashboardPage', () => {
       publishedCount: 0,
       draftCount: 0,
     };
-    render(<DashboardPage />);
+    renderWithQueryClient(<DashboardPage />);
     expect(screen.getByText('No projects yet')).toBeInTheDocument();
     expect(screen.getByText('Create your first mod project to get started')).toBeInTheDocument();
     expect(screen.getByText('Upload a Mod')).toBeInTheDocument();
@@ -165,7 +173,7 @@ describe('DashboardPage', () => {
   // ── Stats derivation ──
 
   it('displays stat cards with derived values from the hook', () => {
-    render(<DashboardPage />);
+    renderWithQueryClient(<DashboardPage />);
     expect(screen.getByText('Total Projects: 3')).toBeInTheDocument();
     expect(screen.getByText('Total Downloads: 15.0K')).toBeInTheDocument();
     expect(screen.getByText('Total Views: 45.0K')).toBeInTheDocument();
@@ -180,7 +188,7 @@ describe('DashboardPage', () => {
       publishedCount: 1,
       draftCount: 0,
     };
-    render(<DashboardPage />);
+    renderWithQueryClient(<DashboardPage />);
     expect(screen.getByText('Total Downloads: 500')).toBeInTheDocument();
     expect(screen.getByText('Total Views: 800')).toBeInTheDocument();
   });
@@ -192,7 +200,7 @@ describe('DashboardPage', () => {
       makeProject('1', { name: 'Optifine', downloads: 12000, status: 'Published' }),
       makeProject('2', { name: 'JEI', downloads: 8000, status: 'Draft' }),
     ];
-    render(<DashboardPage />);
+    renderWithQueryClient(<DashboardPage />);
     expect(screen.getByText('Optifine')).toBeInTheDocument();
     expect(screen.getByText('JEI')).toBeInTheDocument();
     // The table headers
@@ -204,7 +212,7 @@ describe('DashboardPage', () => {
     mockProjects = Array.from({ length: 10 }, (_, i) =>
       makeProject(String(i + 1), { name: `Project ${i + 1}` }),
     );
-    render(<DashboardPage />);
+    renderWithQueryClient(<DashboardPage />);
     // Only the first 5 should appear in the table
     expect(screen.getByText('Project 1')).toBeInTheDocument();
     expect(screen.getByText('Project 5')).toBeInTheDocument();
@@ -213,25 +221,26 @@ describe('DashboardPage', () => {
 
   // ── Activity feed ──
 
-  it('shows the activity feed with mock entries', () => {
+  it('shows the activity feed with a real-data empty state when there is no user activity', async () => {
     mockProjects = [makeProject('1')];
-    render(<DashboardPage />);
+    renderWithQueryClient(<DashboardPage />);
     expect(screen.getByText('Recent Activity')).toBeInTheDocument();
-    expect(screen.getByText('Sodium')).toBeInTheDocument(); // from activity feed + projects table
-    expect(screen.getByText('View All Activity (5)')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('No recent activity yet.')).toBeInTheDocument();
+    });
   });
 
   // ── Chart renders ──
 
   it('renders the downloads chart', () => {
-    render(<DashboardPage />);
+    renderWithQueryClient(<DashboardPage />);
     expect(screen.getByText('Downloads Overview')).toBeInTheDocument();
   });
 
   // ── Header actions ──
 
   it('includes navigation buttons (View Analytics, Upload Mod)', () => {
-    render(<DashboardPage />);
+    renderWithQueryClient(<DashboardPage />);
     expect(screen.getByText('View Analytics')).toBeInTheDocument();
     expect(screen.getByText('Upload Mod')).toBeInTheDocument();
   });

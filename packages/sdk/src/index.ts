@@ -114,6 +114,10 @@ export class McpSDK {
     return this.client.get<ApiResponse<any>>(`/analytics/user?period=${period}`);
   }
 
+  async getUserActivity(limit = 20) {
+    return this.client.get<ApiResponse<any[]>>(`/analytics/user/activity?limit=${limit}`);
+  }
+
   async getProjectAnalytics(
     projectId: string,
     period: '7d' | '30d' | '90d' | '1y' | 'all' = '30d',

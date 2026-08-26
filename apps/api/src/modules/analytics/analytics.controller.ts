@@ -62,6 +62,21 @@ export class AnalyticsController {
     };
   }
 
+  @Get('user/activity')
+  @UseGuards(JwtAuthGuard)
+  async getUserActivity(@CurrentUser('id') userId: string, @Query('limit') limit = '20') {
+    const data = await this.analyticsService.getUserActivity(
+      userId,
+      Math.min(Math.max(parseInt(limit, 10) || 20, 1), 50),
+    );
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'User activity retrieved',
+      data,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
   @Get('platform')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'OWNER')

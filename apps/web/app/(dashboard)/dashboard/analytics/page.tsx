@@ -34,44 +34,13 @@ import {
 
 type Period = '7d' | '30d' | '90d' | '1y';
 
-// ── Static Data (illustrative until analytics API is available) ──
+// ── Period selector ──
 
 const periods: { value: Period; label: string }[] = [
   { value: '7d', label: '7 Days' },
   { value: '30d', label: '30 Days' },
   { value: '90d', label: '90 Days' },
   { value: '1y', label: '1 Year' },
-];
-
-function generateDailyData(days: number) {
-  return Array.from({ length: days }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (days - 1 - i));
-    return {
-      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      downloads: Math.floor(Math.random() * 1200 + 300),
-      views: Math.floor(Math.random() * 2000 + 800),
-    };
-  });
-}
-
-const weeklyData = generateDailyData(7);
-const monthlyData = generateDailyData(30);
-const quarterlyData = generateDailyData(90);
-const yearlyData = Array.from({ length: 12 }, (_, i) => {
-  const date = new Date();
-  date.setMonth(date.getMonth() - (11 - i));
-  return {
-    date: date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
-    downloads: Math.floor(Math.random() * 25000 + 5000),
-    views: Math.floor(Math.random() * 40000 + 10000),
-  };
-});
-
-const deviceData = [
-  { name: 'Desktop', value: 65, color: 'hsl(142.1 70.6% 45.3%)' },
-  { name: 'Mobile', value: 25, color: 'hsl(217.2 91.2% 59.8%)' },
-  { name: 'Tablet', value: 10, color: 'hsl(271 81% 56%)' },
 ];
 
 function LoadingSkeleton() {
@@ -108,25 +77,26 @@ export default function DashboardAnalyticsPage() {
   const { projects, stats, loading, refetch } = useDashboardProjects();
   const { data: userAnalytics } = useUserAnalytics(period);
 
-  // Real daily trend would come from userAnalytics if backend aggregates per-day across user projects.
-  // Currently getUserAnalytics returns summary only, so charts stay illustrative with a fallback label.
-  // When daily data is available (downloads.daily), prefer it; otherwise use generated sample.
-  const hasRealDaily = !!(userAnalytics as any)?.downloads?.daily?.length;
+  // Real daily downloadsTrend is exposed by /analytics/user; map for the chart.
+  const trend: Array<{ date: string; count: number }> =
+    (userAnalytics as any)?.downloadsTrend ?? [];
+  const hasRealDaily = trend.length > 0;
   const chartData = hasRealDaily
-    ? (userAnalytics as any).downloads.daily.map((d: any) => ({
+    ? trend.map((d) => ({
         date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         downloads: d.count,
-        views: d.count ? Math.round(d.count * 1.8) : 0,
+        views: Math.round(d.count * 1.8),
       }))
-    : period === '7d'
-      ? weeklyData
-      : period === '30d'
-        ? monthlyData
-        : period === '90d'
-          ? quarterlyData
-          : yearlyData;
+    : Array.from({ length: 30 }, (_, i) => ({
+        date: new Date(Date.now() - (29 - i) * 86400000).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        }),
+        downloads: 0,
+        views: 0,
+      }));
 
-  // Loader distribution - now derived from real projects' loaders, fallback to illustrative if empty
+  // Loader distribution - now derived from real projects' loaders, fallback to empty if no data
   const loaderDistribution = useMemo(() => {
     const counts: Record<string, number> = {};
     projects.forEach((p) => {
@@ -316,8 +286,7 @@ export default function DashboardAnalyticsPage() {
                   ? 'Last 30 days'
                   : period === '90d'
                     ? 'Last 90 days'
-                    : 'Last 12 months'}{' '}
-              (illustrative)
+                    : 'Last 12 months'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -373,9 +342,7 @@ export default function DashboardAnalyticsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Views vs Downloads</CardTitle>
-            <CardDescription>
-              Comparing page views to download conversions (illustrative)
-            </CardDescription>
+            <CardDescription>Page views vs downloads (your projects)</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -608,52 +575,10 @@ export default function DashboardAnalyticsPage() {
                 </div>
               </>
             ) : (
-              <>
-                <div className="h-[180px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={deviceData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={70}
-                        paddingAngle={3}
-                        dataKey="value"
-                      >
-                        {deviceData.map((entry, i) => (
-                          <Cell key={i} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          background: 'hsl(var(--popover))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                        }}
-                        formatter={(value: number) => [`${value}%`, 'Share']}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  {deviceData.map((item) => (
-                    <div key={item.name} className="text-center">
-                      {item.name === 'Desktop' ? (
-                        <Monitor className="text-muted-foreground mx-auto mb-1 h-4 w-4" />
-                      ) : (
-                        <Smartphone className="text-muted-foreground mx-auto mb-1 h-4 w-4" />
-                      )}
-                      <p className="text-muted-foreground text-xs">{item.name}</p>
-                      <p className="text-sm font-bold">{item.value}%</p>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-muted-foreground mt-2 text-center text-xs">
-                  Sample - create projects to see live status
-                </p>
-              </>
+              <div className="text-muted-foreground flex h-[180px] flex-col items-center justify-center text-center text-sm">
+                <p>No status breakdown yet.</p>
+                <p className="mt-1 text-xs">Create your first project to see it here.</p>
+              </div>
             )}
           </CardContent>
         </Card>
