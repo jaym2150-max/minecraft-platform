@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import { Providers } from './providers';
+import { PwaRegister } from '@/components/pwa-register';
 import './globals.css';
 
 const inter = Inter({
@@ -60,6 +61,22 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
   },
+  applicationName: 'Minecraft Platform',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Minecraft Platform',
+  },
+  formatDetection: { telephone: false, address: false, email: false },
+  icons: {
+    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
+    shortcut: ['/icon.svg'],
+    apple: [{ url: '/icon-maskable.svg', type: 'image/svg+xml' }],
+  },
+  manifest: '/manifest.webmanifest',
+  other: {
+    'theme-color': '#ff6a1a',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -78,6 +95,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="apple-touch-icon" href="/icon-maskable.svg" type="image/svg+xml" />
+        <meta name="theme-color" content="#ff6a1a" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="Minecraft Platform" />
+      </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <script
           type="application/ld+json"
@@ -89,7 +114,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
-        <Providers>{children}</Providers>
+        <Providers>
+          <PwaRegister />
+          {children}
+        </Providers>
       </body>
     </html>
   );
