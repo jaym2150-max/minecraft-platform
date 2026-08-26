@@ -13,6 +13,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
+import { RecommendationsService } from './recommendations.service';
 import { DependenciesService } from '../dependencies/dependencies.service';
 import { TeamsService } from '../teams/teams.service';
 import { FollowsService } from './follows.service';
@@ -35,6 +36,7 @@ export class ProjectsController {
     private readonly dependenciesService: DependenciesService,
     private readonly teamsService: TeamsService,
     private readonly followsService: FollowsService,
+    private readonly recommendations: RecommendationsService,
   ) {}
 
   @Post()
@@ -98,6 +100,27 @@ export class ProjectsController {
       statusCode: HttpStatus.OK,
       message: 'Trending projects retrieved successfully',
       data,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Public()
+  @Get('recommendations')
+  @HttpCode(HttpStatus.OK)
+  async getRecommendations(@Query('seeds') seeds?: string, @Query('limit') limit?: string) {
+    const seedList = seeds
+      ? seeds
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0)
+      : [];
+    const take = Math.min(Math.max(parseInt(limit ?? '12', 10) || 12, 1), 50);
+    const data = await this.recommendations.recommend({ seeds: seedList, limit: take });
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Recommendations retrieved successfully',
+      data,
+      meta: { total: data.length, seeds: seedList },
       timestamp: new Date().toISOString(),
     };
   }

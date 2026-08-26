@@ -327,6 +327,13 @@ export class McpSDK {
     return this.client.get<ApiResponse<Project[]>>(`/projects/${slug}/related`);
   }
 
+  async getRecommendations(seeds: string[], limit = 12) {
+    const qs = new URLSearchParams();
+    if (seeds.length) qs.set('seeds', seeds.join(','));
+    qs.set('limit', String(limit));
+    return this.client.get<ApiResponse<any[]>>(`/projects/recommendations?${qs.toString()}`);
+  }
+
   async getProjectReviews(projectId: string, page = 1, limit = 20) {
     return this.client.get<any>(`/reviews/project/${projectId}?page=${page}&limit=${limit}`);
   }

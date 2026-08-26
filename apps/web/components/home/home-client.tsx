@@ -23,6 +23,7 @@ import {
   Zap,
   Shield,
   Package,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@mcp/ui/components/button';
 import { useQuery } from '@tanstack/react-query';
@@ -66,6 +67,19 @@ function useUpdatedProjects(limit = 5) {
       const res: any = await sdk.listProjects({ sort: 'updated', limit });
       return mapHomeProjects(Array.isArray(res?.data) ? res.data : []);
     },
+    staleTime: 60_000,
+  });
+}
+
+function useRecommendedProjects(seedSlugs: string[], limit = 8) {
+  return useQuery({
+    queryKey: ['home', 'recommended', seedSlugs, limit],
+    queryFn: async () => {
+      const res: any = await (sdk as any).getRecommendations?.(seedSlugs, limit);
+      const list = Array.isArray(res?.data) ? res.data : [];
+      return mapHomeProjects(list);
+    },
+    enabled: seedSlugs.length > 0,
     staleTime: 60_000,
   });
 }
@@ -127,6 +141,14 @@ export default function HomeClient() {
   const [q, setQ] = useState('');
   const { data: trending = [], isLoading } = useTrendingProjects(8);
   const { data: updated = [], isLoading: updatedLoading } = useUpdatedProjects(5);
+  // Use the first 3 trending project slugs as recommendation seeds so the
+  // shelf is always populated and showcases a hybrid rank across co-downloads,
+  // same-loader, and content signals from the API.
+  const recommendedSeeds = (trending ?? []).slice(0, 3).map((m) => m.slug);
+  const { data: recommended = [], isLoading: recommendedLoading } = useRecommendedProjects(
+    recommendedSeeds,
+    8,
+  );
   const { data: collections = [] } = useFeaturedCollections(3);
   const { data: cats = [] } = useHomeCategories();
   const { data: stats } = useInstanceStats();
@@ -437,6 +459,79 @@ export default function HomeClient() {
           </div>
         </div>
       </section>
+
+      {/* RECOMMENDED — hybrid ranking, co-downloads + same-loader + content */}
+      {recommendedSeeds.length > 0 && (
+        <section className="bg-muted/30 border-border border-y py-10">
+          <div className="container">
+            <div className="mb-6 flex items-end justify-between gap-4">
+              <div>
+                <h2 className="text-foreground flex items-center gap-3 text-xl font-black tracking-tight sm:text-2xl">
+                  <span className="bg-primary text-primary-foreground inline-flex h-7 w-7 items-center justify-center rounded-full">
+                    <Sparkles className="h-4 w-4" />
+                  </span>
+                  RECOMMENDED FOR YOU
+                </h2>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  Picked from what people are installing alongside today&apos;s trending mods
+                </p>
+              </div>
+              <Link
+                href="/mods"
+                className="text-muted-foreground hover:text-foreground hidden items-center gap-1 text-xs font-black tracking-widest sm:inline-flex"
+              >
+                BROWSE ALL <ChevronRight className="h-4 w-4" />
+              </Link>
+            </div>
+            {recommendedLoading ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="border-border bg-muted h-[140px] animate-pulse rounded-[14px] border"
+                  />
+                ))}
+              </div>
+            ) : recommended.length === 0 ? (
+              <div className="text-muted-foreground border-border bg-card rounded-[14px] border border-dashed p-10 text-center text-sm">
+                No recommendations yet — explore the catalog to seed your profile.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {recommended.slice(0, 8).map((m) => (
+                  <Link
+                    key={m.id}
+                    href={`/mod/${m.slug}`}
+                    className="border-border bg-card hover:border-brand/40 hover:bg-accent/50 group flex items-center gap-3 rounded-[14px] border p-3 transition-colors"
+                  >
+                    <div className="bg-muted ring-border relative h-12 w-12 shrink-0 overflow-hidden rounded-[10px] ring-1">
+                      {m.iconUrl ? (
+                        <Image
+                          src={m.iconUrl}
+                          alt={m.title}
+                          fill
+                          sizes="48px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="bg-muted text-foreground flex h-full w-full items-center justify-center text-sm font-black">
+                          {m.title[0]}
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{m.title}</p>
+                      <p className="text-muted-foreground truncate text-xs">
+                        {formatNumber(m.downloads)} downloads
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* FEATURED COLLECTIONS — CurseForge curated shelf, dark stone */}
       <section className="border-border bg-muted/40 border-y py-10">
