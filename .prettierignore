@@ -12,3 +12,6 @@ apps/api/src/**/*.js
 apps/api/test/**/*.js
 !apps/api/test/jest-e2e.js
 apps/api/prisma/seed.js
+
+# Local scratch notes
+tobeimplemented.md

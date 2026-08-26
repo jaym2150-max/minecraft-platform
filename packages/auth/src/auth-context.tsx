@@ -132,7 +132,6 @@ export function AuthProvider({ children, sdk }: { children: React.ReactNode; sdk
     // not blocked by the network round trip, but failures are logged
     // rather than swallowed.
     FALLBACK_API.post<{ data: null }>('/auth/logout', {}).catch((err) => {
-       
       console.warn('[auth] server logout call failed (local state cleared):', err?.message ?? err);
     });
     setState({ user: null, token: null, isAuthenticated: false, isLoading: false });
