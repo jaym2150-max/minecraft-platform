@@ -17,7 +17,6 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 # Copy every workspace package's package.json so `pnpm install --filter ...`
 # can resolve `workspace:*` deps (e.g. @mcp/types) without the full source.
 COPY packages/auth/package.json      ./packages/auth/
-COPY packages/build/package.json      ./packages/build/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/sdk/package.json         ./packages/sdk/
 COPY packages/types/package.json       ./packages/types/

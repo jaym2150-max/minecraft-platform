@@ -14,7 +14,6 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 # All workspace packages; api transitively depends on @mcp/sdk, @mcp/types,
 # @mcp/utils, and @mcp/eslint-config (dev, needed by the build script).
 COPY packages/auth/package.json      ./packages/auth/
-COPY packages/build/package.json      ./packages/build/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/sdk/package.json         ./packages/sdk/
 COPY packages/types/package.json       ./packages/types/

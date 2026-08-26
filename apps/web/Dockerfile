@@ -18,7 +18,6 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 # compiles these workspace packages itself, so we only need their source at
 # build time — but their package.json files are required for install.
 COPY packages/auth/package.json      ./packages/auth/
-COPY packages/build/package.json      ./packages/build/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/sdk/package.json         ./packages/sdk/
 COPY packages/types/package.json       ./packages/types/
