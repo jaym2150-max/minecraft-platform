@@ -6,8 +6,8 @@ vi.mock('@mcp/auth', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-vi.mock('@/components/search-bar', () => ({
-  SearchBar: () => <div data-testid="search-bar" />,
+vi.mock('@/components/search-autocomplete', () => ({
+  SearchAutocomplete: () => <div data-testid="search-bar" />,
 }));
 
 vi.mock('@/components/theme-toggle', () => ({

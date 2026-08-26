@@ -1,10 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../../.env'), override: true });
-
 
 import { Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
@@ -16,7 +12,8 @@ const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379', 10);
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD || undefined;
 const MEILISEARCH_URL = process.env.MEILISEARCH_URL || 'http://localhost:7700';
 const MEILISEARCH_API_KEY = process.env.MEILISEARCH_API_KEY || '';
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://mcp:mcp@localhost:5432/minecraft_platform';
+const DATABASE_URL =
+  process.env.DATABASE_URL || 'postgresql://mcp:mcp@localhost:5432/minecraft_platform';
 
 const connection = new IORedis({
   host: REDIS_HOST,
@@ -105,9 +102,16 @@ async function processIndex(job: Job<IndexJobData>): Promise<any> {
     if (project.status !== 'PUBLISHED') {
       try {
         const result = await meili.index(INDEX_NAME).deleteDocument(projectId);
-        console.log(`[search-indexer] Removed non-published project ${projectId} (status=${project.status}, task: ${result.taskUid})`);
+        console.log(
+          `[search-indexer] Removed non-published project ${projectId} (status=${project.status}, task: ${result.taskUid})`,
+        );
         await job.updateProgress(100);
-        return { type: 'delete', projectId, reason: `status=${project.status}`, taskUid: result.taskUid };
+        return {
+          type: 'delete',
+          projectId,
+          reason: `status=${project.status}`,
+          taskUid: result.taskUid,
+        };
       } catch (err) {
         // deleteDocument 404s if the doc isn't in the index; that's fine —
         // we just wanted to make sure it isn't there.
@@ -215,7 +219,10 @@ let shutdownWatchdog: ReturnType<typeof setTimeout> | null = null;
 async function shutdown() {
   if (shuttingDown) return;
   shuttingDown = true;
-  shutdownWatchdog = setTimeout(() => { console.error('[search-indexer] Shutdown timed out, forcing exit'); process.exit(1); }, 25000);
+  shutdownWatchdog = setTimeout(() => {
+    console.error('[search-indexer] Shutdown timed out, forcing exit');
+    process.exit(1);
+  }, 25000);
   if (shutdownWatchdog && (shutdownWatchdog as any).unref) (shutdownWatchdog as any).unref();
   console.log('[search-indexer] Shutting down...');
   try {

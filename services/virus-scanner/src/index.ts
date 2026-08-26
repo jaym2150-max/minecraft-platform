@@ -1,10 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../../.env'), override: true });
-
 
 import { Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
@@ -24,8 +20,7 @@ const S3_BUCKET = process.env.S3_BUCKET || 'uploads';
 const S3_REGION = process.env.S3_REGION || 'us-east-1';
 
 const DATABASE_URL =
-  process.env.DATABASE_URL ||
-  'postgresql://mcp:mcp@localhost:5432/minecraft_platform';
+  process.env.DATABASE_URL || 'postgresql://mcp:mcp@localhost:5432/minecraft_platform';
 
 // B17: hard cap on the bytes we materialize into memory before a ClamAV
 // scan. The upload route already caps at 10MB, but this worker fetches the
@@ -33,7 +28,7 @@ const DATABASE_URL =
 // producer could enqueue a multi-GB object and OOM the worker. We refuse
 // to read past this cap so the worst case is one buffered object per
 // concurrency slot (2 x MAX_SOURCE_BYTES), not unbounded RAM growth.
-const MAX_SOURCE_BYTES = Number(process.env.SCAN_MAX_SOURCE_BYTES) || (64 * 1024 * 1024);
+const MAX_SOURCE_BYTES = Number(process.env.SCAN_MAX_SOURCE_BYTES) || 64 * 1024 * 1024;
 
 const QUARANTINE_DELETE = process.env.SCAN_QUARANTINE_DELETE !== 'false';
 
@@ -71,9 +66,86 @@ interface ScanJobData {
   userId?: string;
   filename: string;
   size?: number;
-  objectKey: string;
+  objectKey?: string;
   fileUrl?: string;
   hash?: string;
+  /**
+   * Optional: fetch the file from a remote HTTPS source instead of object
+   * storage. Used by the admin-only Modrinth importer, whose files live on
+   * Modrinth's CDN (not our MinIO bucket). Strictly limited to the
+   * allow-listed hosts below; anything else is refused.
+   */
+  remoteUrl?: string;
+}
+
+const REMOTE_SOURCE_HOSTS = new Set(['cdn.modrinth.com', 'api.modrinth.com']);
+const MAX_REMOTE_REDIRECTS = 5;
+
+async function fetchRemoteFile(remoteUrl: string): Promise<Buffer> {
+  let url: URL;
+  try {
+    url = new URL(remoteUrl);
+  } catch {
+    throw new Error(`Invalid remote scan source: ${remoteUrl}`);
+  }
+  const assertAllowed = (u: URL) => {
+    if (u.protocol !== 'https:') {
+      throw new Error(`Refusing non-https remote scan source: ${u.hostname}`);
+    }
+    if (!REMOTE_SOURCE_HOSTS.has(u.hostname)) {
+      throw new Error(`Remote scan source host not allowed: ${u.hostname}`);
+    }
+  };
+  assertAllowed(url);
+
+  let res = await fetch(url.toString(), {
+    redirect: 'manual',
+    signal: AbortSignal.timeout(120000),
+  });
+  // Follow redirects manually so every hop stays on the host allow-list.
+  for (
+    let hops = 0;
+    res.status === 301 || res.status === 302 || res.status === 307 || res.status === 308;
+    hops++
+  ) {
+    if (hops >= MAX_REMOTE_REDIRECTS) {
+      throw new Error(`Too many redirects fetching ${remoteUrl}`);
+    }
+    const location = res.headers.get('location');
+    if (!location) throw new Error('Redirect without Location header');
+    const next = new URL(location, url);
+    assertAllowed(next);
+    url = next;
+    await res.arrayBuffer().catch(() => {});
+    res = await fetch(url.toString(), {
+      redirect: 'manual',
+      signal: AbortSignal.timeout(120000),
+    });
+  }
+
+  if (!res.ok || !res.body) {
+    throw new Error(`Remote scan source fetch failed: HTTP ${res.status}`);
+  }
+
+  // Read through a counting accumulator so an oversized file is rejected
+  // mid-stream instead of buffering into worker OOM (same guard as the S3
+  // path, B17).
+  const reader = res.body.getReader();
+  const chunks: Buffer[] = [];
+  let received = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    received += value.byteLength;
+    if (received > MAX_SOURCE_BYTES) {
+      reader.cancel().catch(() => {});
+      throw new Error(
+        `Remote source "${remoteUrl}" exceeds ${MAX_SOURCE_BYTES} bytes — refused to load for scanning`,
+      );
+    }
+    chunks.push(Buffer.from(value));
+  }
+  return Buffer.concat(chunks);
 }
 
 // ClamAV clamd protocol:
@@ -167,7 +239,10 @@ async function scanBuffer(
       // which would flip to "clean" on signatures whose name happens to
       // contain "OK" before the trailing FOUND verb. Clamd's responses are
       // line-structured, so split on newlines and test the trimmed line(s).
-      const lines = response.split('\n').map((l) => l.trim()).filter(Boolean);
+      const lines = response
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean);
       const isClean = lines.some((line) => line.endsWith('stream: OK'));
       const detected = lines.find((line) => line.includes(' FOUND'));
       if (isClean && !detected) {
@@ -188,21 +263,15 @@ function localHeuristicScan(buffer: Buffer): {
   clean: boolean;
   signature?: string;
 } {
-  const EICAR = Buffer.from(
-    'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR',
-  );
+  const EICAR = Buffer.from('X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR');
   if (buffer.includes(EICAR)) {
     return { clean: false, signature: 'EICAR-Test-File' };
   }
   return { clean: true };
 }
 
-async function fetchObjectFromS3(
-  objectKey: string,
-): Promise<Buffer> {
-  const response = await s3.send(
-    new GetObjectCommand({ Bucket: S3_BUCKET, Key: objectKey }),
-  );
+async function fetchObjectFromS3(objectKey: string): Promise<Buffer> {
+  const response = await s3.send(new GetObjectCommand({ Bucket: S3_BUCKET, Key: objectKey }));
   if (!response.Body) {
     throw new Error(`Empty object body for key ${objectKey}`);
   }
@@ -213,8 +282,7 @@ async function fetchObjectFromS3(
   const chunks: Buffer[] = [];
   let received = 0;
   for await (const chunk of body) {
-    const byteLength =
-      typeof chunk === 'string' ? Buffer.byteLength(chunk) : chunk.byteLength;
+    const byteLength = typeof chunk === 'string' ? Buffer.byteLength(chunk) : chunk.byteLength;
     received += byteLength;
     if (received > MAX_SOURCE_BYTES) {
       // Stop the read so we don't keep pulling bytes into RAM.
@@ -223,7 +291,13 @@ async function fetchObjectFromS3(
         `Source object "${objectKey}" exceeds ${MAX_SOURCE_BYTES} bytes — refused to load for scanning`,
       );
     }
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : (Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+    chunks.push(
+      typeof chunk === 'string'
+        ? Buffer.from(chunk)
+        : Buffer.isBuffer(chunk)
+          ? chunk
+          : Buffer.from(chunk),
+    );
   }
   return Buffer.concat(chunks);
 }
@@ -231,27 +305,39 @@ async function fetchObjectFromS3(
 async function quarantineInfected(objectKey: string): Promise<void> {
   if (!QUARANTINE_DELETE) return;
   try {
-    await s3.send(
-      new DeleteObjectCommand({ Bucket: S3_BUCKET, Key: objectKey }),
-    );
+    await s3.send(new DeleteObjectCommand({ Bucket: S3_BUCKET, Key: objectKey }));
     console.log(`[virus-scanner] Quarantined (deleted) infected object: ${objectKey}`);
   } catch (err) {
-    console.error(
-      `[virus-scanner] Failed to quarantine ${objectKey}: ${(err as Error).message}`,
-    );
+    console.error(`[virus-scanner] Failed to quarantine ${objectKey}: ${(err as Error).message}`);
   }
 }
 
 async function processScan(job: Job<ScanJobData>): Promise<any> {
-  const { uploadId, projectId, projectVersionId, userId, filename, objectKey, fileUrl, hash } =
-    job.data;
+  const {
+    uploadId,
+    projectId,
+    projectVersionId,
+    userId,
+    filename,
+    objectKey,
+    fileUrl,
+    hash,
+    remoteUrl,
+  } = job.data;
 
-  console.log(`[virus-scanner] Scanning ${filename} (upload ${uploadId})...`);
+  console.log(`[virus-scanner] Scanning ${filename} (${uploadId})...`);
   await job.updateProgress(10);
 
   // Fetch the object back from storage rather than expecting a buffer in the
-  // job payload (which would never survive BullMQ serialization).
-  const fileBuffer = await fetchObjectFromS3(objectKey);
+  // job payload (which would never survive BullMQ serialization). Jobs from
+  // the Modrinth importer carry a remoteUrl instead of an objectKey (their
+  // files live on Modrinth's CDN, see fetchRemoteFile).
+  if (!objectKey && !remoteUrl) {
+    throw new Error('Scan job has neither objectKey nor remoteUrl — nothing to scan');
+  }
+  const fileBuffer = remoteUrl
+    ? await fetchRemoteFile(remoteUrl)
+    : await fetchObjectFromS3(objectKey!);
 
   await job.updateProgress(40);
 
@@ -313,9 +399,7 @@ async function processScan(job: Job<ScanJobData>): Promise<any> {
       console.warn(
         `[virus-scanner] No version record found for projectVersionId=${projectVersionId}`,
       );
-      throw new Error(
-        `Version record not found for projectVersionId=${projectVersionId}`,
-      );
+      throw new Error(`Version record not found for projectVersionId=${projectVersionId}`);
     }
 
     const ids = versions.map((v: any) => v.id);
@@ -349,8 +433,10 @@ async function processScan(job: Job<ScanJobData>): Promise<any> {
 
     // Only quarantine once the DB has durably recorded the INFECTED/REJECTED
     // verdict, so a failed quarantine never leaves a published-but-infected
-    // version behind.
-    if (!result.clean) {
+    // version behind. Remote-source scans (Modrinth import) have no object
+    // in our bucket to delete — the fileUrl simply stops resolving as soon
+    // as the version is REJECTED in the DB.
+    if (!result.clean && objectKey) {
       await quarantineInfected(objectKey);
     }
   }
@@ -374,7 +460,8 @@ async function processScan(job: Job<ScanJobData>): Promise<any> {
     signature: result.signature,
     error: result.error,
     engine: clamavAvailable ? 'clamav' : 'heuristic',
-    quarantined: !result.clean && QUARANTINE_DELETE,
+    quarantined: !result.clean && !!objectKey && QUARANTINE_DELETE,
+    source: remoteUrl ? 'remote' : 's3',
     scannedAt: new Date().toISOString(),
   };
 }
@@ -422,7 +509,10 @@ async function shutdown() {
   // the Prisma connection last (so a final DB update can still commit).
   if (shuttingDown) return;
   shuttingDown = true;
-  shutdownWatchdog = setTimeout(() => { console.error('[virus-scanner] Shutdown timed out, forcing exit'); process.exit(1); }, 25000);
+  shutdownWatchdog = setTimeout(() => {
+    console.error('[virus-scanner] Shutdown timed out, forcing exit');
+    process.exit(1);
+  }, 25000);
   if (shutdownWatchdog && (shutdownWatchdog as any).unref) (shutdownWatchdog as any).unref();
   console.log('[virus-scanner] Shutting down...');
   try {

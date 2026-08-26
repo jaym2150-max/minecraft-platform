@@ -14,14 +14,17 @@ vi.mock('@aws-sdk/client-s3', () => {
   };
 });
 
-vi.mock('@prisma/client', () => ({
-  PrismaClient: vi.fn(() => ({
-    projectVersion: {
-      findMany: vi.fn(),
-      updateMany: vi.fn(),
-    },
-  })),
-}));
+vi.mock('@prisma/client', () => {
+  // Must be a real (non-arrow) function so `new PrismaClient()` works;
+  // vi.fn(() => ...) implementations throw "not a constructor" under `new`.
+  function MockPrismaClient() {
+    this.projectVersion = {
+      findMany: vi.fn().mockResolvedValue([{ id: 'pv-1', status: 'SUBMITTED' }]),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+    };
+  }
+  return { PrismaClient: MockPrismaClient };
+});
 
 vi.mock('bullmq', () => {
   function MockWorker() {
@@ -48,7 +51,8 @@ vi.mock('net', () => {
     });
     this.connect = vi.fn((_port: number, _host: string, cb?: any) => {
       if (typeof cb === 'function') process.nextTick(cb);
-      if (typeof this._events?.connect === 'function') process.nextTick(() => this._events.connect());
+      if (typeof this._events?.connect === 'function')
+        process.nextTick(() => this._events.connect());
       return this;
     });
     this.write = vi.fn((_data: any, cb?: any) => {
@@ -149,7 +153,9 @@ describe('processScan', () => {
   it('marks as CLEAN and approved when ClamAV succeeds', async () => {
     const fileBuffer = Buffer.from('clean file content');
     mockS3Send.mockResolvedValueOnce({
-      Body: (async function* () { yield fileBuffer; })(),
+      Body: (async function* () {
+        yield fileBuffer;
+      })(),
     });
 
     const mockJob = {
@@ -191,7 +197,9 @@ describe('processScan', () => {
   it('handles DB update failure gracefully', async () => {
     const fileBuffer = Buffer.from('clean');
     mockS3Send.mockResolvedValueOnce({
-      Body: (async function* () { yield fileBuffer; })(),
+      Body: (async function* () {
+        yield fileBuffer;
+      })(),
     });
 
     const mockJob = {

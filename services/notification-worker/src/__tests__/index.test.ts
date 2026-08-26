@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 
 const mockPrisma = {
   user: { findUnique: vi.fn() },
@@ -34,8 +34,6 @@ vi.mock('ioredis', () => {
   }
   return { default: MockRedis };
 });
-
-process.env.ALLOWED_WEBHOOK_DOMAINS = 'hooks.example.com,api.example.org';
 
 const { escapeHtml, safeUrl, isWebhookAllowed, processNotification, TYPE_TEMPLATES } =
   await import('../index.js');
@@ -104,6 +102,13 @@ describe('safeUrl', () => {
 });
 
 describe('isWebhookAllowed', () => {
+  // The worker's dotenv bootstrap (override:true) re-reads the root .env at
+  // import time and blanks this var, so set it AFTER the dynamic import. The
+  // allowlist is read at call time, so assignment here is effective.
+  beforeAll(() => {
+    process.env.ALLOWED_WEBHOOK_DOMAINS = 'hooks.example.com,api.example.org';
+  });
+
   it('allows exact match domain', () => {
     expect(isWebhookAllowed('https://hooks.example.com/notify')).toBe(true);
   });
@@ -225,9 +230,7 @@ describe('processNotification', () => {
       updateProgress: vi.fn(),
     } as any;
 
-    await expect(processNotification(mockJob)).rejects.toThrow(
-      'User nonexistent not found',
-    );
+    await expect(processNotification(mockJob)).rejects.toThrow('User nonexistent not found');
   });
 
   it('skips email if user email is not verified', async () => {

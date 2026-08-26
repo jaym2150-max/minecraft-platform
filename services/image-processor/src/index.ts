@@ -1,10 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../../.env'), override: true });
-
 
 import { Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
@@ -51,7 +47,13 @@ interface ImageJobData {
   sourceBucket?: string;
   filename: string;
   mimeType: string;
-  variants?: Array<{ name: string; width: number; height?: number; quality?: number; format?: 'webp' | 'jpeg' | 'png' }>;
+  variants?: Array<{
+    name: string;
+    width: number;
+    height?: number;
+    quality?: number;
+    format?: 'webp' | 'jpeg' | 'png';
+  }>;
   userId?: string;
   // LEGACY fields kept only so an older producer's in-flight job doesn't crash
   // the worker — they're no longer produced by GalleryService. `buffer` is
@@ -135,9 +137,7 @@ async function processImage(job: Job<ImageJobData>): Promise<any> {
   // `.rotate()` applies EXIF orientation so phone shots land upright; we do
   // NOT call `.withMetadata()` on any output variant, which would re-embed
   // the EXIF (and any GPS/lens data) into the public thumbnails.
-  const metadata = await sharp(inputBuffer)
-    .rotate()
-    .metadata();
+  const metadata = await sharp(inputBuffer).rotate().metadata();
   if (
     typeof metadata.width === 'number' &&
     typeof metadata.height === 'number' &&
@@ -158,13 +158,11 @@ async function processImage(job: Job<ImageJobData>): Promise<any> {
     const progressBase = 30 + Math.floor((i / totalVariants) * 60);
     await job.updateProgress(progressBase);
 
-    let pipeline = sharp(inputBuffer)
-      .rotate()
-      .resize(variant.width, variant.height, {
-        fit: 'cover',
-        position: 'center',
-        withoutEnlargement: true,
-      });
+    let pipeline = sharp(inputBuffer).rotate().resize(variant.width, variant.height, {
+      fit: 'cover',
+      position: 'center',
+      withoutEnlargement: true,
+    });
 
     const targetFormat = variant.format ?? 'webp';
     const targetMime =
@@ -194,8 +192,8 @@ async function processImage(job: Job<ImageJobData>): Promise<any> {
         CacheControl: 'public, max-age=31536000, immutable',
         Metadata: {
           'source-filename': filename,
-          'variant': variant.name,
-          'width': String(variant.width),
+          variant: variant.name,
+          width: String(variant.width),
         },
       }),
     );
@@ -267,7 +265,10 @@ async function shutdown() {
   // await in-flight, THEN close Redis.
   if (shuttingDown) return;
   shuttingDown = true;
-  shutdownWatchdog = setTimeout(() => { console.error('[image-processor] Shutdown timed out, forcing exit'); process.exit(1); }, 25000);
+  shutdownWatchdog = setTimeout(() => {
+    console.error('[image-processor] Shutdown timed out, forcing exit');
+    process.exit(1);
+  }, 25000);
   if (shutdownWatchdog && (shutdownWatchdog as any).unref) (shutdownWatchdog as any).unref();
   console.log('[image-processor] Shutting down...');
   try {

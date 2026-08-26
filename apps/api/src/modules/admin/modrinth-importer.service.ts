@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import type { Queue } from 'bullmq';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { htmlToMarkdown, looksLikeHtml } from './html-to-markdown';
 
@@ -58,14 +60,23 @@ interface MrVersion {
   game_versions: string[];
   loaders: string[];
   downloads: number;
-  files: Array<{ url: string; filename: string; primary: boolean; size: number; hashes: Record<string, string> }>;
+  files: Array<{
+    url: string;
+    filename: string;
+    primary: boolean;
+    size: number;
+    hashes: Record<string, string>;
+  }>;
 }
 
 @Injectable()
 export class ModrinthImportService {
   private readonly logger = new Logger(ModrinthImportService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @InjectQueue('virus-scan') private readonly virusScanQueue: Queue,
+  ) {}
 
   private async api<T>(path: string): Promise<T | null> {
     const res = await fetch(`${API}${path}`, { headers: { 'User-Agent': UA } });
@@ -149,30 +160,38 @@ export class ModrinthImportService {
     let licenseId: string | null = null;
     const licId = (full.license?.id ?? '').toUpperCase();
     if (licId && licId !== 'UNKNOWN') {
-      const lic = await this.prisma.license.upsert({
-        where: { shortId: licId },
-        update: {},
-        create: { shortId: licId, name: full.license?.name ?? licId, type: 'UNKNOWN' as any, featured: false },
-      }).catch(() => null);
+      const lic = await this.prisma.license
+        .upsert({
+          where: { shortId: licId },
+          update: {},
+          create: {
+            shortId: licId,
+            name: full.license?.name ?? licId,
+            type: 'UNKNOWN' as any,
+            featured: false,
+          },
+        })
+        .catch(() => null);
       licenseId = lic?.id ?? null;
     }
 
     // Category match by slug or name (best-effort; nullable in schema)
     const catSlugs = full.categories ?? [];
     let categoryId: string | null = null;
-    for (const cSlug of catSlugs.length ? catSlugs : full.display_categories ?? []) {
+    for (const cSlug of catSlugs.length ? catSlugs : (full.display_categories ?? [])) {
       const cat = await this.prisma.category.findFirst({
         where: { OR: [{ slug: cSlug }, { name: { equals: cSlug, mode: 'insensitive' } }] },
       });
-      if (cat) { categoryId = cat.id; break; }
+      if (cat) {
+        categoryId = cat.id;
+        break;
+      }
     }
 
     // Modrinth serves bodies as HTML — convert to markdown for our renderer.
     const rawBody: string | null =
       typeof full.body === 'string' && full.body.trim().length > 40 ? full.body : null;
-    const bodyMd = rawBody
-      ? (looksLikeHtml(rawBody) ? htmlToMarkdown(rawBody) : rawBody)
-      : null;
+    const bodyMd = rawBody ? (looksLikeHtml(rawBody) ? htmlToMarkdown(rawBody) : rawBody) : null;
 
     const project = await this.prisma.project.upsert({
       where: { slug: hit.slug },
@@ -202,7 +221,6 @@ export class ModrinthImportService {
         discordUrl: full.discord_url ?? null,
         wikiUrl: full.issues_url ?? null,
         downloads: hit.downloads,
-        views: Math.floor(hit.downloads * 2.4),
         status: 'PUBLISHED' as any,
         projectType: this.mapProjectType(full.project_type) as any,
         authorId: author.id,
@@ -213,7 +231,11 @@ export class ModrinthImportService {
       },
     });
 
-    // Versions: latest 3, primary file only, CLEAN/APPROVED (scanned upstream)
+    // Versions: latest 3, primary file only. Versions are APPROVED (this admin
+    // import IS the moderation action for trusted upstream projects) but keep
+    // the schema-default scanStatus PENDING — downloads stay gated until the
+    // virus-scanner worker actually ClamAV-scans the remote file (see the
+    // scan enqueue below). Never stamp CLEAN without a local scan.
     const vs = (versionsRes ?? []).slice(0, 3);
     for (let i = 0; i < vs.length; i++) {
       const v = vs[i];
@@ -236,27 +258,65 @@ export class ModrinthImportService {
           hashSha1: file.hashes.sha1 ?? null,
           downloads: v.downloads,
           status: 'APPROVED' as any,
-          scanStatus: 'CLEAN' as any,
           projectId: project.id,
         },
       });
+
+      // Enqueue a real scan: the worker fetches the file from Modrinth's
+      // CDN (remoteUrl, host-allowlisted) and flips scanStatus CLEAN/INFECTED.
+      // Failures must not abort the whole import — the version simply stays
+      // PENDING (non-downloadable) and can be re-queued.
+      try {
+        await this.virusScanQueue.add(
+          'scan-modrinth',
+          {
+            uploadId: `modrinth-import:${pv.id}`,
+            projectId: project.id,
+            projectVersionId: pv.id,
+            filename: file.filename,
+            size: file.size,
+            fileUrl: file.url,
+            remoteUrl: file.url,
+            hash: file.hashes.sha512 ?? undefined,
+          },
+          {
+            attempts: 5,
+            backoff: { type: 'exponential', delay: 10000 },
+            removeOnComplete: { age: 86400 },
+            removeOnFail: { age: 604800 },
+          },
+        );
+      } catch (err: any) {
+        this.logger.warn(
+          `Failed to enqueue virus scan for ${hit.slug} ${v.version_number}: ${err?.message}`,
+        );
+      }
 
       // Loader × game-version rows power the game-version facet filter.
       const loaders = v.loaders.map((l) => LOADER_MAP[l]).filter(Boolean);
       const gvs = v.game_versions.slice(0, 6);
       for (const l of loaders) {
         for (const gv of gvs) {
-          await this.prisma.loader.create({
-            data: { type: l as any, versionString: gv, projectId: project.id, versionId: pv.id },
-          }).catch(() => {});
+          await this.prisma.loader
+            .create({
+              data: { type: l as any, versionString: gv, projectId: project.id, versionId: pv.id },
+            })
+            .catch(() => {});
         }
       }
       if (loaders.length === 0) {
         // resource/data-pack style: no loader, but keep game-version rows
         for (const gv of gvs) {
-          await this.prisma.loader.create({
-            data: { type: 'FABRIC' as any, versionString: gv, projectId: project.id, versionId: pv.id },
-          }).catch(() => {});
+          await this.prisma.loader
+            .create({
+              data: {
+                type: 'FABRIC' as any,
+                versionString: gv,
+                projectId: project.id,
+                versionId: pv.id,
+              },
+            })
+            .catch(() => {});
         }
       }
     }
@@ -267,30 +327,41 @@ export class ModrinthImportService {
     if (!hasGallery && gallery.length) {
       for (let gi = 0; gi < gallery.length; gi++) {
         const g = gallery[gi];
-        await this.prisma.galleryImage.create({
-          data: {
-            type: 'IMAGE' as any,
-            url: g.url,
-            alt: g.title ?? `${hit.title} screenshot ${gi + 1}`,
-            width: 800, height: 450,
-            order: gi + 1,
-            projectId: project.id,
-          },
-        }).catch(() => {});
+        await this.prisma.galleryImage
+          .create({
+            data: {
+              type: 'IMAGE' as any,
+              url: g.url,
+              alt: g.title ?? `${hit.title} screenshot ${gi + 1}`,
+              width: 800,
+              height: 450,
+              order: gi + 1,
+              projectId: project.id,
+            },
+          })
+          .catch(() => {});
       }
     }
   }
 
   private mapProjectType(mrType: string): string {
     switch (mrType) {
-      case 'modpack': return 'MODPACK';
-      case 'resourcepack': return 'RESOURCE_PACK';
-      case 'shader': return 'SHADER';
-      case 'datapack': return 'DATA_PACK';
-      case 'plugin': return 'PLUGIN';
-      default: return 'MOD';
+      case 'modpack':
+        return 'MODPACK';
+      case 'resourcepack':
+        return 'RESOURCE_PACK';
+      case 'shader':
+        return 'SHADER';
+      case 'datapack':
+        return 'DATA_PACK';
+      case 'plugin':
+        return 'PLUGIN';
+      default:
+        return 'MOD';
     }
   }
 
-  private sleep(ms: number) { return new Promise((r) => setTimeout(r, ms)); }
+  private sleep(ms: number) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
 }

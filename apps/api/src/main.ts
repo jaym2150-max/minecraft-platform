@@ -13,10 +13,10 @@ import { validateEnv as validateEnvZod } from './common/env';
 
 const envSchema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
-  JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters').refine(
-    (v) => v !== process.env.JWT_SECRET,
-    'JWT_REFRESH_SECRET must differ from JWT_SECRET',
-  ),
+  JWT_REFRESH_SECRET: z
+    .string()
+    .min(32, 'JWT_REFRESH_SECRET must be at least 32 characters')
+    .refine((v) => v !== process.env.JWT_SECRET, 'JWT_REFRESH_SECRET must differ from JWT_SECRET'),
   CSRF_SECRET: z.string().min(32, 'CSRF_SECRET must be at least 32 characters'),
   DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
   REDIS_URL: z.string().url('REDIS_URL must be a valid URL').optional(),
@@ -27,7 +27,9 @@ const envSchema = z.object({
 function validateEnv() {
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
-    const missing = result.error.errors.map((e) => `  ${e.path.join('.')}: ${e.message}`).join('\n');
+    const missing = result.error.errors
+      .map((e) => `  ${e.path.join('.')}: ${e.message}`)
+      .join('\n');
     throw new Error(`Environment validation failed:\n${missing}`);
   }
 }
@@ -127,7 +129,10 @@ async function bootstrap() {
   );
 
   app.use((_req: any, res: any, next: any) => {
-    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
+    res.setHeader(
+      'Permissions-Policy',
+      'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+    );
     next();
   });
 
@@ -137,8 +142,8 @@ async function bootstrap() {
       .setTitle('Minecraft Platform API')
       .setDescription(
         'Public REST API for browsing projects, versions, and user profiles. ' +
-        'Authenticated endpoints require a JWT token (from web login) or an API key ' +
-        '(set via `X-API-Key` header or `Authorization: Bearer mp_...`).',
+          'Authenticated endpoints require a JWT token (from web login) or an API key ' +
+          '(set via `X-API-Key` header or `Authorization: Bearer mp_...`).',
       )
       .setVersion('1.0')
       .addServer(`http://localhost:${configService.get('API_PORT', 4000)}`)
@@ -150,7 +155,9 @@ async function bootstrap() {
     SwaggerModule.setup('docs', app, document, {
       swaggerOptions: { persistAuthorization: true },
     });
-    logger.log(`Swagger docs available at http://localhost:${configService.get('API_PORT', 4000)}/docs`);
+    logger.log(
+      `Swagger docs available at http://localhost:${configService.get('API_PORT', 4000)}/docs`,
+    );
   } else {
     logger.log('Swagger docs disabled in production');
   }
@@ -170,7 +177,9 @@ async function bootstrap() {
   }
 
   app.enableCors({
-    origin: allowedOrigins.length ? allowedOrigins : ['http://localhost:3003'],
+    origin: allowedOrigins.length
+      ? allowedOrigins
+      : ['http://localhost:3003', 'http://localhost:3001'],
     credentials: true,
   });
 
@@ -214,10 +223,7 @@ async function bootstrap() {
         // Strip the query string for the comparison so that
         // `/api/v1/auth/oauth/exchange?x=1` still matches.
         const path = url.split('?')[0];
-        return (
-          req.method === 'POST' &&
-          path === '/api/v1/auth/oauth/exchange'
-        );
+        return req.method === 'POST' && path === '/api/v1/auth/oauth/exchange';
       },
     });
     app.use(doubleCsrfProtection);

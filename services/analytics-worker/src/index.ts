@@ -1,10 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../../.env'), override: true });
-
 
 import { Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
@@ -78,7 +74,10 @@ async function processAnalytics(job: Job<AnalyticsJobData>): Promise<any> {
         // silent catch lets the analytics index diverge from reality with
         // no observability. BullMQ will retry the job; the catch keeps the
         // worker process alive.
-        console.warn(`[analytics-worker] download insert failed (projectId=${projectId}):`, err instanceof Error ? err.message : err);
+        console.warn(
+          `[analytics-worker] download insert failed (projectId=${projectId}):`,
+          err instanceof Error ? err.message : err,
+        );
       });
       break;
     }
@@ -91,7 +90,10 @@ async function processAnalytics(job: Job<AnalyticsJobData>): Promise<any> {
         INSERT INTO analytics_events (type, project_id, user_id, ip, user_agent, country, created_at)
         VALUES (${'install'}, ${projectId}, ${userId ?? null}, ${ip ?? null}, ${userAgent ?? null}, ${country ?? null}, NOW())
       `.catch((err: unknown) => {
-        console.warn(`[analytics-worker] install insert failed (projectId=${projectId}):`, err instanceof Error ? err.message : err);
+        console.warn(
+          `[analytics-worker] install insert failed (projectId=${projectId}):`,
+          err instanceof Error ? err.message : err,
+        );
       });
       break;
     }
@@ -162,7 +164,10 @@ async function shutdown() {
   // close path while the first await is in progress.
   if (shuttingDown) return;
   shuttingDown = true;
-  shutdownWatchdog = setTimeout(() => { console.error('[analytics-worker] Shutdown timed out, forcing exit'); process.exit(1); }, 25000);
+  shutdownWatchdog = setTimeout(() => {
+    console.error('[analytics-worker] Shutdown timed out, forcing exit');
+    process.exit(1);
+  }, 25000);
   if (shutdownWatchdog && (shutdownWatchdog as any).unref) (shutdownWatchdog as any).unref();
   console.log('[analytics-worker] Shutting down...');
   try {

@@ -35,6 +35,7 @@ Thumbs.db
 
 # Logs
 *.log
+*.dev.err
 logs/
 npm-debug.log*
 api.log
@@ -105,3 +106,7 @@ infrastructure/cloudflare/.dev.vars
 todo.md
 prompt.md
 directorytree.md
+check_db.php
+
+# Stale compiled JS shadowing TypeScript sources (build output, never source)
+apps/api/src/**/*.js

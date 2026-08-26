@@ -21,6 +21,7 @@ metadata:
     name: minecraft-platform
     env: production
 
+
 # ---------------------------------------------------------------------------
 # Secrets (Opaque). Real values are NOT committed and the Secret itself is
 # NOT created by this manifest — running `kubectl apply -f deployment.yaml`
@@ -51,11 +52,18 @@ spec:
       labels:
         app: api
     spec:
+      # If the registry is private, create a docker-registry secret
+      # (kubectl create secret docker-registry mcp-registry --docker-server=...
+      # --docker-username=... --docker-password=...) and uncomment:
+      # imagePullSecrets:
+      #   - name: mcp-registry
       securityContext:
         runAsNonRoot: true
         fsGroup: 1000
       containers:
         - name: api
+          # MUST match the image built & pushed by .github/workflows/deploy.yml
+          # (`$REGISTRY/api:latest` where REGISTRY = vars.DOCKER_REGISTRY).
           image: mcp/api:latest
           imagePullPolicy: Always
           ports:
@@ -120,6 +128,7 @@ spec:
       targetPort: http
       protocol: TCP
 
+
 # ---------------------------------------------------------------------------
 # Web Deployment (@mcp/web)
 # ---------------------------------------------------------------------------
@@ -144,11 +153,18 @@ spec:
       labels:
         app: web
     spec:
+      # If the registry is private, create a docker-registry secret
+      # (kubectl create secret docker-registry mcp-registry --docker-server=...
+      # --docker-username=... --docker-password=...) and uncomment:
+      # imagePullSecrets:
+      #   - name: mcp-registry
       securityContext:
         runAsNonRoot: true
         fsGroup: 1000
       containers:
         - name: web
+          # MUST match the image built & pushed by .github/workflows/deploy.yml
+          # (`$REGISTRY/web:latest` where REGISTRY = vars.DOCKER_REGISTRY).
           image: mcp/web:latest
           imagePullPolicy: Always
           ports:
@@ -215,6 +231,7 @@ spec:
       targetPort: http
       protocol: TCP
 
+
 # ---------------------------------------------------------------------------
 # Ingress — nginx class. API on /api/v1, web on /.
 # Hosts are placeholders; substitute real domains via Kustomize overlays or
@@ -227,8 +244,8 @@ metadata:
   name: minecraft-platform
   namespace: minecraft-platform
   annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-body-size: '50m'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '300'
 spec:
   ingressClassName: nginx
   rules:
@@ -252,6 +269,7 @@ spec:
                 name: web
                 port:
                   name: http
+
 
 # ---------------------------------------------------------------------------
 # HorizontalPodAutoscalers — scale 2–10 on 70% CPU.
@@ -297,6 +315,7 @@ spec:
           type: Utilization
           averageUtilization: 70
 
+
 # ---------------------------------------------------------------------------
 # PodDisruptionBudgets — keep at least one pod available during voluntary
 # disruptions (node drains, cluster autoscaler).
@@ -323,6 +342,7 @@ spec:
   selector:
     matchLabels:
       app: web
+
 
 # ---------------------------------------------------------------------------
 # NetworkPolicy — deny-all ingress namespace-wide (defense in depth).

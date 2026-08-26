@@ -9,14 +9,22 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { Queue } from 'bullmq';
+import IORedis from 'ioredis';
 import { htmlToMarkdown, looksLikeHtml } from '../src/modules/admin/html-to-markdown';
 
 const API = 'https://api.modrinth.com/v2';
 const UA = 'minecraft-platform/dev (+https://github.com/jaym2150-max/minecraft-platform)';
 
 const LOADER_MAP: Record<string, string> = {
-  fabric: 'FABRIC', forge: 'FORGE', neoforge: 'NEOFORGE', quilt: 'QUILT',
-  bukkit: 'BUKKIT', spigot: 'SPIGOT', paper: 'PAPER', purpur: 'PURPUR',
+  fabric: 'FABRIC',
+  forge: 'FORGE',
+  neoforge: 'NEOFORGE',
+  quilt: 'QUILT',
+  bukkit: 'BUKKIT',
+  spigot: 'SPIGOT',
+  paper: 'PAPER',
+  purpur: 'PURPUR',
 };
 
 const TYPE_PLAN = [
@@ -31,6 +39,14 @@ const TYPE_PLAN = [
 const prisma = new PrismaClient();
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+const redisConnection = new IORedis({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: parseInt(process.env.REDIS_PORT || '6379', 10),
+  password: process.env.REDIS_PASSWORD || undefined,
+  maxRetriesPerRequest: null,
+});
+const virusScanQueue = new Queue('virus-scan', { connection: redisConnection });
+
 async function api<T>(path: string): Promise<T | null> {
   const res = await fetch(`${API}${path}`, { headers: { 'User-Agent': UA } });
   if (!res.ok) {
@@ -42,8 +58,11 @@ async function api<T>(path: string): Promise<T | null> {
 
 function mapProjectType(t: string): string {
   const map: Record<string, string> = {
-    modpack: 'MODPACK', resourcepack: 'RESOURCE_PACK',
-    shader: 'SHADER', datapack: 'DATA_PACK', plugin: 'PLUGIN',
+    modpack: 'MODPACK',
+    resourcepack: 'RESOURCE_PACK',
+    shader: 'SHADER',
+    datapack: 'DATA_PACK',
+    plugin: 'PLUGIN',
   };
   return map[t] ?? 'MOD';
 }
@@ -73,11 +92,18 @@ async function importOne(hit: any): Promise<void> {
   let licenseId: string | null = null;
   const licShortId = (full?.license?.id ?? '').toUpperCase();
   if (licShortId && licShortId !== 'UNKNOWN') {
-    const lic = await prisma.license.upsert({
-      where: { shortId: licShortId },
-      update: {},
-      create: { shortId: licShortId, name: full?.license?.name ?? licShortId, type: 'UNKNOWN' as any, featured: false },
-    }).catch(() => null);
+    const lic = await prisma.license
+      .upsert({
+        where: { shortId: licShortId },
+        update: {},
+        create: {
+          shortId: licShortId,
+          name: full?.license?.name ?? licShortId,
+          type: 'UNKNOWN' as any,
+          featured: false,
+        },
+      })
+      .catch(() => null);
     licenseId = lic?.id ?? null;
   }
 
@@ -86,7 +112,10 @@ async function importOne(hit: any): Promise<void> {
     const cat = await prisma.category.findFirst({
       where: { OR: [{ slug: cSlug }, { name: { equals: cSlug, mode: 'insensitive' } }] },
     });
-    if (cat) { categoryId = cat.id; break; }
+    if (cat) {
+      categoryId = cat.id;
+      break;
+    }
   }
 
   const rawBody: string | null =
@@ -119,7 +148,6 @@ async function importOne(hit: any): Promise<void> {
       discordUrl: full?.discord_url ?? null,
       wikiUrl: full?.issues_url ?? null,
       downloads: hit.downloads,
-      views: Math.floor(hit.downloads * 2.4),
       status: 'PUBLISHED' as any,
       projectType: mapProjectType(full?.project_type ?? 'mod') as any,
       authorId: author.id,
@@ -130,13 +158,19 @@ async function importOne(hit: any): Promise<void> {
     },
   });
 
-  // Latest 3 versions with real files
+  // Latest 3 versions with real files. Versions stay with the schema-default
+  // scanStatus PENDING: downloads are gated on a genuine local ClamAV scan
+  // (versions.service). We enqueue a real virus-scan job per version below
+  // (the worker fetches the file from Modrinth's CDN and stamps CLEAN /
+  // INFECTED). Never stamp CLEAN up front.
   const vs = (versionsRes ?? []).slice(0, 3);
   for (const v of vs) {
     const file = v.files.find((f: any) => f.primary) ?? v.files[0];
     if (!file) continue;
     const exists = await prisma.projectVersion.findUnique({
-      where: { projectId_version: { projectId: project.id, version: v.version_number.slice(0, 100) } },
+      where: {
+        projectId_version: { projectId: project.id, version: v.version_number.slice(0, 100) },
+      },
     });
     if (exists) continue;
 
@@ -152,18 +186,45 @@ async function importOne(hit: any): Promise<void> {
         hashSha1: file.hashes?.sha1 ?? null,
         downloads: v.downloads,
         status: 'APPROVED' as any,
-        scanStatus: 'CLEAN' as any,
         projectId: project.id,
       },
     });
+
+    await virusScanQueue
+      .add(
+        'scan-modrinth',
+        {
+          uploadId: `modrinth-import:${pv.id}`,
+          projectId: project.id,
+          projectVersionId: pv.id,
+          filename: file.filename,
+          size: file.size,
+          fileUrl: file.url,
+          remoteUrl: file.url,
+          hash: file.hashes?.sha512 ?? undefined,
+        },
+        {
+          attempts: 5,
+          backoff: { type: 'exponential', delay: 10000 },
+          removeOnComplete: { age: 86400 },
+          removeOnFail: { age: 604800 },
+        },
+      )
+      .catch((err: any) =>
+        console.warn(
+          `  ⚠ scan enqueue failed for ${hit.slug} ${v.version_number}: ${err?.message}`,
+        ),
+      );
 
     const loaders = v.loaders.map((l: string) => LOADER_MAP[l]).filter(Boolean);
     const gvs = v.game_versions.slice(0, 6);
     for (const l of loaders.length ? loaders : ['FABRIC']) {
       for (const gv of gvs) {
-        await prisma.loader.create({
-          data: { type: l as any, versionString: gv, projectId: project.id, versionId: pv.id },
-        }).catch(() => {});
+        await prisma.loader
+          .create({
+            data: { type: l as any, versionString: gv, projectId: project.id, versionId: pv.id },
+          })
+          .catch(() => {});
       }
     }
   }
@@ -173,15 +234,19 @@ async function importOne(hit: any): Promise<void> {
   if (!hasGallery && galleryRes?.length) {
     for (let gi = 0; gi < Math.min(4, galleryRes.length); gi++) {
       const g = galleryRes[gi];
-      await prisma.galleryImage.create({
-        data: {
-          type: 'IMAGE' as any,
-          url: g.url,
-          alt: g.title ?? `${hit.title} screenshot ${gi + 1}`,
-          width: 800, height: 450, order: gi + 1,
-          projectId: project.id,
-        },
-      }).catch(() => {});
+      await prisma.galleryImage
+        .create({
+          data: {
+            type: 'IMAGE' as any,
+            url: g.url,
+            alt: g.title ?? `${hit.title} screenshot ${gi + 1}`,
+            width: 800,
+            height: 450,
+            order: gi + 1,
+            projectId: project.id,
+          },
+        })
+        .catch(() => {});
     }
   }
 }
@@ -195,7 +260,9 @@ async function main() {
   for (const { mrType, take } of TYPE_PLAN) {
     const cap = limitPerType ? Math.min(take, limitPerType) : take;
     const facets = encodeURIComponent(JSON.stringify([[`project_type:${mrType}`]]));
-    const search = await api<{ hits: any[] }>(`/search?limit=${cap}&index=downloads&facets=${facets}`);
+    const search = await api<{ hits: any[] }>(
+      `/search?limit=${cap}&index=downloads&facets=${facets}`,
+    );
     if (!search?.hits?.length) continue;
     for (const hit of search.hits) {
       try {
@@ -220,10 +287,19 @@ async function main() {
     await prisma.project.update({ where: { id: t.id }, data: { featured: true } });
   }
 
-  console.log(`\n✅ Imported ${importedSlugs.length} projects in ${((Date.now() - started) / 1000).toFixed(0)}s`);
+  console.log(
+    `\n✅ Imported ${importedSlugs.length} projects in ${((Date.now() - started) / 1000).toFixed(0)}s`,
+  );
   console.log(`   projects total: ${await prisma.project.count()}`);
 }
 
 main()
-  .catch((e) => { console.error('❌ Import failed:', e); process.exit(1); })
-  .finally(async () => { await prisma.$disconnect(); });
+  .catch((e) => {
+    console.error('❌ Import failed:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await virusScanQueue.close().catch(() => {});
+    await redisConnection.quit().catch(() => {});
+    await prisma.$disconnect();
+  });
