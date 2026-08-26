@@ -34,9 +34,11 @@ describe('VersionTable', () => {
     expect(screen.getByText(/No versions published yet/i)).toBeInTheDocument();
   });
 
-  it('renders loader column headers', () => {
-    render(<VersionTable versions={[makeVersion()]} />);
-    expect(screen.getByText('FORGE')).toBeInTheDocument();
+  it('renders loader columns only for loaders the project publishes', () => {
+    render(<VersionTable versions={[makeVersion({ loader: 'Fabric' })]} />);
+    expect(screen.getByText('FABRIC')).toBeInTheDocument();
+    // single-loader project no longer renders 7 empty loader columns
+    expect(screen.queryByText('FORGE')).not.toBeInTheDocument();
   });
 
   it('renders version row with MC version', () => {
@@ -51,8 +53,17 @@ describe('VersionTable', () => {
     expect(buttons.length).toBeGreaterThan(0);
   });
 
-  it('renders dashes for unsupported loader cells', () => {
-    render(<VersionTable versions={[makeVersion({ loader: 'Fabric' })]} />);
+  it('renders dashes for unsupported loader cells when multiple loaders exist', () => {
+    render(
+      <VersionTable
+        versions={[
+          makeVersion({ loader: 'Fabric' }),
+          makeVersion({ id: 'v2', version: '2.0.0', loader: 'Forge' }),
+        ]}
+      />,
+    );
+    expect(screen.getByText('FABRIC')).toBeInTheDocument();
+    expect(screen.getByText('FORGE')).toBeInTheDocument();
     const dashes = screen.getAllByText('—');
     expect(dashes.length).toBeGreaterThan(0);
   });

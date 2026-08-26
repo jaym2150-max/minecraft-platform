@@ -13,9 +13,6 @@ import {
   Settings,
   LifeBuoy,
   Shield,
-  Users,
-  Flag,
-  TrendingUp,
   Loader2,
 } from 'lucide-react';
 import { Navbar } from './navbar';
@@ -30,13 +27,9 @@ const sidebarLinks = [
   { href: '/dashboard/billing', label: 'Billing', icon: CreditCard },
 ];
 
-const adminSidebarLinks = [
-  { href: '/admin', label: 'Overview', icon: BarChart3 },
-  { href: '/admin', label: 'Projects', icon: Package },
-  { href: '/admin', label: 'Users', icon: Users },
-  { href: '/admin', label: 'Reports', icon: Flag },
-  { href: '/admin', label: 'Analytics', icon: TrendingUp },
-];
+// The web app's /admin route is a single tabbed page, so the sidebar shows
+// one entry instead of five fake deep-links that all pointed at /admin.
+const adminSidebarLinks = [{ href: '/admin', label: 'Admin Panel', icon: BarChart3 }];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -55,10 +48,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   // admin/page.tsx + settings/page.tsx continue to run after we re-render.
   if (authLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="flex min-h-screen flex-col">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center" data-testid="auth-loading">
-          <div className="flex items-center gap-3 text-muted-foreground">
+        <div className="flex flex-1 items-center justify-center" data-testid="auth-loading">
+          <div className="text-muted-foreground flex items-center gap-3">
             <Loader2 className="h-5 w-5 animate-spin" />
             <p>Loading...</p>
           </div>
@@ -87,13 +80,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col">
       <Navbar />
-      <div className="flex-1 flex">
+      <div className="flex flex-1">
         {/* Sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 border-r bg-card shrink-0">
-          <nav className="flex-1 p-4 space-y-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 pb-2">
+        <aside className="bg-card hidden w-64 shrink-0 flex-col border-r lg:flex">
+          <nav className="flex-1 space-y-1 p-4">
+            <p className="text-muted-foreground px-3 pb-2 text-xs font-medium uppercase tracking-wider">
               {isAdminPage ? 'Admin' : 'Dashboard'}
             </p>
             {links.map((link) => {
@@ -109,82 +102,77 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 >
                   <Icon className="h-4 w-4" />
                   {link.label}
-                  {isActive && <ChevronRight className="h-3.5 w-3.5 ml-auto opacity-60" />}
+                  {isActive && <ChevronRight className="ml-auto h-3.5 w-3.5 opacity-60" />}
                 </Link>
               );
             })}
             {!isAdminPage && isAdmin && (
               <>
-                <div className="pt-4 pb-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3">
+                <div className="pb-2 pt-4">
+                  <p className="text-muted-foreground px-3 text-xs font-medium uppercase tracking-wider">
                     Admin
                   </p>
                 </div>
-                <Link
-                  href="/admin"
-                  className={linkClass(pathname === '/admin')}
-                >
+                <Link href="/admin" className={linkClass(pathname === '/admin')}>
                   <Shield className="h-4 w-4" />
                   Admin Panel
-                  {pathname === '/admin' && <ChevronRight className="h-3.5 w-3.5 ml-auto opacity-60" />}
+                  {pathname === '/admin' && (
+                    <ChevronRight className="ml-auto h-3.5 w-3.5 opacity-60" />
+                  )}
                 </Link>
               </>
             )}
           </nav>
-          <div className="p-4 border-t space-y-1">
+          <div className="space-y-1 border-t p-4">
             <Link
               href="/settings"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all"
             >
               <Settings className="h-4 w-4" />
               Settings
             </Link>
             <Link
-              href="#"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+              href="/faq"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all"
             >
               <LifeBuoy className="h-4 w-4" />
-              Support
+              Help &amp; FAQ
             </Link>
           </div>
         </aside>
 
-        {/* Mobile tabs */}
-        <div className="lg:hidden w-full">
-          <nav className="flex border-b bg-card sticky top-16 z-40 overflow-x-auto">
-            {links.map((link) => {
-              const isActive = isAdminPage
-                ? pathname === '/admin' && link.label === 'Overview'
-                : pathname === link.href;
-              const Icon = link.icon;
-              return (
-                <Link
-                  key={`${link.href}-${link.label}`}
-                  href={link.href}
-                  className={mobileLinkClass(isActive)}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {link.label}
+        {/* Content column — mobile tabs above a single content region so
+            children (and the skip-link target) are rendered once, not
+            duplicated per breakpoint. */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="w-full lg:hidden">
+            <nav className="bg-card sticky top-16 z-40 flex overflow-x-auto border-b">
+              {links.map((link) => {
+                const isActive = pathname === link.href;
+                const Icon = link.icon;
+                return (
+                  <Link
+                    key={`${link.href}-${link.label}`}
+                    href={link.href}
+                    className={mobileLinkClass(isActive)}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {link.label}
+                  </Link>
+                );
+              })}
+              {!isAdminPage && isAdmin && (
+                <Link href="/admin" className={mobileLinkClass(pathname === '/admin')}>
+                  <Shield className="h-3.5 w-3.5" />
+                  Admin
                 </Link>
-              );
-            })}
-            {!isAdminPage && isAdmin && (
-              <Link
-                href="/admin"
-                className={mobileLinkClass(pathname === '/admin')}
-              >
-                <Shield className="h-3.5 w-3.5" />
-                Admin
-              </Link>
-            )}
-          </nav>
-          <div className="bg-muted/30">{children}</div>
+              )}
+            </nav>
+          </div>
+          <main id="main-content" className="bg-muted/30 flex-1 overflow-auto">
+            {children}
+          </main>
         </div>
-
-        {/* Desktop content */}
-        <main className="hidden lg:block flex-1 bg-muted/30 overflow-auto">
-          {children}
-        </main>
       </div>
       <Footer />
     </div>

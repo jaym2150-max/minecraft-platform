@@ -1,61 +1,51 @@
 'use client';
 
-import { useState } from 'react';
-import { Save } from 'lucide-react';
+import { Info } from 'lucide-react';
+
+/**
+ * Platform configuration lives in deployment env vars and infrastructure
+ * files (docker-compose / Kubernetes manifests), not in this UI. The
+ * previous version of this page showed a form with a fake "Settings saved!"
+ * confirmation that persisted nothing — that was removed.
+ */
+const CONFIG_SOURCES = [
+  { key: 'Site name & metadata', where: 'apps/web/app/layout.tsx (Next.js metadata)' },
+  { key: 'API URL / CORS origins', where: 'apps/api/.env, ALLOWED_CORS_ORIGINS' },
+  { key: 'Storage (S3/CDN)', where: 'S3_ENDPOINT, S3_BUCKET, CDN_DOMAIN env vars' },
+  { key: 'Email / notifications', where: 'notification-worker env vars' },
+  { key: 'Feature flags & maintenance mode', where: 'deployment manifests (docker-compose / k8s)' },
+];
 
 export default function AdminSettingsPage() {
-  const [saved, setSaved] = useState(false);
-
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-slate-600 mt-1">Manage platform configuration.</p>
+        <p className="mt-1 text-slate-600">
+          Platform configuration is managed via deployment configuration.
+        </p>
       </div>
 
       <div className="rounded-lg border bg-white">
-        <div className="p-6 border-b">
-          <h2 className="font-semibold">Platform Settings</h2>
+        <div className="flex items-start gap-3 border-b p-6">
+          <Info className="mt-0.5 h-5 w-5 text-slate-500" />
+          <div>
+            <h2 className="font-semibold">Where configuration lives</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              This dashboard is intentionally read-only. Changes take effect on the next
+              deployment/restart.
+            </p>
+          </div>
         </div>
-        <div className="p-6 space-y-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">Site Name</label>
-            <input
-              type="text"
-              defaultValue="Minecraft Platform"
-              className="w-full px-3 py-2 border rounded-lg text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Site Description</label>
-            <textarea
-              defaultValue="Discover, download, and share Minecraft mods, modpacks, and plugins."
-              rows={3}
-              className="w-full px-3 py-2 border rounded-lg text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Maintenance Mode</label>
-            <select className="w-full px-3 py-2 border rounded-lg text-sm">
-              <option>Disabled</option>
-              <option>Enabled</option>
-            </select>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleSave}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800"
-            >
-              <Save className="h-4 w-4" />
-              Save Settings
-            </button>
-            {saved && <span className="text-sm text-emerald-600">Settings saved!</span>}
-          </div>
+        <div className="divide-y">
+          {CONFIG_SOURCES.map((c) => (
+            <div key={c.key} className="flex items-center justify-between p-4">
+              <span className="text-sm font-medium">{c.key}</span>
+              <code className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-600">
+                {c.where}
+              </code>
+            </div>
+          ))}
         </div>
       </div>
     </div>

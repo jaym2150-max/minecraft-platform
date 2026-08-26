@@ -3,9 +3,11 @@ import { Footer } from '@/components/footer';
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col">
       <Navbar />
-      {children}
+      <div id="main-content" className="flex-1">
+        {children}
+      </div>
       <Footer />
     </div>
   );

@@ -58,10 +58,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
   };
 
   return (
-    <div className="group relative rounded-xl border bg-card p-6 hover:shadow-lg transition-all hover:-translate-y-1">
+    <div className="bg-card group relative rounded-xl border p-6 transition-all hover:-translate-y-1 hover:shadow-lg">
       <Link href={`/mod/${project.slug}`} className="block">
         <div className="flex items-start gap-4">
-          <div className="relative h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors overflow-hidden">
+          <div className="bg-primary/10 group-hover:bg-primary/20 relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl transition-colors">
             {project.iconUrl ? (
               <Image
                 src={project.iconUrl}
@@ -69,7 +69,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 fill
                 sizes="64px"
                 className="h-full w-full rounded-xl object-cover"
-                unoptimized
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
@@ -79,41 +78,38 @@ export function ProjectCard({ project }: ProjectCardProps) {
               />
             ) : null}
             <span
-              className="text-2xl font-bold text-primary absolute inset-0 flex items-center justify-center"
+              className="text-primary absolute inset-0 flex items-center justify-center text-2xl font-bold"
               style={{ display: project.iconUrl ? 'none' : 'flex' }}
             >
               {project.title[0]}
             </span>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold group-hover:text-primary transition-colors truncate">
+          <div className="min-w-0 flex-1">
+            <h3 className="group-hover:text-primary truncate font-semibold transition-colors">
               {project.title}
             </h3>
-            <p className="text-sm text-muted-foreground truncate">
+            <p className="text-muted-foreground truncate text-sm">
               by {project.author?.username || 'Unknown'}
             </p>
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-              {project.description}
-            </p>
+            <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">{project.description}</p>
           </div>
         </div>
-        <div className="mt-4 flex items-center gap-3 flex-wrap">
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <Badge variant="secondary">
-            <Download className="h-3 w-3 mr-1" />
+            <Download className="mr-1 h-3 w-3" />
             {formatNumber(project.downloads)}
           </Badge>
-          {project.latestVersion && (
-            <Badge variant="outline">{project.latestVersion}</Badge>
-          )}
+          {project.latestVersion && <Badge variant="outline">{project.latestVersion}</Badge>}
         </div>
       </Link>
 
-      {/* Inline Download — CurseForge parity */}
+      {/* Inline download — always visible on touch/small screens (there is
+          no hover there), revealed on hover for pointer devices at md+. */}
       <button
         onClick={handleDownload}
         disabled={dlState === 'loading'}
-        title={`Download ${project.title}${project.latestVersion ? ` v${project.latestVersion}` : ''}`}
-        className="absolute right-5 top-5 inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#ff6a1a] px-3.5 text-xs font-black tracking-wide text-white opacity-0 shadow-[0_6px_16px_rgba(255,106,26,0.35)] transition-all hover:bg-[#ff7a33] group-hover:opacity-100 focus:opacity-100 disabled:opacity-60"
+        aria-label={`Download ${project.title}${project.latestVersion ? ` v${project.latestVersion}` : ''}`}
+        className="bg-primary text-primary-foreground hover:bg-brand-hover absolute right-5 top-5 inline-flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-xs font-black tracking-wide opacity-100 shadow-[0_6px_16px_hsl(21_90%_55%/0.35)] transition-all focus:opacity-100 disabled:opacity-60 md:opacity-0 md:group-hover:opacity-100"
       >
         {dlState === 'loading' ? (
           <>

@@ -1,129 +1,117 @@
 'use client';
 
-import { useState } from 'react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const downloadsData = [
-  { date: 'Mon', value: 12300 },
-  { date: 'Tue', value: 15800 },
-  { date: 'Wed', value: 14200 },
-  { date: 'Thu', value: 18900 },
-  { date: 'Fri', value: 22100 },
-  { date: 'Sat', value: 28500 },
-  { date: 'Sun', value: 31200 },
-];
-
-const usersData = [
-  { date: 'Mon', value: 142 },
-  { date: 'Tue', value: 198 },
-  { date: 'Wed', value: 167 },
-  { date: 'Thu', value: 234 },
-  { date: 'Fri', value: 312 },
-  { date: 'Sat', value: 421 },
-  { date: 'Sun', value: 489 },
-];
-
-const topProjects = [
-  { name: 'Sodium', downloads: 12500000, growth: 12 },
-  { name: 'JEI', downloads: 15100000, growth: 8 },
-  { name: 'Create', downloads: 8200000, growth: 24 },
-  { name: 'Iris Shaders', downloads: 6800000, growth: 5 },
-  { name: 'Lithium', downloads: 4200000, growth: 15 },
-];
+import { useEffect, useState } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Loader2, AlertTriangle } from 'lucide-react';
+import { adminApi } from '@/lib/api';
 
 export default function AnalyticsPage() {
-  const [period, setPeriod] = useState('7d');
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await adminApi.getAnalytics();
+        if (!cancelled) setAnalytics(res?.data ?? res);
+      } catch (err: any) {
+        if (!cancelled) setError(err?.message ?? 'Failed to load analytics');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  if (error || !analytics) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Platform Analytics</h1>
+          <p className="mt-1 text-slate-600">Insights into platform-wide metrics</p>
+        </div>
+        <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+          <AlertTriangle className="mt-0.5 h-5 w-5 text-red-600" />
+          <p className="text-sm text-red-700">{error ?? 'No analytics data available.'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const cards = [
+    {
+      label: 'Total Downloads',
+      value: analytics.downloads?.total ?? 0,
+      sub: `${analytics.downloads?.today ?? 0} today`,
+    },
+    {
+      label: 'Total Users',
+      value: analytics.users?.total ?? 0,
+      sub: `${analytics.users?.banned ?? 0} banned`,
+    },
+    {
+      label: 'Total Projects',
+      value: analytics.projects?.total ?? 0,
+      sub: `${analytics.newProjectsToday ?? 0} today`,
+    },
+    {
+      label: 'Pending Reports',
+      value: analytics.reports?.pending ?? 0,
+      sub: `${analytics.reports?.total ?? 0} total`,
+    },
+  ];
+
+  const statusData = [
+    { status: 'Published', count: analytics.projects?.published ?? 0, fill: '#10b981' },
+    { status: 'Pending', count: analytics.projects?.pending ?? 0, fill: '#f59e0b' },
+    { status: 'Archived', count: analytics.projects?.archived ?? 0, fill: '#64748b' },
+    { status: 'Rejected', count: analytics.projects?.rejected ?? 0, fill: '#ef4444' },
+  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Platform Analytics</h1>
-          <p className="text-slate-600 mt-1">Insights into platform-wide metrics</p>
-        </div>
-        <div className="flex gap-2">
-          {['7d', '30d', '90d', '1y'].map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
-                period === p ? 'bg-slate-900 text-white' : 'bg-white border hover:bg-slate-50'
-              }`}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold">Platform Analytics</h1>
+        <p className="mt-1 text-slate-600">Live platform metrics from the API (no estimates)</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-sm text-slate-600">Total Downloads</p>
-          <p className="text-2xl font-bold mt-1">142,832</p>
-          <p className="text-xs text-emerald-600 mt-1">+18.2% vs last period</p>
-        </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-sm text-slate-600">New Users</p>
-          <p className="text-2xl font-bold mt-1">1,963</p>
-          <p className="text-xs text-emerald-600 mt-1">+24.7%</p>
-        </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-sm text-slate-600">New Projects</p>
-          <p className="text-2xl font-bold mt-1">89</p>
-          <p className="text-xs text-emerald-600 mt-1">+12.1%</p>
-        </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-sm text-slate-600">Avg. Session</p>
-          <p className="text-2xl font-bold mt-1">8m 32s</p>
-          <p className="text-xs text-emerald-600 mt-1">+2.4%</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-lg border bg-white p-6">
-          <h2 className="font-semibold mb-4">Daily Downloads</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={downloadsData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#0f172a" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="rounded-lg border bg-white p-6">
-          <h2 className="font-semibold mb-4">Daily New Users</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={usersData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="value" fill="#16a34a" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {cards.map((stat) => (
+          <div key={stat.label} className="rounded-lg border bg-white p-6">
+            <p className="text-sm text-slate-600">{stat.label}</p>
+            <p className="mt-1 text-2xl font-bold">{Number(stat.value).toLocaleString()}</p>
+            <p className="mt-1 text-xs text-slate-500">{stat.sub}</p>
+          </div>
+        ))}
       </div>
 
       <div className="rounded-lg border bg-white">
-        <div className="p-6 border-b">
-          <h2 className="font-semibold">Top Projects</h2>
+        <div className="border-b p-6">
+          <h2 className="font-semibold">Projects by Status</h2>
+          <p className="mt-0.5 text-sm text-slate-500">Current distribution across the platform</p>
         </div>
-        <div className="divide-y">
-          {topProjects.map((p, i) => (
-            <div key={p.name} className="flex items-center gap-4 p-4">
-              <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold">
-                {i + 1}
-              </div>
-              <div className="flex-1">
-                <p className="font-medium">{p.name}</p>
-                <p className="text-sm text-slate-600">{p.downloads.toLocaleString('en-US')} downloads</p>
-              </div>
-              <span className="text-sm text-emerald-600 font-medium">+{p.growth}%</span>
-            </div>
-          ))}
+        <div className="h-72 p-6">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={statusData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="status" tick={{ fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+              <Tooltip />
+              <Bar dataKey="count" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>

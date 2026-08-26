@@ -1,11 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  content: [
-    './app/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    '../../packages/ui/**/*.{ts,tsx}',
-  ],
+  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', '../../packages/ui/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
@@ -15,6 +11,13 @@ const config: Config = {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
+        },
+        brand: {
+          DEFAULT: 'hsl(var(--brand))',
+          foreground: 'hsl(var(--brand-foreground))',
+          deep: 'hsl(var(--brand-deep))',
+          light: 'hsl(var(--brand-light))',
+          hover: 'hsl(var(--brand-hover))',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',

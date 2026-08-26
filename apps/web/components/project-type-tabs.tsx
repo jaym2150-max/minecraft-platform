@@ -31,29 +31,32 @@ export function ProjectTypeTabs({ selected, onSelect, counts, className }: Proje
   const active = selected.length === 1 ? selected[0] : selected.length === 0 ? null : selected[0];
 
   return (
-    <div className={cn('sticky top-16 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80', className)}>
+    <div
+      className={cn(
+        'bg-card/95 supports-[backdrop-filter]:bg-card/80 sticky top-16 z-40 border-b backdrop-blur',
+        className,
+      )}
+    >
       <div className="container">
         <div
-          className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-2 -mb-px scroll-smooth snap-x"
+          className="scrollbar-hide -mb-px flex snap-x items-center gap-1 overflow-x-auto scroll-smooth py-2"
           role="tablist"
           aria-label="Project type"
         >
           {TABS.map((tab) => {
-            const isActive =
-              (tab.value === null && selected.length === 0) || active === tab.value;
+            const isActive = (tab.value === null && selected.length === 0) || active === tab.value;
             const count = tab.value ? counts?.[tab.value] : undefined;
             return (
               <button
                 key={tab.label}
                 role="tab"
                 aria-selected={isActive}
-                aria-pressed={isActive}
                 onClick={() => onSelect(tab.value)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors border',
+                  'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors',
                   isActive
                     ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                    : 'bg-background hover:bg-muted border-transparent hover:border-border text-muted-foreground hover:text-foreground',
+                    : 'bg-background hover:bg-muted hover:border-border text-muted-foreground hover:text-foreground border-transparent',
                 )}
               >
                 {tab.label}
@@ -61,7 +64,9 @@ export function ProjectTypeTabs({ selected, onSelect, counts, className }: Proje
                   <span
                     className={cn(
                       'ml-1 rounded-full px-1.5 py-0.5 text-[11px] leading-none',
-                      isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-muted-foreground',
+                      isActive
+                        ? 'bg-primary-foreground/20 text-primary-foreground'
+                        : 'bg-muted text-muted-foreground',
                     )}
                   >
                     {count.toLocaleString()}

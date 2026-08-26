@@ -29,6 +29,13 @@ const config: Config = {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
         },
+        brand: {
+          DEFAULT: 'hsl(var(--brand))',
+          foreground: 'hsl(var(--brand-foreground))',
+          deep: 'hsl(var(--brand-deep))',
+          light: 'hsl(var(--brand-light))',
+          hover: 'hsl(var(--brand-hover))',
+        },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
