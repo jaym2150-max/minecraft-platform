@@ -19,5 +19,9 @@ jobs:
           node-version: 20
           cache: 'pnpm'
       - run: pnpm install
+      # Generate the Prisma client before lint: worker-service `tsc --noEmit`
+      # imports `PrismaClient` from @prisma/client, which only exists after
+      # `prisma generate` (needs no live DB).
+      - run: pnpm --filter @mcp/api db:generate
       - run: pnpm format:check
       - run: pnpm lint

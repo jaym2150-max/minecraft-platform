@@ -69,6 +69,12 @@ jobs:
           node-version: 20
           cache: 'pnpm'
       - run: pnpm install
+      # Generate the Prisma client BEFORE build/typecheck/lint: the worker
+      # services import `PrismaClient` from @prisma/client, which only exists
+      # after `prisma generate`. Otherwise their `tsc --noEmit` fails with
+      # TS2305 (no exported member 'PrismaClient'). `prisma generate` needs no
+      # live DB, so it can run immediately after install.
+      - run: pnpm --filter @mcp/api db:generate
       - run: pnpm build
       # Typecheck shared packages + workers (their `lint` script is `tsc --noEmit`).
       # App ESLint runs separately via `pnpm lint` below.
@@ -79,7 +85,6 @@ jobs:
         run: pnpm --filter @mcp/web exec tsc --noEmit
       - run: pnpm lint
       - run: pnpm --filter @mcp/web test
-      - run: pnpm --filter @mcp/api db:generate
       # Apply committed migrations to the throwaway test DB (NOT
       # `db:push --accept-data-loss`, which can silently drop columns when
       # the schema drifts from a migration baseline). `migrate deploy` is the
