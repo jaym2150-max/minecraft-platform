@@ -17,16 +17,26 @@ export interface VersionTableProps {
 
 function loaderColor(loader: string): string {
   const map: Record<string, string> = {
-    FABRIC: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/30',
-    FORGE: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-500/30',
-    NEOFORGE: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-500/30',
-    QUILT: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30',
-    BUKKIT: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/30',
-    SPIGOT: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/30',
+    FABRIC:
+      'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/30',
+    FORGE:
+      'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-500/30',
+    NEOFORGE:
+      'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-500/30',
+    QUILT:
+      'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30',
+    BUKKIT:
+      'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/30',
+    SPIGOT:
+      'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/30',
     PAPER: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/30',
-    PURPUR: 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-200 dark:border-pink-500/30',
+    PURPUR:
+      'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-200 dark:border-pink-500/30',
   };
-  return map[loader.toUpperCase()] ?? 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-500/30';
+  return (
+    map[loader.toUpperCase()] ??
+    'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-500/30'
+  );
 }
 
 function normalizeLoader(loader: string): string {
@@ -42,16 +52,36 @@ function normalizeLoader(loader: string): string {
   return trimmed;
 }
 
-const DEFAULT_LOADERS = ['FABRIC', 'FORGE', 'NEOFORGE', 'QUILT', 'BUKKIT', 'SPIGOT', 'PAPER', 'PURPUR'];
+const DEFAULT_LOADERS = [
+  'FABRIC',
+  'FORGE',
+  'NEOFORGE',
+  'QUILT',
+  'BUKKIT',
+  'SPIGOT',
+  'PAPER',
+  'PURPUR',
+];
 
-export function VersionTable({ versions, className, onDownload, downloadingId }: VersionTableProps) {
+export function VersionTable({
+  versions,
+  className,
+  onDownload,
+  downloadingId,
+}: VersionTableProps) {
+  // Only render columns for loaders this project actually publishes. The
+  // previous implementation always emitted all 8 loader columns, leaving a
+  // row of "—" cells when a mod only supports one loader.
   const loaders = React.useMemo(() => {
-    const set = new Set<string>(DEFAULT_LOADERS);
+    const present = new Set<string>();
     for (const v of versions) {
-      if (v.loader) set.add(normalizeLoader(v.loader));
+      if (v.loader) present.add(normalizeLoader(v.loader));
     }
-    return Array.from(set);
+    const known = DEFAULT_LOADERS.filter((l) => present.has(l));
+    const extras = Array.from(present).filter((l) => !DEFAULT_LOADERS.includes(l));
+    return [...known, ...extras];
   }, [versions]);
+  const singleLoader = loaders.length === 1;
 
   const rows = React.useMemo(() => {
     const map = new Map<string, VersionDisplay>();
@@ -71,22 +101,25 @@ export function VersionTable({ versions, className, onDownload, downloadingId }:
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border bg-card p-8 text-center text-muted-foreground">
+      <div className="bg-card text-muted-foreground rounded-xl border p-8 text-center">
         No versions published yet.
       </div>
     );
   }
 
   return (
-    <div className={cn('overflow-x-auto rounded-xl border bg-card', className)}>
+    <div className={cn('bg-card overflow-x-auto rounded-xl border', className)}>
       <table className="w-full text-sm" data-testid="version-table">
         <thead>
-          <tr className="border-b bg-muted/40">
-            <th className="text-left font-medium px-4 py-3 sticky left-0 bg-muted/40 z-10 min-w-[180px]">
+          <tr className="bg-muted/40 border-b">
+            <th className="bg-muted/40 sticky left-0 z-10 min-w-[180px] px-4 py-3 text-left font-medium">
               Version
             </th>
             {loaders.map((loader, i) => (
-              <th key={`${loader}-${i}`} className="px-2 py-3 text-center font-medium min-w-[90px]">
+              <th
+                key={`${loader}-${i}`}
+                className={cn('px-2 py-3 text-center font-medium', !singleLoader && 'min-w-[90px]')}
+              >
                 <span
                   className={cn(
                     'inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
@@ -97,28 +130,52 @@ export function VersionTable({ versions, className, onDownload, downloadingId }:
                 </span>
               </th>
             ))}
-            <th className="px-4 py-3 text-right font-medium min-w-[120px]">Downloads</th>
-            <th className="px-4 py-3 text-right font-medium hidden md:table-cell min-w-[140px]">Released</th>
+            {loaders.length === 0 && <th className="px-2 py-3 text-center font-medium">Files</th>}
+            <th className="min-w-[120px] px-4 py-3 text-right font-medium">Downloads</th>
+            <th className="hidden min-w-[140px] px-4 py-3 text-right font-medium md:table-cell">
+              Released
+            </th>
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={`${row.id}-${row.version}`} className="border-b last:border-b-0 hover:bg-muted/30">
-              <td className="px-4 py-3 sticky left-0 bg-card z-10">
+            <tr
+              key={`${row.id}-${row.version}`}
+              className="hover:bg-muted/30 border-b last:border-b-0"
+            >
+              <td className="bg-card sticky left-0 z-10 px-4 py-3">
                 <div className="flex flex-col">
                   <span className="font-medium">v{row.version}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-muted-foreground text-xs">
                     {row.minecraft ? `MC ${row.minecraft}` : 'No MC version'}
                   </span>
                 </div>
               </td>
+              {loaders.length === 0 && (
+                <td className="px-2 py-3 text-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 gap-1 px-2 text-xs"
+                    onClick={() => onDownload?.(row)}
+                    disabled={downloadingId === row.id}
+                  >
+                    {downloadingId === row.id ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Download className="h-3 w-3" />
+                    )}
+                    Download
+                  </Button>
+                </td>
+              )}
               {loaders.map((loader, i) => (
                 <td key={`${loader}-${i}`} className="px-2 py-3 text-center">
                   {isAvailable(row, loader) ? (
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-7 px-2 text-xs gap-1"
+                      className="h-7 gap-1 px-2 text-xs"
                       onClick={() => onDownload?.(row)}
                       disabled={downloadingId === row.id}
                     >
@@ -130,7 +187,7 @@ export function VersionTable({ versions, className, onDownload, downloadingId }:
                       Download
                     </Button>
                   ) : (
-                    <span className="text-xs text-muted-foreground/40">—</span>
+                    <span className="text-muted-foreground/40 text-xs">—</span>
                   )}
                 </td>
               ))}
@@ -139,7 +196,7 @@ export function VersionTable({ versions, className, onDownload, downloadingId }:
                   {formatNumber(row.downloadsRaw)}
                 </Badge>
               </td>
-              <td className="px-4 py-3 text-right text-xs text-muted-foreground hidden md:table-cell">
+              <td className="text-muted-foreground hidden px-4 py-3 text-right text-xs md:table-cell">
                 {formatDate(row.updatedAt)}
               </td>
             </tr>

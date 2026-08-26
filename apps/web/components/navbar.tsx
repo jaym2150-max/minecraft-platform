@@ -21,43 +21,65 @@ export function Navbar() {
         setProfileOpen(false);
       }
     }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setProfileOpen(false);
+        setIsOpen(false);
+      }
+    }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const initials = user?.username?.slice(0, 2).toUpperCase() ?? '?';
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
       <div className="container flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">MP</span>
+          <Link href="/" className="flex items-center gap-2 text-xl font-bold">
+            <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
+              <span className="text-primary-foreground text-sm font-bold">MP</span>
             </div>
             <span className="hidden sm:inline">Minecraft Platform</span>
           </Link>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/mods" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <nav className="hidden items-center gap-6 md:flex">
+            <Link
+              href="/mods"
+              className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+            >
               Browse
             </Link>
-            <Link href="/collections" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              href="/collections"
+              className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+            >
               Collections
             </Link>
-            <Link href="/lookup" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              href="/lookup"
+              className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+            >
               Lookup
             </Link>
-            <Link href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              href="/dashboard"
+              className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+            >
               Dashboard
             </Link>
           </nav>
         </div>
 
-        <div className="hidden md:flex items-center gap-4 flex-1 max-w-sm">
+        <div className="hidden max-w-sm flex-1 items-center gap-4 md:flex">
           <SearchAutocomplete className="w-full" placeholder="Search mods..." />
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden items-center gap-3 md:flex">
           <ThemeToggle />
           {/* H-F7 (AUDIT.md): during the AuthProvider's first /auth/me verify
               isAuthenticated is false and user is null, so without this gate
@@ -67,7 +89,7 @@ export function Navbar() {
               does not jump when the real chrome appears. */}
           {authLoading ? (
             <div
-              className="h-9 w-32 rounded-lg bg-muted animate-pulse"
+              className="bg-muted h-9 w-32 animate-pulse rounded-lg"
               data-testid="navbar-auth-loading"
               aria-hidden="true"
             />
@@ -75,19 +97,28 @@ export function Navbar() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted transition-colors"
+                aria-haspopup="menu"
+                aria-expanded={profileOpen}
+                aria-controls="navbar-profile-menu"
+                aria-label={`Account menu for ${user.username}`}
+                className="hover:bg-muted flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors"
               >
                 <Avatar className="h-7 w-7">
-                  <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-medium max-w-[120px] truncate">{user.username}</span>
+                <span className="max-w-[120px] truncate text-sm font-medium">{user.username}</span>
               </button>
               {profileOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-xl border bg-popover p-1 shadow-lg z-50">
-                  <div className="px-3 py-2 border-b mb-1">
-                    <p className="text-sm font-medium truncate">{user.username}</p>
+                <div
+                  id="navbar-profile-menu"
+                  role="menu"
+                  aria-label="Account"
+                  className="bg-popover absolute right-0 z-50 mt-2 w-56 rounded-xl border p-1 shadow-lg"
+                >
+                  <div className="mb-1 border-b px-3 py-2">
+                    <p className="truncate text-sm font-medium">{user.username}</p>
                     {/* C23 (AUDIT.md): the email is server-supplied PII that
                         a shoulder-surfer / DOM inspector could read off the
                         rendered node. The settings page already shows the
@@ -98,21 +129,27 @@ export function Navbar() {
                   </div>
                   <Link
                     href="/dashboard"
+                    role="menuitem"
                     onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors w-full"
+                    className="hover:bg-muted flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
                   >
                     <LayoutDashboard className="h-4 w-4" /> Dashboard
                   </Link>
                   <Link
                     href="/settings"
+                    role="menuitem"
                     onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors w-full"
+                    className="hover:bg-muted flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
                   >
                     <Settings className="h-4 w-4" /> Settings
                   </Link>
                   <button
-                    onClick={() => { setProfileOpen(false); logout(); }}
-                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted transition-colors w-full text-destructive"
+                    role="menuitem"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      logout();
+                    }}
+                    className="hover:bg-muted text-destructive flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
                   >
                     <LogOut className="h-4 w-4" /> Sign Out
                   </button>
@@ -132,33 +169,78 @@ export function Navbar() {
         </div>
 
         <button
-          className="md:hidden p-2"
+          className="p-2 md:hidden"
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Toggle menu"
+          aria-expanded={isOpen}
+          aria-controls="navbar-mobile-menu"
         >
           {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
       {isOpen && (
-        <div className="md:hidden border-t p-4 space-y-4">
+        <div id="navbar-mobile-menu" className="space-y-4 border-t p-4 md:hidden">
           <SearchAutocomplete className="w-full" placeholder="Search mods..." />
           <nav className="flex flex-col gap-2">
-            <Link href="/mods" className="text-sm font-medium py-2">Browse Mods</Link>
-            <Link href="/collections" className="text-sm font-medium py-2">Collections</Link>
-            <Link href="/lookup" className="text-sm font-medium py-2">Hash Lookup</Link>
-            <Link href="/dashboard" className="text-sm font-medium py-2">Dashboard</Link>
+            <Link
+              href="/mods"
+              onClick={() => setIsOpen(false)}
+              className="py-2 text-sm font-medium"
+            >
+              Browse Mods
+            </Link>
+            <Link
+              href="/collections"
+              onClick={() => setIsOpen(false)}
+              className="py-2 text-sm font-medium"
+            >
+              Collections
+            </Link>
+            <Link
+              href="/lookup"
+              onClick={() => setIsOpen(false)}
+              className="py-2 text-sm font-medium"
+            >
+              Hash Lookup
+            </Link>
+            <Link
+              href="/dashboard"
+              onClick={() => setIsOpen(false)}
+              className="py-2 text-sm font-medium"
+            >
+              Dashboard
+            </Link>
             {authLoading ? null : isAuthenticated && user ? (
               <>
-                <Link href="/settings" className="text-sm font-medium py-2">Settings</Link>
-                <Button variant="ghost" className="w-full justify-start text-destructive" onClick={logout}>
-                  <LogOut className="h-4 w-4 mr-2" /> Sign Out
+                <Link
+                  href="/settings"
+                  onClick={() => setIsOpen(false)}
+                  className="py-2 text-sm font-medium"
+                >
+                  Settings
+                </Link>
+                <Button
+                  variant="ghost"
+                  className="text-destructive w-full justify-start"
+                  onClick={() => {
+                    setIsOpen(false);
+                    logout();
+                  }}
+                >
+                  <LogOut className="mr-2 h-4 w-4" /> Sign Out
                 </Button>
               </>
             ) : (
               <>
-                <Link href="/auth/login" className="text-sm font-medium py-2">Sign In</Link>
-                <Button asChild className="w-full">
+                <Link
+                  href="/auth/login"
+                  onClick={() => setIsOpen(false)}
+                  className="py-2 text-sm font-medium"
+                >
+                  Sign In
+                </Link>
+                <Button asChild className="w-full" onClick={() => setIsOpen(false)}>
                   <Link href="/auth/register">Get Started</Link>
                 </Button>
               </>

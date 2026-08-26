@@ -25,16 +25,16 @@ const navItems = [
 export function AdminSidebar() {
   const pathname = usePathname();
   return (
-    <aside className="w-64 border-r bg-white min-h-screen sticky top-0 flex flex-col">
-      <div className="p-6 border-b">
-        <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg">
-          <div className="h-8 w-8 rounded-lg bg-slate-900 flex items-center justify-center">
-            <ShieldAlert className="h-4 w-4 text-white" />
+    <aside className="sticky top-0 flex min-h-screen w-64 flex-col border-r bg-white">
+      <div className="border-b p-6">
+        <Link href="/dashboard" className="flex items-center gap-2 text-lg font-bold">
+          <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
+            <ShieldAlert className="text-primary-foreground h-4 w-4" />
           </div>
           <span>Admin</span>
         </Link>
       </div>
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 space-y-1 p-4">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
@@ -42,9 +42,10 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              aria-current={isActive ? 'page' : undefined}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-slate-900 text-white'
+                  ? 'bg-primary text-primary-foreground'
                   : 'text-slate-700 hover:bg-slate-100'
               }`}
             >
@@ -54,17 +55,17 @@ export function AdminSidebar() {
           );
         })}
       </nav>
-      <div className="p-4 border-t space-y-1">
+      <div className="space-y-1 border-t p-4">
         <Link
           href="/settings"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
         >
           <Settings className="h-4 w-4" />
           Settings
         </Link>
         <Link
           href="/"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
         >
           <LogOut className="h-4 w-4" />
           Exit Admin

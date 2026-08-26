@@ -3,10 +3,15 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 /**
- * CurseForge-style numbered pagination ("1 2 3 … 500").
+ * Numbered pagination ("1 2 3 … 500").
  * Renders a window of pages around the current one with ellipses.
+ * Uses semantic theme tokens so it renders in both light and dark mode.
  */
-export function Pagination({ page, totalPages, onPage }: {
+export function Pagination({
+  page,
+  totalPages,
+  onPage,
+}: {
   page: number;
   totalPages: number;
   onPage: (page: number) => void;
@@ -29,9 +34,10 @@ export function Pagination({ page, totalPages, onPage }: {
 
   const btn =
     'inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-3 text-sm font-bold transition-colors';
-  const idle = 'border-zinc-800 bg-zinc-900 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800 hover:text-white';
-  const active = 'border-[#ff6a1a] bg-[#ff6a1a] text-white cursor-default';
-  const disabled = 'border-zinc-800 bg-zinc-900 text-zinc-600 cursor-not-allowed';
+  const idle =
+    'border-border bg-card text-foreground/80 hover:border-brand/40 hover:bg-accent hover:text-foreground';
+  const active = 'border-brand bg-primary text-primary-foreground cursor-default';
+  const disabled = 'border-border bg-card text-muted-foreground/50 cursor-not-allowed';
 
   return (
     <nav className="mt-8 flex items-center justify-center gap-1.5" aria-label="Pagination">
@@ -46,7 +52,9 @@ export function Pagination({ page, totalPages, onPage }: {
 
       {pages.map((p, i) =>
         p === '...' ? (
-          <span key={`e-${i}`} className="px-1 text-sm font-bold text-zinc-600">…</span>
+          <span key={`e-${i}`} className="text-muted-foreground/60 px-1 text-sm font-bold">
+            …
+          </span>
         ) : (
           <button
             key={p}
@@ -68,7 +76,7 @@ export function Pagination({ page, totalPages, onPage }: {
         <ChevronRight className="h-4 w-4" />
       </button>
 
-      <span className="ml-3 hidden text-xs font-bold tracking-widest text-zinc-500 sm:inline">
+      <span className="text-muted-foreground ml-3 hidden text-xs font-bold tracking-widest sm:inline">
         PAGE {page} OF {totalPages}
       </span>
     </nav>

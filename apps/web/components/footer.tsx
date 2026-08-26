@@ -26,7 +26,8 @@ const footerLinks: Record<string, FooterLink[]> = {
     process.env.NEXT_PUBLIC_GITHUB_URL
       ? { label: 'GitHub', href: process.env.NEXT_PUBLIC_GITHUB_URL, external: true }
       : null,
-    { label: 'Forums', href: '/about/forums' },
+    // /about/forums never existed — point at the real community surface
+    { label: 'Collections', href: '/collections' },
   ].filter((link): link is FooterLink => link !== null),
   Support: [
     { label: 'Documentation', href: '/docs' },
@@ -43,13 +44,13 @@ const footerLinks: Record<string, FooterLink[]> = {
 
 export function Footer() {
   return (
-    <footer className="border-t py-12 mt-auto">
+    <footer className="mt-auto border-t py-12">
       <div className="container">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
-              <h4 className="font-semibold mb-3">{title}</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="mb-3 font-semibold">{title}</h4>
+              <ul className="text-muted-foreground space-y-2 text-sm">
                 {links.map((link) => (
                   <li key={link.label}>
                     {link.external ? (
@@ -72,7 +73,7 @@ export function Footer() {
             </div>
           ))}
         </div>
-        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
+        <div className="text-muted-foreground mt-8 border-t pt-8 text-center text-sm">
           &copy; {new Date().getFullYear()} Minecraft Platform. Not affiliated with Mojang Studios.
         </div>
       </div>

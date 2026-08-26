@@ -38,7 +38,7 @@ describe('DashboardLayout', () => {
     render(
       <DashboardLayout>
         <h1>Dashboard Overview</h1>
-      </DashboardLayout>
+      </DashboardLayout>,
     );
     expect(screen.getByTestId('auth-loading')).toBeInTheDocument();
     // The public sidebar + page content must NOT render during the verify
@@ -56,7 +56,7 @@ describe('DashboardLayout', () => {
     render(
       <DashboardLayout>
         <div>Page Content</div>
-      </DashboardLayout>
+      </DashboardLayout>,
     );
     expect(screen.getByTestId('navbar')).toBeInTheDocument();
     expect(screen.getByTestId('footer')).toBeInTheDocument();
@@ -66,7 +66,7 @@ describe('DashboardLayout', () => {
     render(
       <DashboardLayout>
         <h1>Dashboard Overview</h1>
-      </DashboardLayout>
+      </DashboardLayout>,
     );
     // The main element contains the children; getByRole('main') gives us the desktop one
     const main = screen.getByRole('main');
@@ -77,7 +77,7 @@ describe('DashboardLayout', () => {
     render(
       <DashboardLayout>
         <div>Content</div>
-      </DashboardLayout>
+      </DashboardLayout>,
     );
     const sidebar = document.querySelector('aside');
     expect(sidebar).toBeInTheDocument();
@@ -87,21 +87,21 @@ describe('DashboardLayout', () => {
     expect(within(sidebar!).getByText('Uploads')).toBeInTheDocument();
   });
 
-  it('renders sidebar utility links (Settings, Support)', () => {
+  it('renders sidebar utility links (Settings, Help & FAQ)', () => {
     render(
       <DashboardLayout>
         <div>Content</div>
-      </DashboardLayout>
+      </DashboardLayout>,
     );
     expect(screen.getByText('Settings')).toBeInTheDocument();
-    expect(screen.getByText('Support')).toBeInTheDocument();
+    expect(screen.getByText(/Help & FAQ/i)).toBeInTheDocument();
   });
 
   it('has correct links pointing to dashboard pages', () => {
     render(
       <DashboardLayout>
         <div>Content</div>
-      </DashboardLayout>
+      </DashboardLayout>,
     );
     const sidebar = document.querySelector('aside');
     expect(sidebar).toBeInTheDocument();
@@ -117,7 +117,7 @@ describe('DashboardLayout', () => {
     const { container } = render(
       <DashboardLayout>
         <div>Content</div>
-      </DashboardLayout>
+      </DashboardLayout>,
     );
     // Should have an <aside> for the sidebar
     expect(container.querySelector('aside')).toBeInTheDocument();

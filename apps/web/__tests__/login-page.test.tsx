@@ -14,7 +14,9 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('next/link', () => ({
   default: ({ children, href, ...props }: any) => (
-    <a href={href} {...props}>{children}</a>
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
 }));
 
@@ -130,9 +132,7 @@ describe('LoginPage', () => {
 
     const { toast } = await import('sonner');
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith(
-        'Welcome back! You have been signed in.',
-      );
+      expect(toast.success).toHaveBeenCalledWith('Welcome back! You have been signed in.');
     });
     expect(mockPush).toHaveBeenCalledWith('/dashboard');
   });
@@ -194,10 +194,10 @@ describe('LoginPage', () => {
     const passwordInput = screen.getByLabelText('Password');
     expect(passwordInput).toHaveAttribute('type', 'password');
 
-    await user.click(screen.getByRole('button', { name: '' }));
+    await user.click(screen.getByRole('button', { name: /show password/i }));
     expect(passwordInput).toHaveAttribute('type', 'text');
 
-    await user.click(screen.getByRole('button', { name: '' }));
+    await user.click(screen.getByRole('button', { name: /hide password/i }));
     expect(passwordInput).toHaveAttribute('type', 'password');
   });
 });

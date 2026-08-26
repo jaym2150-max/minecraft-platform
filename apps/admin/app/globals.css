@@ -2,18 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tokens mirror apps/web/app/globals.css — the admin panel shares the same
+   brand identity (Forge orange primary, near-black text on orange). */
 :root {
   --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
-  --primary: 142 76% 36%;
-  --primary-foreground: 0 0% 100%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
-  --border: 214 32% 91%;
+  --foreground: 240 10% 3.9%;
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --primary: 21 90% 55%;
+  --primary-foreground: 240 10% 4%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 21 90% 55%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --brand: 21 90% 55%;
+  --brand-foreground: 240 10% 4%;
+  --brand-deep: 21 100% 38%;
+  --brand-light: 24 100% 63%;
+  --brand-hover: 21 100% 60%;
+}
+
+.dark {
+  --background: 20 14.3% 4.1%;
+  --foreground: 0 0% 95%;
+  --card: 24 9.8% 10%;
+  --card-foreground: 0 0% 95%;
+  --primary: 24 100% 63%;
+  --primary-foreground: 240 10% 4%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 240 5% 64.9%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 24 100% 63%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --brand: 24 100% 63%;
+  --brand-foreground: 240 10% 4%;
+  --brand-deep: 24 100% 63%;
+  --brand-light: 24 100% 70%;
+  --brand-hover: 24 100% 68%;
 }
 
 * {

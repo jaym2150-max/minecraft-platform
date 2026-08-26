@@ -73,23 +73,24 @@ export function LiveTicker() {
   if (events.length === 0) return null;
 
   const KIND_META = {
-    update: { icon: PackagePlus, color: 'text-emerald-400', label: 'UPDATE' },
-    new: { icon: Star, color: 'text-amber-400', label: 'NEW' },
-    author: { icon: UserPlus, color: 'text-sky-400', label: 'AUTHOR' },
-    comment: { icon: MessageSquare, color: 'text-zinc-400', label: 'COMMENT' },
-    review: { icon: Star, color: 'text-rose-400', label: 'REVIEW' },
+    update: { icon: PackagePlus, color: 'text-emerald-600 dark:text-emerald-400', label: 'UPDATE' },
+    new: { icon: Star, color: 'text-amber-600 dark:text-amber-400', label: 'NEW' },
+    author: { icon: UserPlus, color: 'text-sky-600 dark:text-sky-400', label: 'AUTHOR' },
+    comment: { icon: MessageSquare, color: 'text-muted-foreground', label: 'COMMENT' },
+    review: { icon: Star, color: 'text-rose-600 dark:text-rose-400', label: 'REVIEW' },
   };
 
   const doubled = [...events, ...events];
 
   return (
     <div
-      className="border-b border-zinc-800 bg-[#101013]"
+      className="border-border bg-muted/40 border-b"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
+      aria-label="Recent platform activity"
     >
       <div className="container flex items-center gap-3 py-2">
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-red-500/10 px-2.5 py-1 text-[10px] font-black tracking-widest text-red-400">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-red-500/10 px-2.5 py-1 text-[10px] font-black tracking-widest text-red-600 dark:text-red-400">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
@@ -108,16 +109,20 @@ export function LiveTicker() {
                   className="group flex shrink-0 items-center gap-2 text-xs"
                 >
                   <Icon className={`h-3.5 w-3.5 ${Meta.color}`} />
-                  <span className="font-bold text-zinc-200 group-hover:text-[#ff8c42] transition-colors">{ev.text}</span>
-                  {ev.sub && <span className="font-semibold text-zinc-500">{ev.sub}</span>}
-                  <span className="ml-2 rounded bg-zinc-800 px-1.5 py-0.5 text-[9px] font-black tracking-widest text-zinc-400">{Meta.label}</span>
+                  <span className="text-foreground group-hover:text-brand-deep font-bold transition-colors">
+                    {ev.text}
+                  </span>
+                  {ev.sub && <span className="text-muted-foreground font-semibold">{ev.sub}</span>}
+                  <span className="bg-muted text-muted-foreground ml-2 rounded px-1.5 py-0.5 text-[9px] font-black tracking-widest">
+                    {Meta.label}
+                  </span>
                 </Link>
               );
             })}
           </div>
           {/* edge fades */}
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-[#101013] to-transparent" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-[#101013] to-transparent" />
+          <div className="from-background pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r to-transparent" />
+          <div className="from-background pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l to-transparent" />
         </div>
       </div>
     </div>

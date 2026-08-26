@@ -24,8 +24,18 @@ export const metadata: Metadata = {
   description:
     'The home for Minecraft mods, modpacks and plugins. One search, every loader (Fabric, Forge, NeoForge, Quilt), every version. Malware-scanned downloads, creator payouts, and a community of thousands.',
   keywords: [
-    'minecraft mods', 'modpacks', 'minecraft plugins', 'fabric mods', 'forge mods',
-    'neoforge', 'quilt', 'minecraft 1.21 mods', 'mod downloader', 'sodium', 'create mod', 'jei',
+    'minecraft mods',
+    'modpacks',
+    'minecraft plugins',
+    'fabric mods',
+    'forge mods',
+    'neoforge',
+    'quilt',
+    'minecraft 1.21 mods',
+    'mod downloader',
+    'sodium',
+    'create mod',
+    'jei',
   ],
   authors: [{ name: 'Minecraft Platform' }],
   openGraph: {
@@ -41,7 +51,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Minecraft Platform — Find Your Next Mod',
-    description: 'Thousands of malware-scanned Minecraft mods. Every loader, every version, one search.',
+    description:
+      'Thousands of malware-scanned Minecraft mods. Every loader, every version, one search.',
     images: ['/og'],
   },
   robots: {
@@ -51,11 +62,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   // JSON-LD structured data — SoftwareApplication/WebSite for rich Google results
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -76,6 +83,12 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <a
+          href="#main-content"
+          className="focus:bg-primary focus:text-primary-foreground sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[100] focus:rounded-md focus:px-4 focus:py-2 focus:shadow-lg"
+        >
+          Skip to content
+        </a>
         <Providers>{children}</Providers>
       </body>
     </html>
