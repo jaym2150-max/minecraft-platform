@@ -112,3 +112,19 @@ export interface ReviewStats {
   count: number;
   distribution: Record<number, number>;
 }
+
+export interface Guide {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt?: string;
+  body?: string;
+  coverUrl?: string;
+  category?: string;
+  status: string;
+  views: number;
+  featured: boolean;
+  createdAt: string;
+  updatedAt: string;
+  author?: { username: string };
+}

@@ -26,6 +26,7 @@ import { DependenciesModule } from './modules/dependencies/dependencies.module';
 import { TeamsModule } from './modules/teams/teams.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { TagsModule } from './modules/tags/tags.module';
+import { GuidesModule } from './modules/guides/guides.module';
 import { LoadersModule } from './modules/loaders/loaders.module';
 import { MinecraftVersionsModule } from './modules/minecraft-versions/minecraft-versions.module';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -119,6 +120,7 @@ import storageConfig from './config/storage.config';
     TeamsModule,
     CategoriesModule,
     TagsModule,
+    GuidesModule,
     LoadersModule,
     MinecraftVersionsModule,
     BillingModule,

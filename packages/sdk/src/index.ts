@@ -266,6 +266,19 @@ export class McpSDK {
     );
   }
 
+  async listGuides(params?: { category?: string; search?: string; limit?: number }) {
+    const qs = new URLSearchParams();
+    if (params?.category) qs.set('category', params.category);
+    if (params?.search) qs.set('search', params.search);
+    if (params?.limit) qs.set('limit', String(params.limit));
+    const s = qs.toString();
+    return this.client.get<ApiResponse<any[]>>(`/guides${s ? `?${s}` : ''}`);
+  }
+
+  async getGuide(slug: string) {
+    return this.client.get<ApiResponse<any>>(`/guides/${slug}`);
+  }
+
   async search(query: string, options?: { page?: number; limit?: number }) {
     return this.client.get<PaginatedResponse<Project>>(
       `/search?q=${encodeURIComponent(query)}&page=${options?.page || 1}&limit=${options?.limit || 20}`,
