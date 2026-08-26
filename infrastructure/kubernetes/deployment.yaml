@@ -4,11 +4,12 @@
 # Applies under namespace `minecraft-platform` (created by 00-namespace.yaml;
 # this file also declares it so it is self-contained when applied alone).
 #
-# Image tags: placeholders `mcp/api:latest` and `mcp/web:latest`. The deploy
-# workflow (.github/workflows/deploy.yml) substitutes the real tag at build
-# time before `kubectl apply`. Workers are intentionally NOT deployed here —
-# they ship as their own Services and are managed by the same CI when their
-# manifests are added; see AUDIT C13 for the worker Dockerfiles.
+# Image tags: `ghcr.io/jaym2150-max/minecraft-platform/api:latest` and
+# `ghcr.io/jaym2150-max/minecraft-platform/web:latest`. The deploy workflow
+# (.github/workflows/deploy.yml) builds and pushes to GHCR with the built-in
+# GITHUB_TOKEN, then applies this manifest. Workers are intentionally NOT
+# deployed here — they ship as their own Services and are managed by the same
+# CI when their manifests are added; see AUDIT C13 for the worker Dockerfiles.
 #
 # Apply with:
 #   kubectl apply -f infrastructure/kubernetes/deployment.yaml
@@ -52,19 +53,20 @@ spec:
       labels:
         app: api
     spec:
-      # If the registry is private, create a docker-registry secret
-      # (kubectl create secret docker-registry mcp-registry --docker-server=...
-      # --docker-username=... --docker-password=...) and uncomment:
+      # GHCR packages are set public by the deploy workflow (anonymous pull).
+      # If you keep them private instead, create a docker-registry secret
+      # (kubectl create secret docker-registry ghcr-registry --docker-server=ghcr.io
+      # --docker-username=... --docker-password=<PAT with read:packages>) and uncomment:
       # imagePullSecrets:
-      #   - name: mcp-registry
+      #   - name: ghcr-registry
       securityContext:
         runAsNonRoot: true
         fsGroup: 1000
       containers:
         - name: api
           # MUST match the image built & pushed by .github/workflows/deploy.yml
-          # (`$REGISTRY/api:latest` where REGISTRY = vars.DOCKER_REGISTRY).
-          image: mcp/api:latest
+          # (`$IMAGE_API:latest` where IMAGE_API = ghcr.io/<owner>/<repo>/api).
+          image: ghcr.io/jaym2150-max/minecraft-platform/api:latest
           imagePullPolicy: Always
           ports:
             - name: http
@@ -153,19 +155,20 @@ spec:
       labels:
         app: web
     spec:
-      # If the registry is private, create a docker-registry secret
-      # (kubectl create secret docker-registry mcp-registry --docker-server=...
-      # --docker-username=... --docker-password=...) and uncomment:
+      # GHCR packages are set public by the deploy workflow (anonymous pull).
+      # If you keep them private instead, create a docker-registry secret
+      # (kubectl create secret docker-registry ghcr-registry --docker-server=ghcr.io
+      # --docker-username=... --docker-password=<PAT with read:packages>) and uncomment:
       # imagePullSecrets:
-      #   - name: mcp-registry
+      #   - name: ghcr-registry
       securityContext:
         runAsNonRoot: true
         fsGroup: 1000
       containers:
         - name: web
           # MUST match the image built & pushed by .github/workflows/deploy.yml
-          # (`$REGISTRY/web:latest` where REGISTRY = vars.DOCKER_REGISTRY).
-          image: mcp/web:latest
+          # (`$IMAGE_WEB:latest` where IMAGE_WEB = ghcr.io/<owner>/<repo>/web).
+          image: ghcr.io/jaym2150-max/minecraft-platform/web:latest
           imagePullPolicy: Always
           ports:
             - name: http

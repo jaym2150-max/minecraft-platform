@@ -14,8 +14,22 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    permissions:
+      contents: read
+      packages: write # required to push to GHCR with the built-in GITHUB_TOKEN
     env:
-      REGISTRY: ${{ vars.DOCKER_REGISTRY || 'mcp' }}
+      # Images live in GitHub Container Registry under this repo's namespace,
+      # e.g. ghcr.io/jaym2150-max/minecraft-platform/api. GHCR auth uses the
+      # workflow's built-in GITHUB_TOKEN — no registry username/token secrets
+      # to manage (the previous docker.io setup needed DOCKER_REGISTRY_USER /
+      # DOCKER_REGISTRY_TOKEN).
+      REGISTRY: ghcr.io
+      IMAGE_API: ghcr.io/${{ github.repository }}/api
+      IMAGE_WEB: ghcr.io/${{ github.repository }}/web
+      # Infra steps self-skip until these repo secrets exist, so image
+      # build/push works before production infra is provisioned.
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
     steps:
       # `workflow_run` runs on the default branch, so we check out the head SHA
       # of the CI run we're gating on, not the workflow's own ref.
@@ -40,52 +54,60 @@ jobs:
       - name: Build packages
         run: pnpm build --filter='./packages/*'
 
-      - name: Build applications
-        run: pnpm build
-
-      - name: Run database migrations
-        run: pnpm --filter api db:migrate:prod
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
       # The app images referenced by infrastructure/kubernetes/deployment.yaml
       # (api, web) are built from their per-app Dockerfiles with the repo root
-      # as build context. The root docker-compose.yml is infra-only (minio,
-      # meilisearch, redis, clamav, mailpit) and has no app build contexts —
-      # `docker compose build` against it produces nothing, which is what this
-      # step used to do.
+      # as build context. The root docker-compose.yml is infra-only (postgres,
+      # redis, minio, meilisearch, clamav, mailpit, nginx) and has no app build
+      # contexts.
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to container registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ vars.DOCKER_REGISTRY_HOST || 'docker.io' }}
-          username: ${{ secrets.DOCKER_REGISTRY_USER }}
-          password: ${{ secrets.DOCKER_REGISTRY_TOKEN }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & push app images
         run: |
-          docker build -t "$REGISTRY/api:latest" -f apps/api/Dockerfile .
-          docker build -t "$REGISTRY/web:latest" -f apps/web/Dockerfile .
-          docker push "$REGISTRY/api:latest"
-          docker push "$REGISTRY/web:latest"
+          docker build -t "$IMAGE_API:latest" -f apps/api/Dockerfile .
+          docker build -t "$IMAGE_WEB:latest" -f apps/web/Dockerfile .
+          docker push "$IMAGE_API:latest"
+          docker push "$IMAGE_WEB:latest"
+
+      # GHCR packages default to private; the deployments (and any external
+      # puller) must be able to pull anonymously, matching the public repo.
+      - name: Make GHCR packages public
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for pkg in api web; do
+            gh api -X PATCH "/user/packages/container/${{ github.event.repository.name }}%2F${pkg}" -f visibility=public \
+              || echo "::warning::Could not set ${pkg} visibility via API — if pulls 401, set it public at https://github.com/users/${{ github.event.repository.owner.login }}/packages"
+          done
 
       - name: Scan images for vulnerabilities (trivy, fail on HIGH/CRITICAL)
         uses: aquasecurity/trivy-action@0.24.0
         with:
-          image-ref: ${{ env.REGISTRY }}/api:latest
+          image-ref: ${{ env.IMAGE_API }}:latest
           severity: HIGH,CRITICAL
           exit-code: '1'
           ignore-unfixed: true
 
+      - name: Run database migrations
+        if: ${{ env.DATABASE_URL != '' }}
+        run: pnpm --filter api db:migrate:prod
+
       - name: Deploy to Kubernetes
+        if: ${{ env.KUBE_CONFIG != '' }}
         uses: steebchen/kubectl@v2.1.1
         with:
           config: ${{ secrets.KUBE_CONFIG }}
           command: apply -f infrastructure/kubernetes/
 
       - name: Verify deployment
+        if: ${{ env.KUBE_CONFIG != '' }}
         uses: steebchen/kubectl@v2.1.1
         with:
           config: ${{ secrets.KUBE_CONFIG }}
