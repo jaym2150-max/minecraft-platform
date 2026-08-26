@@ -96,6 +96,15 @@ export class QueryProjectsDto extends PaginationDto {
   @IsString()
   author?: string;
 
+  /** Tag ids OR slugs, CSV or repeated. */
+  @IsOptional()
+  @Transform(toArray)
+  tags?: string[];
+
+  @IsOptional()
+  @IsString()
+  tag?: string;
+
   /** Bulk lookup — comma-separated ids/slugs. */
   @IsOptional()
   @IsString()

@@ -29,6 +29,8 @@ export const ProjectListQuerySchema = z
     projectTypes: z.array(z.nativeEnum(ProjectType)).optional(),
     licenses: z.array(z.string()).optional(),
     environments: z.array(z.string()).optional(),
+    tags: z.array(z.string()).optional(),
+    tag: z.string().optional(),
   })
   .passthrough();
 

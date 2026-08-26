@@ -61,6 +61,7 @@ const DEFAULT_FILTERS: BrowseFilters = {
   environments: [],
   licenseIds: [],
   gameVersions: [],
+  tags: [],
 };
 
 function parseFiltersFromParams(params: URLSearchParams): BrowseFilters {

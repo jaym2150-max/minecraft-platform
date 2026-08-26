@@ -43,10 +43,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const [projects, categories, minecraftVersions] = await Promise.all([
+  const [projects, categories, minecraftVersions, tags] = await Promise.all([
     safeJson<any[]>('/projects?limit=1000'),
     safeJson<any[]>('/categories'),
     safeJson<any[]>('/minecraft-versions'),
+    safeJson<any[]>('/tags'),
   ]);
 
   const projectRoutes: MetadataRoute.Sitemap = Array.isArray(projects)
@@ -74,6 +75,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }))
     : [];
 
+  const tagRoutes: MetadataRoute.Sitemap = Array.isArray(tags)
+    ? tags.map((t: any) => ({
+        url: `${siteUrl}/tags/${t.slug}`,
+        changeFrequency: 'daily',
+        priority: 0.7,
+      }))
+    : [];
+
   const usernames = Array.isArray(projects)
     ? Array.from(
         new Set(
@@ -94,6 +103,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...loaderRoutes,
     ...categoryRoutes,
     ...versionRoutes,
+    ...tagRoutes,
     ...projectRoutes,
     ...userRoutes,
   ];

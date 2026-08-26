@@ -21,6 +21,7 @@ export interface BrowseFilters {
   environments: ('client' | 'server')[];
   licenseIds: string[];
   gameVersions: string[];
+  tags?: string[];
   /** Page number for numbered pagination (1-based). Combined with cursor paging. */
   page?: number;
 }
@@ -92,6 +93,7 @@ function buildQuery(filters: BrowseFilters, cursor: string | null): ProjectListQ
   if (filters.gameVersions.length) query.gameVersions = filters.gameVersions;
   if (filters.environments.length) query.environments = filters.environments;
   if (filters.licenseIds.length) query.licenses = filters.licenseIds;
+  if (filters.tags?.length) query.tags = filters.tags;
 
   if (cursor) query.cursor = cursor;
   // Numbered pagination: API accepts page param; page 1 = no cursor offset
@@ -172,6 +174,17 @@ export function useMinecraftVersions() {
       return Array.isArray(res?.data) ? res.data : [];
     },
     staleTime: 30 * 60_000,
+  });
+}
+
+export function useTags(search?: string) {
+  return useQuery<any[]>({
+    queryKey: ['tags', search],
+    queryFn: async () => {
+      const res: any = await (sdk as any).listTags?.(search);
+      return Array.isArray(res?.data) ? res.data : [];
+    },
+    staleTime: 5 * 60_000,
   });
 }
 

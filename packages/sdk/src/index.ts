@@ -251,6 +251,15 @@ export class McpSDK {
     return this.client.get<ApiResponse<Category[]>>('/categories');
   }
 
+  async listTags(search?: string) {
+    const qs = search ? `?search=${encodeURIComponent(search)}` : '';
+    return this.client.get<ApiResponse<any[]>>(`/tags${qs}`);
+  }
+
+  async getTag(slug: string) {
+    return this.client.get<ApiResponse<any>>(`/tags/${slug}`);
+  }
+
   async search(query: string, options?: { page?: number; limit?: number }) {
     return this.client.get<PaginatedResponse<Project>>(
       `/search?q=${encodeURIComponent(query)}&page=${options?.page || 1}&limit=${options?.limit || 20}`,

@@ -240,6 +240,7 @@ model Project {
   donations      Donation[]
   promotion      PromotedProject?
   providerProjects ProviderProject[]
+  tags         ProjectTag[]
 
   @@index([slug])
   @@index([status])
@@ -389,6 +390,32 @@ model Category {
   projects    Project[]
 
   @@map("categories")
+}
+
+model Tag {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  projects    ProjectTag[]
+
+  @@map("tags")
+}
+
+model ProjectTag {
+  id        String   @id @default(uuid())
+  projectId String
+  tagId     String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, tagId])
+  @@index([tagId])
+  @@map("project_tags")
 }
 
 model Loader {

@@ -38,6 +38,7 @@ export interface Project {
   updatedAt: string;
   author?: { username: string; avatarUrl?: string };
   latestVersion?: string;
+  tags?: { id: string; name: string; slug: string }[];
 }
 
 export interface DependencyInfo {
@@ -78,6 +79,8 @@ export interface ProjectListQuery {
   licenses?: string[];
   /** "client" | "server". */
   environments?: string[];
+  tags?: string[];
+  tag?: string;
   /**
    * Explicit index signature so this object can be passed straight into
    * `URLSearchParams`/record-typed serializers (eg. the SDK's

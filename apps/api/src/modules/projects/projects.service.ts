@@ -52,6 +52,7 @@ export class ProjectsService {
         author: { select: { id: true, username: true, avatarUrl: true } },
         category: { select: { id: true, name: true, slug: true } },
         loaders: { select: { type: true } },
+        tags: { include: { tag: true } },
         versions: {
           where: { status: 'APPROVED' as any },
           orderBy: { createdAt: 'desc' },
@@ -263,6 +264,9 @@ export class ProjectsService {
           },
           loaders: {
             select: { type: true },
+          },
+          tags: {
+            include: { tag: true },
           },
           versions: {
             where: { status: 'APPROVED' as any },
@@ -660,6 +664,13 @@ export class ProjectsService {
       });
     }
 
+    const tags = this.mergeFacets((query as any).tags, (query as any).tag);
+    if (tags.length) {
+      conditions.push({
+        tags: { some: { tag: { OR: [{ id: { in: tags } }, { slug: { in: tags } }] } } },
+      });
+    }
+
     if (query.environments?.length) {
       const envs = query.environments.filter((e) => e === 'client' || e === 'server');
       if (envs.length) {
@@ -728,6 +739,7 @@ export class ProjectsService {
           }
         : undefined,
       loaders: loaderTypes,
+      tags: (project.tags ?? []).map((pt: any) => pt.tag ?? pt),
       latestVersion: project.versions?.[0]?.version ?? undefined,
       ratingAverage: project.ratingAverage ?? 0,
       ratingCount: project.ratingCount ?? 0,
