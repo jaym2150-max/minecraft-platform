@@ -13,5 +13,8 @@ apps/api/test/**/*.js
 !apps/api/test/jest-e2e.js
 apps/api/prisma/seed.js
 
+# Service worker served as a runtime asset; not source.
+apps/web/public/sw.js
+
 # Local scratch notes
 tobeimplemented.md
