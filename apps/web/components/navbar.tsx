@@ -7,6 +7,7 @@ import { Button } from '@mcp/ui/components/button';
 import { Avatar, AvatarFallback } from '@mcp/ui/components/avatar';
 import { SearchAutocomplete } from './search-autocomplete';
 import { ThemeToggle } from './theme-toggle';
+import { NotificationBell } from './notification-bell';
 import { useAuth } from '@mcp/auth';
 
 export function Navbar() {
@@ -81,6 +82,7 @@ export function Navbar() {
 
         <div className="hidden items-center gap-3 md:flex">
           <ThemeToggle />
+          <NotificationBell />
           {/* H-F7 (AUDIT.md): during the AuthProvider's first /auth/me verify
               isAuthenticated is false and user is null, so without this gate
               we would briefly render the Sign In / Get Started buttons before

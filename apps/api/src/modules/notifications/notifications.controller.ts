@@ -44,6 +44,18 @@ export class NotificationsController {
     };
   }
 
+  @Get('unread-count')
+  @HttpCode(HttpStatus.OK)
+  async unreadCount(@CurrentUser('id') userId: string) {
+    const count = await this.notificationsService.getUnreadCount(userId);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Unread notification count retrieved',
+      data: { count },
+      timestamp: new Date().toISOString(),
+    };
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string, @CurrentUser('id') userId: string) {
     const data = await this.notificationsService.findOne(id, userId);

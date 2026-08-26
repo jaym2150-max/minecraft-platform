@@ -270,6 +270,35 @@ export class McpSDK {
     );
   }
 
+  async listNotifications(params?: { page?: number; limit?: number; unread?: boolean }) {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.limit) qs.set('limit', String(params.limit));
+    if (params?.unread) qs.set('unread', 'true');
+    const s = qs.toString();
+    return this.client.get<any>(`/notifications${s ? `?${s}` : ''}`);
+  }
+
+  async getUnreadNotificationCount() {
+    return this.client.get<ApiResponse<{ count: number }>>('/notifications/unread-count');
+  }
+
+  async markNotificationRead(id: string) {
+    return this.client.post<ApiResponse<any>>(`/notifications/${id}/read`, {});
+  }
+
+  async markAllNotificationsRead() {
+    return this.client.post<ApiResponse<any>>('/notifications/read-all', {});
+  }
+
+  async clearAllNotifications() {
+    return this.client.delete<ApiResponse<any>>('/notifications/clear-all');
+  }
+
+  async deleteNotification(id: string) {
+    return this.client.delete<ApiResponse<any>>(`/notifications/${id}`);
+  }
+
   async listGuides(params?: { category?: string; search?: string; limit?: number }) {
     const qs = new URLSearchParams();
     if (params?.category) qs.set('category', params.category);

@@ -14,6 +14,10 @@ vi.mock('@/components/theme-toggle', () => ({
   ThemeToggle: () => <button data-testid="theme-toggle" />,
 }));
 
+vi.mock('@/components/notification-bell', () => ({
+  NotificationBell: () => <button data-testid="notification-bell" />,
+}));
+
 const mockUseAuth = vi.fn();
 
 describe('Navbar auth gate (H-F7)', () => {

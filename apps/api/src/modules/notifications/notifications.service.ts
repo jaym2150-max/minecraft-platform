@@ -46,6 +46,10 @@ export class NotificationsService {
     return this.format(notification);
   }
 
+  async getUnreadCount(userId: string): Promise<number> {
+    return this.prisma.notification.count({ where: { userId, read: false } });
+  }
+
   async findByUser(userId: string, page = 1, limit = 20, unreadOnly = false): Promise<any> {
     const skip = (page - 1) * limit;
     const where = { userId, ...(unreadOnly ? { read: false } : {}) };
@@ -137,8 +141,10 @@ export class NotificationsService {
       type: n.type,
       title: n.title,
       body: n.body ?? undefined,
+      link: n.link ?? undefined,
       read: n.read,
       userId: n.userId,
+      projectId: n.projectId ?? undefined,
       createdAt: n.createdAt instanceof Date ? n.createdAt.toISOString() : n.createdAt,
     };
   }
