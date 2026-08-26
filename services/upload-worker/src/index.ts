@@ -1,10 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../../.env'), override: true });
-
 
 import { Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
@@ -101,7 +97,7 @@ async function processUpload(job: Job<UploadJobData>): Promise<any> {
       Metadata: {
         'upload-id': uploadId,
         'project-id': projectId,
-        'sha256': hash,
+        sha256: hash,
         'original-filename': filename,
       },
     }),
@@ -171,7 +167,10 @@ let shutdownWatchdog: ReturnType<typeof setTimeout> | null = null;
 async function shutdown() {
   if (shuttingDown) return;
   shuttingDown = true;
-  shutdownWatchdog = setTimeout(() => { console.error('[upload-worker] Shutdown timed out, forcing exit'); process.exit(1); }, 25000);
+  shutdownWatchdog = setTimeout(() => {
+    console.error('[upload-worker] Shutdown timed out, forcing exit');
+    process.exit(1);
+  }, 25000);
   if (shutdownWatchdog && (shutdownWatchdog as any).unref) (shutdownWatchdog as any).unref();
   console.log('[upload-worker] Shutting down...');
   try {

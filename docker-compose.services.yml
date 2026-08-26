@@ -93,13 +93,23 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env — see .env.example}
       CLAMAV_HOST: clamav
       CLAMAV_PORT: 3310
+      # REQUIRED: the worker writes scanStatus (CLEAN/INFECTED/ERROR) back to
+      # Postgres. Without this it would fall back to the compiled-in default
+      # (localhost:5432) and every DB write would silently fail.
+      DATABASE_URL: postgresql://${POSTGRES_USER:?POSTGRES_USER required}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}@postgres:5432/${POSTGRES_DB:-minecraft_platform}
     depends_on:
       redis:
         condition: service_healthy
       clamav:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
     networks:
+      # backend: redis/clamav/postgres. egress: Modrinth-imported versions are
+      # scanned from their CDN URL (remoteUrl jobs); the backend network is
+      # internal by design, so outbound is granted here only.
       - backend
+      - egress
     init: true
     security_opt:
       - no-new-privileges:true
@@ -198,7 +208,10 @@ services:
       postgres:
         condition: service_healthy
     networks:
+      # backend: redis/postgres. egress: outbound SMTP delivery — the backend
+      # network is internal by design, so outbound is granted here only.
       - backend
+      - egress
     init: true
     security_opt:
       - no-new-privileges:true
@@ -213,4 +226,7 @@ services:
 networks:
   backend:
     name: minecraft-platform_backend
+    external: true
+  egress:
+    name: minecraft-platform_egress
     external: true

@@ -1,10 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../../.env'), override: true });
-
 
 import { Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
@@ -23,10 +19,17 @@ const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10);
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_FROM = process.env.SMTP_FROM || 'noreply@minecraftplatform.com';
-const ALLOWED_WEBHOOK_DOMAINS = (process.env.ALLOWED_WEBHOOK_DOMAINS || '').split(',').filter(Boolean);
+
+// Read at call time, not module load: the dotenv bootstrap above can overwrite
+// env after import in tests/embedded contexts, and operators may rotate the
+// allowlist without a restart.
+function getAllowedWebhookDomains(): string[] {
+  return (process.env.ALLOWED_WEBHOOK_DOMAINS || '').split(',').filter(Boolean);
+}
 
 function isWebhookAllowed(url: string): boolean {
-  if (ALLOWED_WEBHOOK_DOMAINS.length === 0) return false;
+  const allowedDomains = getAllowedWebhookDomains();
+  if (allowedDomains.length === 0) return false;
   try {
     const parsed = new URL(url);
     // M-W / H-W6: webhook calls must NOT target an IP address. An attacker
@@ -36,7 +39,9 @@ function isWebhookAllowed(url: string): boolean {
     // intranet-probe vector. Reject anything whose hostname parses as an
     // IP literal (IPv4 OR IPv6). `net.isIP` returns 0 when not an IP.
     if (net.isIP(parsed.hostname) !== 0) return false;
-    return ALLOWED_WEBHOOK_DOMAINS.some((domain) => parsed.hostname === domain || parsed.hostname.endsWith(`.${domain}`));
+    return allowedDomains.some(
+      (domain) => parsed.hostname === domain || parsed.hostname.endsWith(`.${domain}`),
+    );
   } catch {
     return false;
   }
@@ -337,7 +342,10 @@ async function shutdown() {
   // mid-PROCESS can ack/return its result), then disconnect Prisma.
   if (shuttingDown) return;
   shuttingDown = true;
-  shutdownWatchdog = setTimeout(() => { console.error('[notification-worker] Shutdown timed out, forcing exit'); process.exit(1); }, 25000);
+  shutdownWatchdog = setTimeout(() => {
+    console.error('[notification-worker] Shutdown timed out, forcing exit');
+    process.exit(1);
+  }, 25000);
   if (shutdownWatchdog && (shutdownWatchdog as any).unref) (shutdownWatchdog as any).unref();
   console.log('[notification-worker] Shutting down...');
   try {
@@ -345,7 +353,10 @@ async function shutdown() {
     await connection.quit();
     await prisma.$disconnect();
   } catch (err) {
-    console.error('[notification-worker] Shutdown error:', err instanceof Error ? err.message : err);
+    console.error(
+      '[notification-worker] Shutdown error:',
+      err instanceof Error ? err.message : err,
+    );
   } finally {
     if (shutdownWatchdog) clearTimeout(shutdownWatchdog);
     process.exit(0);
