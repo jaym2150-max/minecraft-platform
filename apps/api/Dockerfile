@@ -43,7 +43,11 @@ RUN pnpm --filter @mcp/api run build
 # ---- Stage 3: runner ----
 FROM node:20-alpine AS runner
 ENV NODE_ENV=production
-RUN apk add --no-cache tini
+RUN apk upgrade --no-cache && apk add --no-cache tini
+RUN rm -rf /usr/local/lib/node_modules/npm \
+    /usr/local/lib/node_modules/corepack \
+    /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+    /usr/local/bin/yarn /usr/local/bin/yarnpkg
 WORKDIR /app
 USER node
 
