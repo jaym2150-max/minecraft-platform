@@ -236,6 +236,7 @@ model Project {
   galleryImages GalleryImage[]
   donations      Donation[]
   promotion      PromotedProject?
+  providerProjects ProviderProject[]
 
   @@index([slug])
   @@index([status])
@@ -342,6 +343,7 @@ model GalleryImage {
 model ProjectVersion {
   id          String        @id @default(uuid())
   version     String
+  externalId  String?
   changelog   String?
   fileUrl     String
   fileSize    Int
@@ -362,6 +364,7 @@ model ProjectVersion {
   loaders      Loader[]
 
   @@unique([projectId, version])
+  @@unique([projectId, externalId])
   @@index([projectId])
   @@index([status])
   @@index([hash])
@@ -875,4 +878,115 @@ model NewsletterSubscriber {
   createdAt DateTime @default(now())
 
   @@map("newsletter_subscribers")
+}
+
+enum ProviderLinkStatus {
+  ACTIVE
+  HIDDEN
+  REMOVED
+}
+
+enum SyncJobType {
+  FULL_IMPORT
+  INCREMENTAL
+  STATS_REFRESH
+  SINGLE_PROJECT
+}
+
+enum SyncJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum SyncTrigger {
+  MANUAL
+  SCHEDULED
+}
+
+enum SyncLogLevel {
+  INFO
+  WARN
+  ERROR
+}
+
+/// External content provider (Modrinth, later CurseForge).
+model Provider {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  name      String
+  baseUrl   String
+  apiUrl    String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects ProviderProject[]
+  syncJobs SyncJob[]
+
+  @@map("providers")
+}
+
+/// Link between an internal project and its external provider project.
+/// A single internal project may have one row per provider.
+model ProviderProject {
+  id                String             @id @default(uuid())
+  providerId        String
+  projectId         String
+  externalId        String
+  externalSlug      String
+  externalUrl       String
+  status            ProviderLinkStatus @default(ACTIVE)
+  externalUpdatedAt DateTime?
+  lastSyncedAt      DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  provider Provider @relation(fields: [providerId], references: [id])
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, projectId])
+  @@unique([providerId, externalId])
+  @@index([providerId, lastSyncedAt])
+  @@map("provider_projects")
+}
+
+/// One provider synchronization run (full import, incremental, stats, single).
+model SyncJob {
+  id             String        @id @default(uuid())
+  providerId     String
+  type           SyncJobType
+  status         SyncJobStatus @default(PENDING)
+  trigger        SyncTrigger   @default(MANUAL)
+  processedCount Int           @default(0)
+  createdCount   Int           @default(0)
+  updatedCount   Int           @default(0)
+  errorCount     Int           @default(0)
+  message        String?
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime      @default(now())
+
+  provider Provider  @relation(fields: [providerId], references: [id])
+  logs     SyncLog[]
+
+  @@index([providerId, createdAt])
+  @@index([status, createdAt])
+  @@map("sync_jobs")
+}
+
+/// Structured log lines for a sync run (admin-visible sync diagnostics).
+model SyncLog {
+  id        String       @id @default(uuid())
+  syncJobId String
+  level     SyncLogLevel @default(INFO)
+  message   String
+  detail    String?
+  createdAt DateTime     @default(now())
+
+  syncJob SyncJob @relation(fields: [syncJobId], references: [id], onDelete: Cascade)
+
+  @@index([syncJobId, createdAt])
+  @@map("sync_logs")
 }

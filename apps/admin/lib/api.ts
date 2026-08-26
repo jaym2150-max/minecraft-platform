@@ -43,6 +43,20 @@ const qs = (params: Record<string, string | number | undefined>) => {
 };
 
 export const adminApi = {
+  // integrations
+  listProviders: () => apiJson<any>('/admin/integrations/providers'),
+  triggerSync: (type: string, opts: Record<string, unknown> = {}) =>
+    apiJson<any>('/admin/integrations/sync', {
+      method: 'POST',
+      body: JSON.stringify({ type, ...opts }),
+    }),
+  listSyncs: (params: Record<string, string | number | undefined> = {}) =>
+    apiJson<any>(`/admin/integrations/syncs${qs(params)}`),
+  getSync: (id: string) => apiJson<any>(`/admin/integrations/syncs/${id}`),
+  syncProject: (slug: string) =>
+    apiJson<any>(`/admin/integrations/projects/${encodeURIComponent(slug)}/sync`, {
+      method: 'POST',
+    }),
   getAnalytics: () => apiJson<any>('/admin/analytics'),
   listUsers: (params: Record<string, string | number | undefined> = {}) =>
     apiJson<any>(`/admin/users${qs(params)}`),

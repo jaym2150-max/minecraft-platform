@@ -11,7 +11,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
-import { htmlToMarkdown, looksLikeHtml } from '../src/modules/admin/html-to-markdown';
+import { htmlToMarkdown, looksLikeHtml } from '../src/modules/integrations/html-to-markdown';
 
 const API = 'https://api.modrinth.com/v2';
 const UA = 'minecraft-platform/dev (+https://github.com/jaym2150-max/minecraft-platform)';

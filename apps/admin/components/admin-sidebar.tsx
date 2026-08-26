@@ -9,6 +9,7 @@ import {
   Users,
   FolderKanban,
   BarChart3,
+  RefreshCw,
   LogOut,
   Settings,
 } from 'lucide-react';
@@ -20,6 +21,7 @@ const navItems = [
   { href: '/users', label: 'Users', icon: Users },
   { href: '/projects', label: 'Projects', icon: FolderKanban },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/integrations', label: 'Integrations', icon: RefreshCw },
 ];
 
 export function AdminSidebar() {

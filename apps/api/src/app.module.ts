@@ -32,6 +32,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AdminModule } from './modules/admin/admin.module';
+import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { HealthModule } from './modules/health/health.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { LicensesModule } from './modules/licenses/licenses.module';
@@ -92,6 +93,7 @@ import storageConfig from './config/storage.config';
       { name: 'notifications' },
       { name: 'virus-scan' },
       { name: 'uploads' },
+      { name: 'provider-sync' },
     ),
     PrismaModule,
     AuthModule,
@@ -107,6 +109,7 @@ import storageConfig from './config/storage.config';
     AnalyticsModule,
     SearchModule,
     AdminModule,
+    IntegrationsModule,
     HealthModule,
     CollectionsModule,
     GalleryModule,
