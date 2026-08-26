@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ConflictException, Logger } from '@nestj
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { Prisma, ProjectStatus, ProjectType, LoaderType } from '@prisma/client';
+import { Prisma, ProjectStatus, ProjectType, LoaderType, VersionStatus } from '@prisma/client';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { QueryProjectsDto } from './dto/query-projects.dto';
@@ -582,6 +582,77 @@ export class ProjectsService {
       total: rows.length,
       loaders,
     };
+  }
+
+  async getTrending(period: string, limit: number) {
+    const daysMap: Record<string, number> = { today: 1, week: 7, month: 30 };
+    const days = daysMap[period] ?? 7;
+    const cutoff = new Date(Date.now() - days * 24 * 3600 * 1000);
+    const now = Date.now();
+    const raw = await this.prisma.project.findMany({
+      where: { status: ProjectStatus.PUBLISHED, updatedAt: { gte: cutoff } },
+      include: {
+        author: { select: { id: true, username: true, avatarUrl: true } },
+        category: { select: { id: true, name: true, slug: true } },
+        loaders: { select: { type: true } },
+        tags: { include: { tag: true } },
+        versions: {
+          where: { status: VersionStatus.APPROVED as any },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { version: true },
+        },
+        _count: { select: { follows: true } },
+      },
+    });
+    // fallback: if window too narrow, widen to 90d
+    let pool = raw;
+    if (pool.length < Math.min(5, limit)) {
+      pool = await this.prisma.project.findMany({
+        where: { status: ProjectStatus.PUBLISHED },
+        include: {
+          author: { select: { id: true, username: true, avatarUrl: true } },
+          category: { select: { id: true, name: true, slug: true } },
+          loaders: { select: { type: true } },
+          tags: { include: { tag: true } },
+          versions: {
+            where: { status: VersionStatus.APPROVED as any },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: { version: true },
+          },
+          _count: { select: { follows: true } },
+        },
+        take: limit * 3,
+        orderBy: { updatedAt: 'desc' },
+      });
+    }
+    const scored = pool.map((p: any) => {
+      const downloads = p.downloads ?? 0;
+      const views = p.views ?? 0;
+      const followers = p._count?.follows ?? 0;
+      const rating = p.ratingAverage ?? 0;
+      const count = p.ratingCount ?? 0;
+      const updated =
+        p.updatedAt instanceof Date ? p.updatedAt.getTime() : new Date(p.updatedAt).getTime();
+      const created =
+        p.createdAt instanceof Date ? p.createdAt.getTime() : new Date(p.createdAt).getTime();
+      const daysSinceUpdate = Math.max(0, (now - updated) / 86400000);
+      const daysSinceCreate = Math.max(1, (now - created) / 86400000);
+      const velocity = downloads / daysSinceCreate;
+      const ratingScore = rating * Math.log1p(count);
+      const recentBoost = Math.max(0, ((days - daysSinceUpdate) / days) * 50);
+      const score =
+        downloads * 0.45 +
+        velocity * 8 +
+        views * 0.06 +
+        followers * 3.5 +
+        ratingScore * 12 +
+        recentBoost;
+      return { p, score };
+    });
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, limit).map(({ p }) => this.formatProject(p));
   }
 
   /**

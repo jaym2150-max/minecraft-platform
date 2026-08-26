@@ -50,8 +50,10 @@ function useTrendingProjects(limit = 8) {
   return useQuery({
     queryKey: [...HOME_KEYS.trending(limit)],
     queryFn: async () => {
-      const res: any = await sdk.listProjects({ sort: 'downloads', limit });
-      return mapHomeProjects(Array.isArray(res?.data) ? res.data : []);
+      const res: any = await (sdk as any).getTrending?.('week', limit);
+      if (res?.data) return mapHomeProjects(Array.isArray(res.data) ? res.data : []);
+      const fallback: any = await sdk.listProjects({ sort: 'downloads', limit });
+      return mapHomeProjects(Array.isArray(fallback?.data) ? fallback.data : []);
     },
     staleTime: 60_000,
   });

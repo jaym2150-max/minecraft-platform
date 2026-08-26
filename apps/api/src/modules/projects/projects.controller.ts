@@ -87,6 +87,22 @@ export class ProjectsController {
   }
 
   @Public()
+  @Get('trending')
+  @HttpCode(HttpStatus.OK)
+  async getTrending(@Query('period') period?: string, @Query('limit') limit?: string) {
+    const data = await this.projectsService.getTrending(
+      period ?? 'week',
+      Math.min(Math.max(parseInt(limit ?? '20', 10) || 20, 1), 50),
+    );
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Trending projects retrieved successfully',
+      data,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Public()
   @Get('facets/loaders')
   @HttpCode(HttpStatus.OK)
   async getLoaderFacets() {

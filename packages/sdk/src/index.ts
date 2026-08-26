@@ -260,6 +260,12 @@ export class McpSDK {
     return this.client.get<ApiResponse<any>>(`/tags/${slug}`);
   }
 
+  async getTrending(period: 'today' | 'week' | 'month' = 'week', limit = 20) {
+    return this.client.get<ApiResponse<any[]>>(
+      `/projects/trending?period=${period}&limit=${limit}`,
+    );
+  }
+
   async search(query: string, options?: { page?: number; limit?: number }) {
     return this.client.get<PaginatedResponse<Project>>(
       `/search?q=${encodeURIComponent(query)}&page=${options?.page || 1}&limit=${options?.limit || 20}`,

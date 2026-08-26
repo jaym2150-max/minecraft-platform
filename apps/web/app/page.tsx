@@ -31,7 +31,7 @@ export default async function HomePage() {
   await Promise.allSettled([
     queryClient.prefetchQuery({
       queryKey: [...HOME_KEYS.trending(8)],
-      queryFn: () => limitProjects('/projects?sort=downloads&limit=8'),
+      queryFn: () => limitProjects('/projects/trending?period=week&limit=8'),
       staleTime: 60_000,
     }),
     queryClient.prefetchQuery({
