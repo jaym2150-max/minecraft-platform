@@ -88,7 +88,7 @@ jobs:
           done
 
       - name: Scan images for vulnerabilities (trivy, fail on HIGH/CRITICAL)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.24.0
         with:
           image-ref: ${{ env.IMAGE_API }}:latest
           severity: HIGH,CRITICAL
