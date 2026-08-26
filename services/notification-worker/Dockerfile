@@ -24,7 +24,6 @@ FROM deps AS build
 COPY packages/types/ ./packages/types/
 COPY services/notification-worker/ ./services/notification-worker/
 RUN pnpm --filter @mcp/notification-worker run build
-RUN pnpm --filter @mcp/notification-worker prune --prod
 
 # ---- Stage 3: runner ----
 FROM node:20-alpine AS runner

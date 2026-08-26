@@ -24,7 +24,6 @@ FROM deps AS build
 COPY packages/types/ ./packages/types/
 COPY services/virus-scanner/ ./services/virus-scanner/
 RUN pnpm --filter @mcp/virus-scanner run build
-RUN pnpm --filter @mcp/virus-scanner prune --prod
 
 # ---- Stage 3: runner ----
 FROM node:20-alpine AS runner

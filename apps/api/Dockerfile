@@ -39,7 +39,6 @@ COPY apps/api/        ./apps/api/
 
 RUN pnpm --filter @mcp/types run build
 RUN pnpm --filter @mcp/api run build
-RUN pnpm --filter @mcp/api prune --prod
 
 # ---- Stage 3: runner ----
 FROM node:20-alpine AS runner

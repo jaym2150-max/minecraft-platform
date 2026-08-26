@@ -26,7 +26,6 @@ RUN pnpm install --frozen-lockfile --filter @mcp/image-processor...
 FROM deps AS build
 COPY services/image-processor/ ./services/image-processor/
 RUN pnpm --filter @mcp/image-processor run build
-RUN pnpm --filter @mcp/image-processor prune --prod
 
 # ---- Stage 3: runner ----
 # image-processor needs /tmp scratch space for sharp caches. In k8s mount a

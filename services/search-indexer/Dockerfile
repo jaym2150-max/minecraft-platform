@@ -24,7 +24,6 @@ FROM deps AS build
 COPY packages/types/ ./packages/types/
 COPY services/search-indexer/ ./services/search-indexer/
 RUN pnpm --filter @mcp/search-indexer run build
-RUN pnpm --filter @mcp/search-indexer prune --prod
 
 # ---- Stage 3: runner ----
 FROM node:20-alpine AS runner

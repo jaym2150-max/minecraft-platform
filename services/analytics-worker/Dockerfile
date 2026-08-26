@@ -24,7 +24,6 @@ FROM deps AS build
 COPY packages/types/ ./packages/types/
 COPY services/analytics-worker/ ./services/analytics-worker/
 RUN pnpm --filter @mcp/analytics-worker run build
-RUN pnpm --filter @mcp/analytics-worker prune --prod
 
 # ---- Stage 3: runner ----
 FROM node:20-alpine AS runner

@@ -31,13 +31,11 @@ RUN pnpm install --frozen-lockfile --filter @mcp/upload-worker...
 
 # ---- Stage 2: build ----
 # Copy the full source for the workspace packages this service depends on plus
-# the service itself, then build with TypeScript. Finally prune devDeps so the
-# runner stage only copies production node_modules.
+# the service itself, then build with TypeScript.
 FROM deps AS build
 COPY packages/types/ ./packages/types/
 COPY services/upload-worker/ ./services/upload-worker/
 RUN pnpm --filter @mcp/upload-worker run build
-RUN pnpm --filter @mcp/upload-worker prune --prod
 
 # ---- Stage 3: runner ----
 # Minimal non-root runtime image with tini for proper PID-1 signal handling.
