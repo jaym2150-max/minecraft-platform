@@ -320,6 +320,14 @@ export class McpSDK {
     return this.client.get<ApiResponse<any>>(`/projects/${projectId}/install-guide`);
   }
 
+  async inspectModpack(manifest: string) {
+    return this.client.post<ApiResponse<any>>('/modpacks/inspect', { manifest });
+  }
+
+  async importModpack(manifest: string) {
+    return this.client.post<ApiResponse<any>>('/modpacks/import', { manifest });
+  }
+
   async search(query: string, options?: { page?: number; limit?: number }) {
     return this.client.get<PaginatedResponse<Project>>(
       `/search?q=${encodeURIComponent(query)}&page=${options?.page || 1}&limit=${options?.limit || 20}`,
