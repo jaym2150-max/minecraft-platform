@@ -202,4 +202,88 @@ export class ModpackImportService {
     }
     return m;
   }
+
+  /**
+   * Persist a DRAFT `Project` of type MODPACK from an already-parsed manifest.
+   * Used by the admin/import flow: after inspect reports "looks good", the
+   * caller can opt-in to create a draft so the manifest's name + version +
+   * loader rows are stored and editable in the dashboard.
+   *
+   * Returns the new project id (and a flag indicating whether key validation
+   * surfaced any blocking conflicts — callers can choose to keep or roll back).
+   */
+  async createDraft(
+    raw: string,
+    authorId: string,
+    opts: { report?: ImportReport; rollbackOnConflicts?: boolean } = {},
+  ): Promise<{ project: any; report: ImportReport; rolledBack: boolean }> {
+    const report = opts.report ?? (await this.inspect(raw));
+    if (opts.rollbackOnConflicts && report.conflicts.length > 0) {
+      // Caller didn't want a half-imported project
+      return { project: null, report, rolledBack: true };
+    }
+    if (!report.name) {
+      throw new BadRequestException('Manifest is missing a name');
+    }
+    // Slug from name + versionId
+    const baseSlug = report.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 60);
+    const suffix = report.versionId
+      ? `-${report.versionId.replace(/[^a-z0-9.]/gi, '').slice(0, 12)}`
+      : '';
+    const wanted = `${baseSlug}${suffix}`.toLowerCase();
+    let slug = wanted || 'modpack';
+    // Ensure uniqueness
+    for (let i = 1; i < 50; i++) {
+      const existing = await this.prisma.project.findUnique({ where: { slug } });
+      if (!existing) break;
+      slug = `${wanted}-${i}`;
+    }
+
+    const minecraftRow = report.minecraft
+      ? await this.prisma.minecraftVersion.findUnique({ where: { version: report.minecraft } })
+      : null;
+    const loaderEnum = report.loader
+      ? (report.loader.toUpperCase() as
+          'FABRIC' | 'FORGE' | 'NEOFORGE' | 'QUILT' | 'BUKKIT' | 'SPIGOT' | 'PAPER' | 'PURPUR')
+      : null;
+
+    const project = await this.prisma.project.create({
+      data: {
+        title: report.name,
+        slug,
+        description: report.name,
+        body: raw,
+        status: 'DRAFT' as any,
+        projectType: 'MODPACK' as any,
+        authorId,
+        clientSide: true,
+        serverSide: true,
+      },
+    });
+    if (minecraftRow && loaderEnum) {
+      const version = await this.prisma.projectVersion.create({
+        data: {
+          projectId: project.id,
+          version: report.versionId ?? '0.0.0',
+          fileUrl: '',
+          fileSize: 0,
+          hash: '',
+          status: 'APPROVED' as any,
+        },
+      });
+      await this.prisma.loader.create({
+        data: {
+          type: loaderEnum as any,
+          versionString: report.minecraft,
+          projectId: project.id,
+          versionId: version.id,
+        },
+      });
+    }
+    return { project, report, rolledBack: false };
+  }
 }

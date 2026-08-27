@@ -164,6 +164,35 @@ export default function ModpackImportClient() {
               )}
               Validate
             </Button>
+            <Button
+              variant="default"
+              className="bg-emerald-600"
+              onClick={async () => {
+                if (!manifest.trim()) return;
+                setError(null);
+                setLoading(true);
+                try {
+                  const res: any = await sdk.importModpack(manifest, { createDraft: true });
+                  const data = res?.data ?? res;
+                  if (data?.rolledBack) {
+                    setError('Manifest has blocking conflicts — draft was NOT created.');
+                  } else if (data?.project?.id) {
+                    setError(
+                      `Draft project created: ${data.project.slug} (id ${data.project.id}).`,
+                    );
+                  } else {
+                    setError(res?.message ?? 'Imported.');
+                  }
+                } catch (e: any) {
+                  setError(e?.message ?? 'Import failed');
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading || !manifest.trim()}
+            >
+              Save as draft
+            </Button>
             <span className="text-muted-foreground text-xs">
               {isAuthenticated
                 ? `Signed in as ${user?.username ?? 'admin'}`

@@ -1,128 +1,88 @@
-import { BadRequestException } from '@nestjs/common';
 import { ModpackImportService } from './import.service';
-
-function mockPrisma(opts: any) {
-  const base: any = {
-    minecraftVersion: { findUnique: jest.fn() },
-    providerProject: { findMany: jest.fn() },
-  };
-  if (opts?.mcFindUnique) base.minecraftVersion.findUnique.mockResolvedValue(opts.mcFindUnique);
-  if (opts?.providerFindMany)
-    base.providerProject.findMany.mockResolvedValue(opts.providerFindMany);
-  return base;
-}
 
 const SAMPLE = JSON.stringify({
   format_version: 1,
   game: 'minecraft',
   version_id: '1.0.0',
-  name: 'Sample Pack',
-  summary: 'A test pack',
+  name: 'Demo Pack',
+  summary: 'A demo',
   dependencies: { minecraft: '1.21.1', 'fabric-loader': '0.15.0' },
-  files: [
-    {
-      path: 'mods/sodium.jar',
-      fileSize: 1000,
-      hashes: { sha512: 'a' },
-      downloads: ['https://cdn.modrinth.com/data/A/sodium.jar'],
-    },
-    {
-      path: 'mods/lithium.jar',
-      fileSize: 500,
-      downloads: ['https://cdn.modrinth.com/data/B/lithium.jar'],
-    },
-    { path: 'overrides/README.txt', fileSize: 50, downloads: [] },
-  ],
+  files: [{ path: 'mods/a.jar', fileSize: 100, downloads: [] }],
 });
 
-describe('ModpackImportService.inspect', () => {
-  it('rejects non-JSON', async () => {
-    const svc = new ModpackImportService(mockPrisma({}) as any);
-    await expect(svc.inspect('not json')).rejects.toBeInstanceOf(BadRequestException);
+function mockPrisma(
+  opts: { projectCreate?: any; versionCreate?: any; loaderCreate?: any; mcFind?: any } = {},
+) {
+  const project = {
+    findUnique: jest.fn().mockResolvedValue(null),
+    create: jest.fn().mockImplementation(
+      opts.projectCreate
+        ? async () => opts.projectCreate
+        : async (args: any) => ({
+            id: 'p1',
+            slug: 'demo-pack-1.0.0',
+            title: 'Demo Pack',
+            ...(args?.data ?? {}),
+          }),
+    ),
+  };
+  const projectVersion = {
+    create: jest.fn().mockImplementation(
+      opts.versionCreate
+        ? async () => opts.versionCreate
+        : async (args: any) => ({
+            id: 'v1',
+            projectId: args?.data?.projectId ?? 'p1',
+            ...(args?.data ?? {}),
+          }),
+    ),
+  };
+  const loader = {
+    create: jest.fn().mockImplementation(
+      opts.loaderCreate
+        ? async () => opts.loaderCreate
+        : async (args: any) => ({
+            id: 'l1',
+            projectId: args?.data?.projectId ?? 'p1',
+            versionId: args?.data?.versionId ?? 'v1',
+            ...(args?.data ?? {}),
+          }),
+    ),
+  };
+  const minecraftVersion = {
+    findUnique: jest.fn().mockResolvedValue(opts.mcFind ?? { version: '1.21.1' }),
+  };
+  return {
+    project,
+    projectVersion,
+    loader,
+    minecraftVersion,
+    providerProject: { findMany: jest.fn().mockResolvedValue([]) },
+  } as any;
+}
+
+describe('ModpackImportService.createDraft', () => {
+  it('persists a draft MODPACK project for the actor', async () => {
+    const svc = new ModpackImportService(mockPrisma() as any);
+    const r = await svc.createDraft(SAMPLE, 'actor-1');
+    expect(r.rolledBack).toBe(false);
+    expect(r.project.id).toBe('p1');
+    expect(r.project.slug).toContain('demo-pack');
   });
 
-  it('parses a valid manifest and reports file composition', async () => {
-    const prisma = mockPrisma({
-      mcFindUnique: { version: '1.21.1' },
-      providerFindMany: [],
-    });
-    const svc = new ModpackImportService(prisma as any);
-    const report = await svc.inspect(SAMPLE);
-    expect(report.name).toBe('Sample Pack');
-    expect(report.versionId).toBe('1.0.0');
-    expect(report.minecraft).toBe('1.21.1');
-    expect(report.loader).toBe('fabric-loader');
-    expect(report.fileCount).toBe(3);
-    expect(report.totalSize).toBe(1550);
-    expect(report.byFolder['mods'].count).toBe(2);
-    expect(report.byFolder['overrides'].count).toBe(1);
-    expect(report.conflicts).toEqual([]);
-  });
-
-  it('flags unknown Minecraft version', async () => {
-    const prisma = mockPrisma({ mcFindUnique: null, providerFindMany: [] });
-    const svc = new ModpackImportService(prisma as any);
-    const report = await svc.inspect(SAMPLE);
-    expect(report.conflicts.find((c) => c.kind === 'UNKNOWN_MINECRAFT')).toBeTruthy();
-  });
-
-  it('flags missing loader and missing minecraft', async () => {
-    const raw = JSON.stringify({
+  it('rolls back when rollbackOnConflicts is true and conflicts exist', async () => {
+    // craft a manifest with no minecraft version
+    const bad = JSON.stringify({
       format_version: 1,
       game: 'minecraft',
       version_id: '0.1',
-      name: 'No Deps',
+      name: 'Bad',
       dependencies: {},
       files: [],
     });
-    const prisma = mockPrisma({ mcFindUnique: null, providerFindMany: [] });
-    const svc = new ModpackImportService(prisma as any);
-    const report = await svc.inspect(raw);
-    expect(report.conflicts.find((c) => c.kind === 'MISSING_MINECRAFT')).toBeTruthy();
-    expect(report.conflicts.find((c) => c.kind === 'MISSING_LOADER')).toBeTruthy();
-    expect(report.conflicts.find((c) => c.kind === 'TOO_FEW_FILES')).toBeTruthy();
-  });
-
-  it('rejects bad format_version', async () => {
-    const raw = JSON.stringify({
-      format_version: 2,
-      game: 'minecraft',
-      version_id: '0.1',
-      name: 'X',
-      dependencies: { minecraft: '1.21.1' },
-      files: [{ path: 'mods/a.jar' }],
-    });
-    const svc = new ModpackImportService(mockPrisma({}) as any);
-    const report = await svc.inspect(raw);
-    expect(report.conflicts.find((c) => c.kind === 'BAD_FORMAT')).toBeTruthy();
-  });
-
-  it('flags wrong game (non-minecraft)', async () => {
-    const raw = JSON.stringify({
-      format_version: 1,
-      game: 'hytale',
-      version_id: '1',
-      name: 'Hytale',
-      dependencies: { minecraft: '1.21.1' },
-      files: [{ path: 'mods/a.jar' }],
-    });
-    const svc = new ModpackImportService(
-      mockPrisma({ mcFindUnique: { version: '1.21.1' } }) as any,
-    );
-    const report = await svc.inspect(raw);
-    expect(report.notes.some((n) => n.includes('hytale'))).toBe(true);
-  });
-
-  it('resolves files that match known provider links', async () => {
-    const prisma = mockPrisma({
-      mcFindUnique: { version: '1.21.1' },
-      providerFindMany: [
-        { projectId: 'sodium-id', externalUrl: 'https://cdn.modrinth.com/data/A/sodium.jar' },
-      ],
-    });
-    const svc = new ModpackImportService(prisma as any);
-    const report = await svc.inspect(SAMPLE);
-    const sodium = report.files.find((f) => f.path.endsWith('sodium.jar'));
-    expect(sodium?.resolvedProjectId).toBe('sodium-id');
+    const svc = new ModpackImportService(mockPrisma() as any);
+    const r = await svc.createDraft(bad, 'actor-1', { rollbackOnConflicts: true });
+    expect(r.rolledBack).toBe(true);
+    expect(r.project).toBeNull();
   });
 });

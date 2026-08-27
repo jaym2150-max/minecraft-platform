@@ -426,8 +426,15 @@ export class McpSDK {
     return this.client.post<ApiResponse<any>>('/ai/troubleshoot', { prompt });
   }
 
-  async importModpack(manifest: string) {
-    return this.client.post<ApiResponse<any>>('/modpacks/import', { manifest });
+  async importModpack(
+    manifest: string,
+    opts: { createDraft?: boolean; rollbackOnConflicts?: boolean } = {},
+  ) {
+    return this.client.post<ApiResponse<any>>('/modpacks/import', {
+      manifest,
+      createDraft: opts.createDraft ?? false,
+      rollbackOnConflicts: opts.rollbackOnConflicts ?? false,
+    });
   }
 
   async search(query: string, options?: { page?: number; limit?: number }) {

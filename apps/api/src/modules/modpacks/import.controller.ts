@@ -5,11 +5,15 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { IsString } from 'class-validator';
+import { IsString, IsOptional, IsBoolean } from 'class-validator';
 
 class ImportBodyDto {
   /** Raw `modrinth.index.json` text (paste or pre-extracted from a .mrpack). */
   @IsString() manifest!: string;
+  /** When true, persist a DRAFT MODPACK project owned by the caller. */
+  @IsOptional() @IsBoolean() createDraft?: boolean;
+  /** When true AND conflicts exist, skip the draft creation entirely. */
+  @IsOptional() @IsBoolean() rollbackOnConflicts?: boolean;
 }
 
 /**
@@ -46,12 +50,27 @@ export class ModpackImportController {
   @Roles('ADMIN', 'OWNER', 'MODERATOR')
   @Post('import')
   async import(@Body() body: ImportBodyDto, @CurrentUser('id') userId: string) {
-    const data = await this.importService.inspect(body?.manifest);
+    const report = await this.importService.inspect(body?.manifest);
+    if (!body.createDraft) {
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Modpack import report ready — pass createDraft=true to persist a draft project',
+        data: report,
+        meta: { actorId: userId, created: false },
+        timestamp: new Date().toISOString(),
+      };
+    }
+    const result = await this.importService.createDraft(body.manifest, userId, {
+      report,
+      rollbackOnConflicts: Boolean(body.rollbackOnConflicts),
+    });
     return {
-      statusCode: HttpStatus.OK,
-      message: 'Modpack import report ready — open a follow-up PR to persist the project',
-      data,
-      meta: { actorId: userId },
+      statusCode: result.rolledBack ? HttpStatus.CONFLICT : HttpStatus.OK,
+      message: result.rolledBack
+        ? 'Manifest has blocking conflicts — draft was NOT created'
+        : 'Modpack draft project created',
+      data: { report, project: result.project, rolledBack: result.rolledBack },
+      meta: { actorId: userId, created: !result.rolledBack },
       timestamp: new Date().toISOString(),
     };
   }
