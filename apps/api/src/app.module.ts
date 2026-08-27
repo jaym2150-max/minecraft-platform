@@ -37,6 +37,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { DataQualityModule } from './modules/data-quality/data-quality.module';
+import { AiModule } from './modules/ai/ai.module';
 import { HealthModule } from './modules/health/health.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { LicensesModule } from './modules/licenses/licenses.module';
@@ -116,6 +117,7 @@ import storageConfig from './config/storage.config';
     IntegrationsModule,
     PermissionsModule,
     DataQualityModule,
+    AiModule,
     HealthModule,
     CollectionsModule,
     GalleryModule,

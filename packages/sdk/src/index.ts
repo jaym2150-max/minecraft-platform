@@ -397,6 +397,35 @@ export class McpSDK {
     return this.client.post<ApiResponse<any>>('/modpacks/inspect', { manifest });
   }
 
+  async aiSemanticSearch(q: string, limit = 12) {
+    return this.client.get<ApiResponse<any>>(
+      `/ai/semantic-search?q=${encodeURIComponent(q)}&limit=${limit}`,
+    );
+  }
+
+  async aiModpackRecommend(prompt: string, limit = 8) {
+    return this.client.post<ApiResponse<any>>('/ai/modpack-recommend', {
+      prompt,
+      limit: String(limit),
+    });
+  }
+
+  async aiSummarize(slug: string) {
+    return this.client.get<ApiResponse<any>>(`/ai/summarize/${slug}`);
+  }
+
+  async aiExplainCompatibility(slug: string, gameVersion?: string, loader?: string) {
+    const qs = new URLSearchParams();
+    if (gameVersion) qs.set('gameVersion', gameVersion);
+    if (loader) qs.set('loader', loader);
+    const s = qs.toString();
+    return this.client.get<ApiResponse<any>>(`/ai/compatibility/${slug}${s ? `?${s}` : ''}`);
+  }
+
+  async aiTroubleshoot(prompt: string) {
+    return this.client.post<ApiResponse<any>>('/ai/troubleshoot', { prompt });
+  }
+
   async importModpack(manifest: string) {
     return this.client.post<ApiResponse<any>>('/modpacks/import', { manifest });
   }
