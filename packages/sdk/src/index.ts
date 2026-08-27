@@ -145,6 +145,40 @@ export class McpSDK {
     >('/auth/2fa/status');
   }
 
+  async listPermissions() {
+    return this.client.get<ApiResponse<any[]>>('/permissions');
+  }
+
+  async seedPermissions() {
+    return this.client.post<ApiResponse<{ created: number; total: number }>>(
+      '/permissions/seed',
+      {},
+    );
+  }
+
+  async setRolePermission(role: string, permissionId: string, granted: boolean) {
+    return this.client.patch<ApiResponse<any>>(`/permissions/role/${role}`, {
+      permissionId,
+      granted,
+    });
+  }
+
+  async listUserOverrides(userId: string) {
+    return this.client.get<ApiResponse<any[]>>(`/permissions/user/${userId}`);
+  }
+
+  async setUserOverride(userId: string, permissionId: string, granted: boolean, reason?: string) {
+    return this.client.post<ApiResponse<any>>(`/permissions/user/${userId}`, {
+      permissionId,
+      granted,
+      reason,
+    });
+  }
+
+  async removeUserOverride(userId: string, permissionId: string) {
+    return this.client.delete<ApiResponse<any>>(`/permissions/user/${userId}/${permissionId}`);
+  }
+
   async deleteAccount(password: string) {
     return this.client.post<ApiResponse<void>>('/users/me/delete', { password });
   }

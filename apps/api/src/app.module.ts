@@ -35,6 +35,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AdminModule } from './modules/admin/admin.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
 import { HealthModule } from './modules/health/health.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { LicensesModule } from './modules/licenses/licenses.module';
@@ -112,6 +113,7 @@ import storageConfig from './config/storage.config';
     SearchModule,
     AdminModule,
     IntegrationsModule,
+    PermissionsModule,
     HealthModule,
     CollectionsModule,
     GalleryModule,

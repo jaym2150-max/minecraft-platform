@@ -23,6 +23,8 @@ import { QueryProjectsDto } from './dto/query-projects.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { ScopesGuard } from '../../common/guards/scopes.guard';
+import { PermissionsGuard } from '../permissions/permissions.guard';
+import { RequirePermissions } from '../permissions/permissions.decorator';
 import { Scopes } from '../../common/decorators/scopes.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
@@ -314,8 +316,9 @@ export class ProjectsController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard, ScopesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, ScopesGuard, PermissionsGuard)
   @Scopes(ApiKeyScope.PROJECT_WRITE, ApiKeyScope.WRITE)
+  @RequirePermissions('project.publish')
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateProjectDto,

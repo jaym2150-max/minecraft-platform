@@ -187,6 +187,7 @@ model User {
   followers        UserFollow[] @relation("Follower")
   following        UserFollow[] @relation("Followed")
   guides           Guide[]
+  permissionOverrides UserPermissionOverride[]
 
   @@map("users")
 }
@@ -989,6 +990,55 @@ model ProviderProject {
   @@unique([providerId, externalId])
   @@index([providerId, lastSyncedAt])
   @@map("provider_projects")
+}
+
+/// Granular permission key (e.g. "project.publish", "user.ban").
+/// Defined globally; mapped to roles via `RolePermission` rows.
+model Permission {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  rolePermissions   RolePermission[]
+  userOverrides     UserPermissionOverride[]
+
+  @@map("permissions")
+}
+
+/// Default permission grants for a role. `granted=true` adds the permission;
+/// `granted=false` explicitly removes it (overrides any broader default).
+model RolePermission {
+  id           String   @id @default(uuid())
+  role         UserRole
+  permissionId String
+  granted      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([role, permissionId])
+  @@index([role])
+  @@map("role_permissions")
+}
+
+/// Per-user override. `granted=true` adds the permission, `granted=false`
+/// revokes it even if the role default includes it.
+model UserPermissionOverride {
+  id           String   @id @default(uuid())
+  userId       String
+  permissionId String
+  granted      Boolean  @default(true)
+  reason       String?
+  createdBy    String?
+  createdAt    DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId])
+  @@index([userId])
+  @@map("user_permission_overrides")
 }
 
 /// One provider synchronization run (full import, incremental, stats, single).
