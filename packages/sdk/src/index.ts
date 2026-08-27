@@ -179,6 +179,39 @@ export class McpSDK {
     return this.client.delete<ApiResponse<any>>(`/permissions/user/${userId}/${permissionId}`);
   }
 
+  async listDataQualityIssues(params?: {
+    kind?: string;
+    status?: string;
+    projectId?: string;
+    limit?: number;
+  }) {
+    const qs = new URLSearchParams();
+    if (params?.kind) qs.set('kind', params.kind);
+    if (params?.status) qs.set('status', params.status);
+    if (params?.projectId) qs.set('projectId', params.projectId);
+    if (params?.limit) qs.set('limit', String(params.limit));
+    const s = qs.toString();
+    return this.client.get<ApiResponse<any[]>>(`/data-quality/issues${s ? `?${s}` : ''}`);
+  }
+
+  async getDataQualitySummary() {
+    return this.client.get<ApiResponse<any>>('/data-quality/summary');
+  }
+
+  async runDataQualityScan() {
+    return this.client.post<ApiResponse<any>>('/data-quality/scan', {});
+  }
+
+  async setDataQualityStatus(id: string, status: 'OPEN' | 'IGNORED' | 'RESOLVED') {
+    return this.client.put<ApiResponse<any>>(`/data-quality/issues/${id}/status`, { status });
+  }
+
+  async getProjectDuplicates(slug: string) {
+    return this.client.get<ApiResponse<any>>(
+      `/data-quality/duplicates?slug=${encodeURIComponent(slug)}`,
+    );
+  }
+
   async deleteAccount(password: string) {
     return this.client.post<ApiResponse<void>>('/users/me/delete', { password });
   }

@@ -20,6 +20,7 @@ enum ProjectStatus {
   PUBLISHED
   ARCHIVED
   REJECTED
+  DEPRECATED
 }
 
 enum VersionStatus {
@@ -243,6 +244,7 @@ model Project {
   promotion      PromotedProject?
   providerProjects ProviderProject[]
   tags         ProjectTag[]
+  dataIssues DataIssue[]
 
   @@index([slug])
   @@index([status])
@@ -1126,4 +1128,49 @@ model InstallGuideTemplate {
   @@index([loader])
   @@index([recommended])
   @@map("install_guide_templates")
+}
+
+enum DataIssueKind {
+  DUPLICATE_TITLE
+  DUPLICATE_SLUG
+  DUPLICATE_EXTERNAL
+  MISSING_DESCRIPTION
+  MISSING_ICON
+  MISSING_VERSIONS
+  BROKEN_SOURCE_URL
+  BROKEN_DISCORD_URL
+  BROKEN_WIKI_URL
+  INACTIVE_RELEASE_TRAIL
+}
+
+enum DataIssueStatus {
+  OPEN
+  IGNORED
+  RESOLVED
+}
+
+/// Detected catalog-quality issue (spec §46, §48, §76). Each row points at a
+/// project + a kind so the admin data-quality page can group, filter and
+/// dismiss them. `dismissed` preserves the audit trail; resolved entries
+/// stay in place so contributors can see history.
+model DataIssue {
+  id          String          @id @default(uuid())
+  projectId   String?
+  kind        DataIssueKind
+  severity    Int             @default(1) // 1=info, 2=warn, 3=critical
+  status      DataIssueStatus @default(OPEN)
+  detail      String?
+  relatedId   String?         // for DUPLICATE_*: the colliding project id
+  detectedAt  DateTime        @default(now())
+  resolvedAt  DateTime?
+  resolvedBy  String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([kind, status])
+  @@index([status, severity])
+  @@map("data_issues")
 }

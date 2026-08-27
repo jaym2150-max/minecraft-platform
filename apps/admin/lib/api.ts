@@ -43,6 +43,16 @@ const qs = (params: Record<string, string | number | undefined>) => {
 };
 
 export const adminApi = {
+  // data quality
+  listDataQualityIssues: (params: Record<string, string | number | undefined> = {}) =>
+    apiJson<any>(`/data-quality/issues${qs(params)}`),
+  getDataQualitySummary: () => apiJson<any>('/data-quality/summary'),
+  runDataQualityScan: () => apiJson<any>('/data-quality/scan', { method: 'POST' }),
+  setDataQualityStatus: (id: string, status: string) =>
+    apiJson<any>(`/data-quality/issues/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    }),
   // integrations
   listProviders: () => apiJson<any>('/admin/integrations/providers'),
   triggerSync: (type: string, opts: Record<string, unknown> = {}) =>
