@@ -26,6 +26,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { VerifyTwoFADto } from './dto/verify-twofa.dto';
 import { Response } from 'express';
+import { PrismaService } from '../../common/prisma/prisma.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { ScopesGuard } from '../../common/guards/scopes.guard';
 import { Scopes } from '../../common/decorators/scopes.decorator';
@@ -46,6 +47,7 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private consentCodes: OAuthConsentCodeService,
+    private prisma: PrismaService,
   ) {}
 
   @Public()
@@ -289,6 +291,26 @@ export class AuthController {
       statusCode: HttpStatus.OK,
       message: '2FA setup initiated',
       data: result,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Get('2fa/status')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async twoFaStatus(@Req() req: AuthRequest) {
+    const twoFA = await this.prisma.twoFactorSecret.findUnique({
+      where: { userId: req.user.id },
+      select: { verified: true, createdAt: true },
+    });
+    return {
+      statusCode: HttpStatus.OK,
+      message: '2FA status retrieved',
+      data: {
+        enabled: !!twoFA?.verified,
+        pending: !!twoFA && !twoFA.verified,
+        createdAt: twoFA?.createdAt ?? null,
+      },
       timestamp: new Date().toISOString(),
     };
   }

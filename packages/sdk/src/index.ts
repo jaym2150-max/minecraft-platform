@@ -139,6 +139,12 @@ export class McpSDK {
     return this.client.post<ApiResponse<void>>('/auth/2fa/disable', { code });
   }
 
+  async getTwoFaStatus() {
+    return this.client.get<
+      ApiResponse<{ enabled: boolean; pending: boolean; createdAt: string | null }>
+    >('/auth/2fa/status');
+  }
+
   async deleteAccount(password: string) {
     return this.client.post<ApiResponse<void>>('/users/me/delete', { password });
   }

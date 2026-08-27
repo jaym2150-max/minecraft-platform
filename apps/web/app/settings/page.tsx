@@ -54,11 +54,12 @@ import { validateUsername, validatePassword } from '@mcp/utils/validators';
 
 // ── Constants ──
 
-type SettingsTab = 'profile' | 'account' | 'notifications' | 'appearance';
+type SettingsTab = 'profile' | 'account' | 'security' | 'notifications' | 'appearance';
 
 const TABS: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'account', label: 'Account', icon: Shield },
+  { id: 'security', label: 'Security', icon: Lock },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'appearance', label: 'Appearance', icon: Moon },
 ];
@@ -263,6 +264,372 @@ function SessionCard({
           <Trash2 className="h-4 w-4" />
         </Button>
       )}
+    </div>
+  );
+}
+
+function SecurityTab({ userId }: { userId: string }) {
+  const [status, setStatus] = useState<'unknown' | 'enabled' | 'pending' | 'disabled'>('unknown');
+  const [setup, setSetup] = useState<{
+    secret: string;
+    qrCodeUrl: string;
+    backupCodes: string[];
+  } | null>(null);
+  const [verifyCode, setVerifyCode] = useState('');
+  const [disableCode, setDisableCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sessions, setSessions] = useState<any[]>([]);
+
+  const refreshStatus = useCallback(async () => {
+    try {
+      const res: any = await (sdk as any).getTwoFaStatus?.();
+      const data = res?.data;
+      if (!data) return;
+      if (data.enabled) setStatus('enabled');
+      else if (data.pending) setStatus('pending');
+      else setStatus('disabled');
+    } catch {
+      setStatus('unknown');
+    }
+  }, []);
+
+  const refreshSessions = useCallback(async () => {
+    try {
+      const res: any = await (sdk as any).getSessions?.();
+      const data = Array.isArray(res?.data) ? res.data : [];
+      setSessions(data);
+    } catch {
+      setSessions([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (userId) {
+      void refreshStatus();
+      void refreshSessions();
+    }
+  }, [userId, refreshStatus, refreshSessions]);
+
+  const startSetup = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      const res: any = await (sdk as any).enable2FA?.();
+      if (res?.data) {
+        setSetup(res.data);
+        setStatus('pending');
+      } else {
+        setError('No TOTP setup returned');
+      }
+    } catch (e: any) {
+      setError(e?.message ?? 'Failed to start 2FA setup');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const finishSetup = async () => {
+    if (!verifyCode.trim()) {
+      setError('Enter the 6-digit code from your authenticator app.');
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      await (sdk as any).verify2FA?.(verifyCode.trim());
+      toast.success('Two-factor authentication enabled');
+      setSetup(null);
+      setVerifyCode('');
+      await refreshStatus();
+    } catch (e: any) {
+      setError(e?.message ?? 'Invalid code');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const cancelSetup = () => {
+    setSetup(null);
+    setVerifyCode('');
+    setError(null);
+    void refreshStatus();
+  };
+
+  const disable2FA = async () => {
+    if (!disableCode.trim()) {
+      setError('Enter your current authenticator code (or a backup code).');
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      await (sdk as any).disable2FA?.(disableCode.trim());
+      toast.success('Two-factor authentication disabled');
+      setDisableCode('');
+      await refreshStatus();
+    } catch (e: any) {
+      setError(e?.message ?? 'Invalid code');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const revokeSession = async (id: string) => {
+    setBusy(true);
+    try {
+      await (sdk as any).revokeSession?.(id);
+      toast.success('Session revoked');
+      await refreshSessions();
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Failed to revoke session');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const revokeAllOthers = async () => {
+    if (typeof window !== 'undefined' && !window.confirm('Sign out every session except this one?'))
+      return;
+    setBusy(true);
+    try {
+      await (sdk as any).revokeAllOtherSessions?.();
+      toast.success('Other sessions revoked');
+      await refreshSessions();
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Failed to revoke other sessions');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const copyBackupCodes = (codes: string[]) => {
+    if (typeof navigator === 'undefined' || !navigator.clipboard) return;
+    navigator.clipboard.writeText(codes.join('\n')).then(
+      () => toast.success('Backup codes copied'),
+      () => toast.error('Could not copy backup codes'),
+    );
+  };
+
+  const currentSessionId =
+    typeof document !== 'undefined'
+      ? (document.cookie.match(/session=([^;]+)/)?.[1] ?? null)
+      : null;
+  const token =
+    (typeof document !== 'undefined' && document.cookie.match(/access_token=([^;]+)/)?.[1]) || null;
+  const isCurrent = (id: string) =>
+    Boolean(currentSessionId && id === currentSessionId) || Boolean(token && id === token);
+
+  return (
+    <div className="space-y-6">
+      <SectionHeading title="Two-Factor Authentication" />
+      {error && (
+        <div className="flex items-center gap-2 rounded border border-red-200 bg-red-50 p-2 text-sm text-red-700">
+          <AlertTriangle className="h-4 w-4" /> {error}
+        </div>
+      )}
+
+      {status === 'unknown' ? (
+        <Card>
+          <CardContent className="text-muted-foreground py-6 text-center text-sm">
+            Loading 2FA status…
+          </CardContent>
+        </Card>
+      ) : setup ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Scan with your authenticator</CardTitle>
+            <CardDescription>
+              Add this account to your authenticator app (Authy, 1Password, Google Authenticator,
+              etc.), then enter the 6-digit code below.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="bg-muted/30 flex flex-col items-center gap-2 rounded-lg border p-3 sm:flex-row sm:items-start">
+              <div className="bg-card border-border flex h-40 w-40 shrink-0 items-center justify-center overflow-hidden rounded border">
+                {setup.qrCodeUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={setup.qrCodeUrl} alt="TOTP QR code" className="h-full w-full" />
+                ) : (
+                  <Fingerprint className="text-muted-foreground h-12 w-12" />
+                )}
+              </div>
+              <div className="flex-1 space-y-2 text-xs">
+                <p className="text-muted-foreground">
+                  If you can&apos;t scan the QR, add this account manually with the secret:
+                </p>
+                <pre className="bg-card border-border overflow-x-auto rounded border p-2 font-mono">
+                  {setup.secret}
+                </pre>
+                <div>
+                  <p className="mb-1 font-semibold">
+                    Backup codes (save these now — they won&apos;t be shown again):
+                  </p>
+                  <pre className="bg-card border-border overflow-x-auto rounded border p-2 font-mono">
+                    {setup.backupCodes.join('\n')}
+                  </pre>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyBackupCodes(setup.backupCodes)}
+                    className="mt-2 gap-1"
+                  >
+                    <Copy className="h-3.5 w-3.5" /> Copy codes
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+              <FormField label="Verification code">
+                <Input
+                  value={verifyCode}
+                  onChange={(e) => setVerifyCode(e.target.value)}
+                  inputMode="numeric"
+                  maxLength={9}
+                  placeholder="123456"
+                />
+              </FormField>
+              <div className="flex gap-2">
+                <Button onClick={finishSetup} disabled={busy}>
+                  {busy ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                  )}
+                  Verify and enable
+                </Button>
+                <Button variant="ghost" onClick={cancelSetup} disabled={busy}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : status === 'enabled' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Two-factor authentication
+              enabled
+            </CardTitle>
+            <CardDescription>
+              Enter an authenticator code (or a backup code) to disable 2FA.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+              <FormField label="Authenticator code">
+                <Input
+                  value={disableCode}
+                  onChange={(e) => setDisableCode(e.target.value)}
+                  inputMode="numeric"
+                  maxLength={9}
+                  placeholder="123456"
+                />
+              </FormField>
+              <Button variant="destructive" onClick={disable2FA} disabled={busy}>
+                {busy ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="mr-2 h-4 w-4" />
+                )}
+                Disable 2FA
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="bg-muted/30 flex items-center justify-between gap-3 rounded-lg border p-4">
+            <div className="flex items-center gap-3">
+              <Fingerprint className="text-muted-foreground h-5 w-5" />
+              <div>
+                <p className="text-sm font-medium">Two-factor authentication</p>
+                <p className="text-muted-foreground text-xs">
+                  Add an extra layer of security with a TOTP app.
+                </p>
+              </div>
+            </div>
+            <Button onClick={startSetup} disabled={busy}>
+              {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Set up
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <SectionHeading title="Active Sessions" />
+      <Card>
+        <CardContent className="space-y-3">
+          {sessions.length === 0 ? (
+            <p className="text-muted-foreground py-4 text-center text-sm">Loading sessions…</p>
+          ) : (
+            <>
+              {sessions.map((s) => {
+                const isHere = isCurrent(s.id);
+                return (
+                  <div
+                    key={s.id}
+                    className="flex items-center justify-between gap-4 rounded-lg border p-3"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="bg-primary/10 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+                        <Smartphone className="text-primary h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="truncate text-sm font-medium">
+                            {s.device || s.userAgent?.slice(0, 40) || 'Unknown device'}
+                          </p>
+                          {isHere && (
+                            <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
+                              This session
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-muted-foreground truncate text-xs">
+                          {s.browser ||
+                            s.userAgent?.split(' ').slice(-2).join(' ') ||
+                            'Unknown browser'}{' '}
+                          · {s.ip || 'unknown ip'}
+                        </p>
+                        <p className="text-muted-foreground text-xs">
+                          last active{' '}
+                          {s.lastActiveAt ? new Date(s.lastActiveAt).toLocaleString() : '—'}
+                        </p>
+                      </div>
+                    </div>
+                    {!isHere && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-destructive h-8 w-8"
+                        onClick={() => revokeSession(s.id)}
+                        aria-label="Revoke session"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+              {sessions.filter((s) => !isCurrent(s.id)).length > 0 && (
+                <div className="pt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={revokeAllOthers}
+                    disabled={busy}
+                    className="gap-1 text-xs"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Sign out all other sessions
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -816,66 +1183,8 @@ export default function SettingsPage() {
                     </CardFooter>
                   </Card>
 
-                  {/* Two-Factor Authentication */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Two-Factor Authentication</CardTitle>
-                      <CardDescription>
-                        Add an extra layer of security to your account
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="bg-muted/30 flex items-center justify-between rounded-lg border p-4">
-                        <div className="flex items-center gap-3">
-                          <Fingerprint className="text-muted-foreground h-5 w-5" />
-                          <div>
-                            <p className="text-sm font-medium">Two-Factor Authentication</p>
-                            <p className="text-muted-foreground text-xs">
-                              Protect your account with a second verification method
-                            </p>
-                          </div>
-                        </div>
-                        <Switch
-                          checked={false}
-                          onCheckedChange={() => toast.info('2FA setup coming soon')}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Active Sessions */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Active Sessions</CardTitle>
-                      <CardDescription>Manage your active login sessions</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <SessionCard
-                        device={
-                          typeof navigator !== 'undefined' && /Mac/.test(navigator.userAgent)
-                            ? 'macOS'
-                            : 'Windows'
-                        }
-                        browser="Current Browser"
-                        location="This Session"
-                        time="Active now"
-                        current
-                      />
-                      <p className="text-muted-foreground py-2 text-center text-xs">
-                        Session management requires a server-side sessions API.
-                      </p>
-                      <div className="pt-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-muted-foreground gap-1 text-xs"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Sign Out All Other Sessions
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {/* Two-Factor Authentication moved to Security tab. */}
+                  {/* Active Sessions moved to Security tab. */}
 
                   {/* API Access */}
                   <Card>
@@ -968,6 +1277,9 @@ export default function SettingsPage() {
                   </Card>
                 </div>
               )}
+
+              {/* ── Security Tab ── */}
+              {activeTab === 'security' && <SecurityTab userId={user?.id ?? ''} />}
 
               {/* ── Notifications Tab ── */}
               {activeTab === 'notifications' && (
