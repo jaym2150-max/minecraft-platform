@@ -43,6 +43,21 @@ const qs = (params: Record<string, string | number | undefined>) => {
 };
 
 export const adminApi = {
+  // guides
+  listAllGuides: (params: Record<string, string | number | undefined> = {}) =>
+    apiJson<any>(`/guides${qs(params)}`),
+  createGuide: (data: {
+    title: string;
+    slug?: string;
+    excerpt?: string;
+    body?: string;
+    category?: string;
+    status?: string;
+  }) => apiJson<any>('/guides', { method: 'POST', body: JSON.stringify(data) }),
+  updateGuide: (id: string, data: Record<string, unknown>) =>
+    apiJson<any>(`/guides/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteGuide: (id: string) => apiJson<any>(`/guides/${id}`, { method: 'DELETE' }),
+  seedGuides: () => apiJson<any>('/guides/seed', { method: 'POST' }),
   // data quality
   listDataQualityIssues: (params: Record<string, string | number | undefined> = {}) =>
     apiJson<any>(`/data-quality/issues${qs(params)}`),

@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Database,
   Key,
+  BookOpen,
   LogOut,
   Settings,
 } from 'lucide-react';
@@ -25,6 +26,7 @@ const navItems = [
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/integrations', label: 'Integrations', icon: RefreshCw },
   { href: '/data-quality', label: 'Data Quality', icon: Database },
+  { href: '/guides', label: 'Guides', icon: BookOpen },
   { href: '/permissions', label: 'Permissions', icon: Key },
 ];
 
