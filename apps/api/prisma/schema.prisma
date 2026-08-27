@@ -1058,3 +1058,22 @@ model Guide {
   @@index([category])
   @@map("guides")
 }
+
+/// Per-loader install guide template. The `body` is a markdown string with
+/// `{{projectName}}`, `{{loader}}`, `{{loaderVersion}}`, `{{gameVersion}}` and
+/// `{{client}}`/`{{server}}` placeholders that the renderer substitutes. The
+/// `recommended` column shows the template on the project page by default.
+model InstallGuideTemplate {
+  id        String   @id @default(uuid())
+  loader    String
+  title     String
+  excerpt   String?
+  body      String
+  recommended Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([loader])
+  @@index([recommended])
+  @@map("install_guide_templates")
+}

@@ -51,6 +51,7 @@ import { VersionTable } from '@/components/version-table';
 import { formatNumber, timeAgo, formatDate } from '@mcp/utils/helpers';
 import { CommentsSection } from './comments-section';
 import { ReviewsSection } from './reviews-section';
+import { InstallGuide } from './install-guide';
 import { sdk } from '@/services/api';
 import { useAuth } from '@mcp/auth';
 import { toast } from 'sonner';
@@ -809,26 +810,13 @@ export default function ModDetailPage() {
               className="bg-card rounded-xl border p-6"
             >
               {activeTab === 'description' && (
-                <div>
+                <div className="space-y-4">
                   {project.body ? (
                     <MarkdownRenderer content={project.body} />
                   ) : (
-                    <>
-                      <p className="text-muted-foreground mb-4 text-sm">{project.description}</p>
-                      <h3 className="mb-2 mt-4 flex items-center gap-2 text-lg font-semibold">
-                        <PackageIcon className="text-primary h-5 w-5" />
-                        Installation
-                      </h3>
-                      <ol className="list-decimal space-y-1 pl-5 text-sm">
-                        <li>Install the mod loader (Fabric, Forge, or NeoForge)</li>
-                        <li>Download the mod file for your Minecraft version</li>
-                        <li>
-                          Place the .jar file in your <code>mods</code> folder
-                        </li>
-                        <li>Launch Minecraft and enjoy!</li>
-                      </ol>
-                    </>
+                    <p className="text-muted-foreground text-sm">{project.description}</p>
                   )}
+                  <InstallGuide projectId={project.id} />
                 </div>
               )}
 
