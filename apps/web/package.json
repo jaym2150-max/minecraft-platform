@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3003",
+    "prebuild": "node scripts/generate-pwa-icons.mjs",
     "build": "next build",
     "start": "next start --port 3003",
     "lint": "next lint",
     "clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\"",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "icons": "node scripts/generate-pwa-icons.mjs"
   },
   "dependencies": {
     "@mcp/auth": "workspace:*",
@@ -48,6 +50,7 @@
     "autoprefixer": "^10.4.20",
     "jsdom": "^29.1.1",
     "postcss": "^8.4.49",
+    "sharp": "^0.35.0",
     "tailwindcss": "^3.4.15",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.6.3",
