@@ -53,6 +53,22 @@ export const adminApi = {
       method: 'PUT',
       body: JSON.stringify({ status }),
     }),
+  // permissions
+  listPermissions: () => apiJson<any>('/permissions'),
+  seedPermissions: () => apiJson<any>('/permissions/seed', { method: 'POST' }),
+  setRolePermission: (role: string, permissionId: string, granted: boolean) =>
+    apiJson<any>(`/permissions/role/${role}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ permissionId, granted }),
+    }),
+  listUserOverrides: (userId: string) => apiJson<any>(`/permissions/user/${userId}`),
+  setUserOverride: (userId: string, permissionId: string, granted: boolean, reason?: string) =>
+    apiJson<any>(`/permissions/user/${userId}`, {
+      method: 'POST',
+      body: JSON.stringify({ permissionId, granted, reason }),
+    }),
+  removeUserOverride: (userId: string, permissionId: string) =>
+    apiJson<any>(`/permissions/user/${userId}/${permissionId}`, { method: 'DELETE' }),
   // integrations
   listProviders: () => apiJson<any>('/admin/integrations/providers'),
   triggerSync: (type: string, opts: Record<string, unknown> = {}) =>

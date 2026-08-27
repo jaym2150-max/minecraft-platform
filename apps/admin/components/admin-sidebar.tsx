@@ -11,6 +11,7 @@ import {
   BarChart3,
   RefreshCw,
   Database,
+  Key,
   LogOut,
   Settings,
 } from 'lucide-react';
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/integrations', label: 'Integrations', icon: RefreshCw },
   { href: '/data-quality', label: 'Data Quality', icon: Database },
+  { href: '/permissions', label: 'Permissions', icon: Key },
 ];
 
 export function AdminSidebar() {
