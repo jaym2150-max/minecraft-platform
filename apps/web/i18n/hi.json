@@ -1,0 +1,45 @@
+{
+  "common": {
+    "appName": "Minecraft Platform",
+    "tagline": "Minecraft मॉड्स, मॉडपैक और प्लगइन्स खोजें, डाउनलोड करें और साझा करें।",
+    "search": "मॉड्स खोजें…",
+    "browseAll": "सभी देखें",
+    "browse": "ब्राउज़",
+    "viewAll": "सभी देखें",
+    "signIn": "साइन इन",
+    "getStarted": "शुरू करें",
+    "signOut": "साइन आउट",
+    "dashboard": "डैशबोर्ड",
+    "collections": "संग्रह",
+    "lookup": "खोज",
+    "settings": "सेटिंग्स",
+    "openAccountMenu": "खाता मेनू खोलें",
+    "openNotifications": "सूचनाएँ खोलें",
+    "openLanguageMenu": "भाषा मेनू खोलें",
+    "searchResults": "खोज परिणाम",
+    "noResults": "कोई परिणाम नहीं",
+    "retry": "पुनः प्रयास करें",
+    "loading": "लोड हो रहा है…",
+    "browseCached": "कैश्ड मॉड्स देखें",
+    "offlineTitle": "आप ऑफ़लाइन हैं",
+    "offlineBody": "हम अभी Minecraft Platform से संपर्क नहीं कर सके। कैश्ड पेज अभी भी काम करने चाहिए — दोबारा कोशिश करें, या ऑनलाइन होने पर वापस आएँ।",
+    "language": "भाषा"
+  },
+  "home": {
+    "heroTitle": "हर मॉड, हर लोडर, हर संस्करण।",
+    "heroSubtitle": "हज़ारों मैलवेयर-स्कैन किए गए Minecraft मॉड्स, मॉडपैक, रिसोर्स पैक, डेटा पैक, शेडर्स और प्लगइन्स — खोजने योग्य, स्थापित करने योग्य, और समुदाय द्वारा समीक्षित।",
+    "heroSearchPlaceholder": "मॉड, मॉडपैक या प्लगइन खोजें…",
+    "trendingTitle": "ट्रेंडिंग मॉड्स",
+    "trendingSubtitle": "इस सप्ताह सबसे अधिक डाउनलोड — हर घंटे अपडेट होता है",
+    "recommendedTitle": "आपके लिए अनुशंसित",
+    "recommendedSubtitle": "आज के ट्रेंडिंग मॉड्स के साथ लोग जो कुछ इंस्टॉल कर रहे हैं उसमें से चुना गया",
+    "popularModpacks": "लोकप्रिय मॉडपैक",
+    "categories": "श्रेणियाँ",
+    "updatedRecently": "हाल ही में अपडेट किया गया"
+  },
+  "errors": {
+    "generic": "कुछ गलत हो गया।",
+    "tryAgain": "पुनः प्रयास करें",
+    "notFound": "हम वह पेज नहीं ढूँढ सके।"
+  }
+}

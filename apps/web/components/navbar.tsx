@@ -8,12 +8,15 @@ import { Avatar, AvatarFallback } from '@mcp/ui/components/avatar';
 import { SearchAutocomplete } from './search-autocomplete';
 import { ThemeToggle } from './theme-toggle';
 import { NotificationBell } from './notification-bell';
+import { LocaleSwitcher } from './locale-switcher';
 import { useAuth } from '@mcp/auth';
+import { useI18n } from '@/i18n/provider';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
+  const { t } = useI18n();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,42 +49,43 @@ export function Navbar() {
             <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
               <span className="text-primary-foreground text-sm font-bold">MP</span>
             </div>
-            <span className="hidden sm:inline">Minecraft Platform</span>
+            <span className="hidden sm:inline">{t('common.appName')}</span>
           </Link>
           <nav className="hidden items-center gap-6 md:flex">
             <Link
               href="/mods"
               className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
             >
-              Browse
+              {t('common.browse')}
             </Link>
             <Link
               href="/collections"
               className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
             >
-              Collections
+              {t('common.collections')}
             </Link>
             <Link
               href="/lookup"
               className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
             >
-              Lookup
+              {t('common.lookup')}
             </Link>
             <Link
               href="/dashboard"
               className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
             >
-              Dashboard
+              {t('common.dashboard')}
             </Link>
           </nav>
         </div>
 
         <div className="hidden max-w-sm flex-1 items-center gap-4 md:flex">
-          <SearchAutocomplete className="w-full" placeholder="Search mods..." />
+          <SearchAutocomplete className="w-full" placeholder={t('common.search')} />
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
           <ThemeToggle />
+          <LocaleSwitcher />
           <NotificationBell />
           {/* H-F7 (AUDIT.md): during the AuthProvider's first /auth/me verify
               isAuthenticated is false and user is null, so without this gate
@@ -102,7 +106,7 @@ export function Navbar() {
                 aria-haspopup="menu"
                 aria-expanded={profileOpen}
                 aria-controls="navbar-profile-menu"
-                aria-label={`Account menu for ${user.username}`}
+                aria-label={`${t('common.openAccountMenu')}: ${user.username}`}
                 className="hover:bg-muted flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors"
               >
                 <Avatar className="h-7 w-7">
@@ -135,7 +139,7 @@ export function Navbar() {
                     onClick={() => setProfileOpen(false)}
                     className="hover:bg-muted flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
                   >
-                    <LayoutDashboard className="h-4 w-4" /> Dashboard
+                    <LayoutDashboard className="h-4 w-4" /> {t('common.dashboard')}
                   </Link>
                   <Link
                     href="/settings"
@@ -143,7 +147,7 @@ export function Navbar() {
                     onClick={() => setProfileOpen(false)}
                     className="hover:bg-muted flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
                   >
-                    <Settings className="h-4 w-4" /> Settings
+                    <Settings className="h-4 w-4" /> {t('common.settings')}
                   </Link>
                   <button
                     role="menuitem"
@@ -153,7 +157,7 @@ export function Navbar() {
                     }}
                     className="hover:bg-muted text-destructive flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
                   >
-                    <LogOut className="h-4 w-4" /> Sign Out
+                    <LogOut className="h-4 w-4" /> {t('common.signOut')}
                   </button>
                 </div>
               )}
@@ -161,10 +165,10 @@ export function Navbar() {
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
-                <Link href="/auth/login">Sign In</Link>
+                <Link href="/auth/login">{t('common.signIn')}</Link>
               </Button>
               <Button size="sm" asChild>
-                <Link href="/auth/register">Get Started</Link>
+                <Link href="/auth/register">{t('common.getStarted')}</Link>
               </Button>
             </>
           )}
@@ -183,35 +187,35 @@ export function Navbar() {
 
       {isOpen && (
         <div id="navbar-mobile-menu" className="space-y-4 border-t p-4 md:hidden">
-          <SearchAutocomplete className="w-full" placeholder="Search mods..." />
+          <SearchAutocomplete className="w-full" placeholder={t('common.search')} />
           <nav className="flex flex-col gap-2">
             <Link
               href="/mods"
               onClick={() => setIsOpen(false)}
               className="py-2 text-sm font-medium"
             >
-              Browse Mods
+              {t('common.browse')}
             </Link>
             <Link
               href="/collections"
               onClick={() => setIsOpen(false)}
               className="py-2 text-sm font-medium"
             >
-              Collections
+              {t('common.collections')}
             </Link>
             <Link
               href="/lookup"
               onClick={() => setIsOpen(false)}
               className="py-2 text-sm font-medium"
             >
-              Hash Lookup
+              {t('common.lookup')}
             </Link>
             <Link
               href="/dashboard"
               onClick={() => setIsOpen(false)}
               className="py-2 text-sm font-medium"
             >
-              Dashboard
+              {t('common.dashboard')}
             </Link>
             {authLoading ? null : isAuthenticated && user ? (
               <>
@@ -220,7 +224,7 @@ export function Navbar() {
                   onClick={() => setIsOpen(false)}
                   className="py-2 text-sm font-medium"
                 >
-                  Settings
+                  {t('common.settings')}
                 </Link>
                 <Button
                   variant="ghost"
@@ -230,7 +234,7 @@ export function Navbar() {
                     logout();
                   }}
                 >
-                  <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                  <LogOut className="mr-2 h-4 w-4" /> {t('common.signOut')}
                 </Button>
               </>
             ) : (
@@ -240,10 +244,10 @@ export function Navbar() {
                   onClick={() => setIsOpen(false)}
                   className="py-2 text-sm font-medium"
                 >
-                  Sign In
+                  {t('common.signIn')}
                 </Link>
                 <Button asChild className="w-full" onClick={() => setIsOpen(false)}>
-                  <Link href="/auth/register">Get Started</Link>
+                  <Link href="/auth/register">{t('common.getStarted')}</Link>
                 </Button>
               </>
             )}

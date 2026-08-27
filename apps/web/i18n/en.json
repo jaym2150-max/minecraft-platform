@@ -1,0 +1,45 @@
+{
+  "common": {
+    "appName": "Minecraft Platform",
+    "tagline": "Discover, download and share Minecraft mods, modpacks and plugins.",
+    "search": "Search mods…",
+    "browseAll": "Browse all",
+    "browse": "Browse",
+    "viewAll": "View all",
+    "signIn": "Sign In",
+    "getStarted": "Get Started",
+    "signOut": "Sign Out",
+    "dashboard": "Dashboard",
+    "collections": "Collections",
+    "lookup": "Lookup",
+    "settings": "Settings",
+    "openAccountMenu": "Open account menu",
+    "openNotifications": "Open notifications",
+    "openLanguageMenu": "Open language menu",
+    "searchResults": "Search results",
+    "noResults": "No results",
+    "retry": "Retry",
+    "loading": "Loading…",
+    "browseCached": "Browse cached mods",
+    "offlineTitle": "You're offline",
+    "offlineBody": "We couldn't reach Minecraft Platform right now. Cached pages should still work — try again, or come back when you're online.",
+    "language": "Language"
+  },
+  "home": {
+    "heroTitle": "Every mod, every loader, every version.",
+    "heroSubtitle": "Thousands of malware-scanned Minecraft mods, modpacks, resource packs, data packs, shaders and plugins — discoverable, installable, and reviewed by the community.",
+    "heroSearchPlaceholder": "Search for a mod, modpack or plugin…",
+    "trendingTitle": "Trending Mods",
+    "trendingSubtitle": "Most downloaded this week — updated every hour",
+    "recommendedTitle": "Recommended for you",
+    "recommendedSubtitle": "Picked from what people are installing alongside today's trending mods",
+    "popularModpacks": "Popular Modpacks",
+    "categories": "Categories",
+    "updatedRecently": "Updated recently"
+  },
+  "errors": {
+    "generic": "Something went wrong.",
+    "tryAgain": "Try again",
+    "notFound": "We couldn't find that page."
+  }
+}

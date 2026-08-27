@@ -1,0 +1,45 @@
+{
+  "common": {
+    "appName": "Minecraft Platform",
+    "tagline": "Descubre, descarga y comparte mods, modpacks y plugins de Minecraft.",
+    "search": "Buscar mods…",
+    "browseAll": "Ver todo",
+    "browse": "Explorar",
+    "viewAll": "Ver todo",
+    "signIn": "Iniciar sesión",
+    "getStarted": "Empezar",
+    "signOut": "Cerrar sesión",
+    "dashboard": "Panel",
+    "collections": "Colecciones",
+    "lookup": "Búsqueda",
+    "settings": "Ajustes",
+    "openAccountMenu": "Abrir menú de cuenta",
+    "openNotifications": "Abrir notificaciones",
+    "openLanguageMenu": "Abrir menú de idioma",
+    "searchResults": "Resultados de búsqueda",
+    "noResults": "Sin resultados",
+    "retry": "Reintentar",
+    "loading": "Cargando…",
+    "browseCached": "Ver mods en caché",
+    "offlineTitle": "Estás sin conexión",
+    "offlineBody": "No pudimos contactar con Minecraft Platform. Las páginas en caché deberían seguir funcionando — inténtalo de nuevo o vuelve cuando tengas conexión.",
+    "language": "Idioma"
+  },
+  "home": {
+    "heroTitle": "Cada mod, cada loader, cada versión.",
+    "heroSubtitle": "Miles de mods, modpacks, paquetes de recursos, data packs, shaders y plugins de Minecraft escaneados contra malware — descubribles, instalables y reseñados por la comunidad.",
+    "heroSearchPlaceholder": "Busca un mod, modpack o plugin…",
+    "trendingTitle": "Mods en tendencia",
+    "trendingSubtitle": "Lo más descargado esta semana — actualizado cada hora",
+    "recommendedTitle": "Recomendado para ti",
+    "recommendedSubtitle": "Elegido entre lo que la gente instala junto a los mods en tendencia",
+    "popularModpacks": "Modpacks populares",
+    "categories": "Categorías",
+    "updatedRecently": "Actualizados recientemente"
+  },
+  "errors": {
+    "generic": "Algo salió mal.",
+    "tryAgain": "Intentar de nuevo",
+    "notFound": "No pudimos encontrar esa página."
+  }
+}
